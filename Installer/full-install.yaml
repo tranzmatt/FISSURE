@@ -1,0 +1,153 @@
+checked_items:
+  - Misc. Dependencies
+  - fissure Commands
+  - Password Prompt Exceptions
+  - GNU Radio
+  - Scapy
+  - Wireshark
+  - PostgreSQL Database
+  - Meshtastic
+  - Network Certificates
+  - gr-ainfosec
+  - LimeSDR
+  - BladeRF
+  - USRP X300 Series
+  - HackRF, gr-osmosdr
+  - 8812au Driver
+  - Zigbee Sniffer
+  - fl2k
+  - Proxmark3
+  - PlutoSDR
+  - qFlipper
+  - Minicom
+  - PuTTY
+  - gr-acars-3.10ng
+  - gr-adsb
+  - gr-ais
+  - gr-aistx
+  - gr-bluetooth
+  - gr-clapper_plus
+  - gr-dect2
+  - gr-foo
+  - gr-fuzzer
+  - gr-garage_door
+  - gr-gsm
+  - gr-ieee802-11
+  - gr-ieee802-15-4
+  - gr-iridium
+  - gr-j2497
+  - gr-limesdr
+  - gr-mixalot
+  - gr-nrsc5
+  - gr-paint
+  - gr-rds
+  - gr-sdrplay3
+  - gr-tpms
+  - gr-tpms_poore
+  - gr-X10
+  - gr-zwave_poore
+  - Archive Flow Graphs
+  - Fuzzing Flow Graphs
+  - Inspection Flow Graphs
+  - IQ Flow Graphs
+  - PD Flow Graphs
+  - Single-Stage Flow Graphs
+  - Sniffer Flow Graphs
+  - Standalone Flow Graphs
+  - TSI Flow Graphs
+  - Trigger Flow Graphs
+  - rtl_433
+  - monitor_rtl433
+  - Kismet
+  - UDP Replay
+  - Aircrack-ng
+  - NETATTACK2
+  - Wifite
+  - RouterSploit
+  - Metasploit
+  - scan-ssid
+  - ESP8266 Deauther v2
+  - trackerjacker
+  - airgeddon
+  - Dump1090
+  - gr-air-modes
+  - dump978
+  - OpenCPN
+  - pyais
+  - Audacity
+  - Sound eXchange
+  - LAME
+  - mpv
+  - FFmpeg
+  - MPlayer
+  - minimodem
+  - Enscribe
+  - btscanner
+  - hcidump
+  - ESP32 BT Classic Sniffer
+  - ICE9 Bluetooth Sniffer
+  - rehex
+  - Bless
+  - Meld
+  - nwdiag
+  - CRC RevEng
+  - GHex
+  - Binwalk
+  - IQEngine
+  - QtDesigner
+  - Grip
+  - Geany
+  - Arduino IDE
+  - Bootable USB
+  - htop
+  - wl-color-picker
+  - Read the Docs
+  - pyFDA
+  - PyGPSClient
+  - Gpredict
+  - FoxtrotGPS
+  - Kalibrate
+  - WSJT-X
+  - Xastir
+  - HAM2MON
+  - Anki
+  - QSSTV
+  - Fldigi
+  - Dire Wolf
+  - HamClock
+  - HAMRS
+  - nrsc5
+  - srsRAN_4G
+  - FALCON
+  - LTE-ciphercheck
+  - LTE-Cell-Scanner
+  - m17-cxx-demod
+  - Google Earth Pro
+  - Viking
+  - TAK Server
+  - multimon-ng
+  - radiosonde_auto_rx
+  - ZEPASSD
+  - iridium-toolkit
+  - IridiumLive
+  - QSpectrumAnalyzer
+  - GQRX
+  - baudline
+  - Universal Radio Hacker
+  - Inspectrum
+  - retrogram-rtlsdr
+  - RTLSDR-Airband
+  - Spektrum
+  - SdrGlut
+  - GraphicsMagick
+  - Spectrum Painter
+  - SigDigger
+  - OpenWebRX
+  - Hydra
+  - SDRTrunk
+  - V2Verifier
+  - VLC
+  - Simple Screen Recorder
+  - openHAB
+  - rtl-zwave
+  - waving-z

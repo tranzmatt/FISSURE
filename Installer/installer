@@ -24778,6 +24778,25 @@ def headless_install(programs, checked_items):
 
 def main(argv):
     """ The start of everything. """
+    # Headless mode: YAML-only invocation
+    if len(argv) == 2 and argv[1].lower().endswith(('.yaml', '.yml')):
+        import yaml
+        from installer import detect_supported_os, headless_install  # adjust as needed if refactored
+        cfg = yaml.safe_load(open(argv[1]))
+        checked = cfg.get('checked_items', [])
+        os_name = detect_supported_os()
+        print("Detected OS:", os_name)
+        if os_name == "Ubuntu 20.04":
+            progs = programs_ubuntu20_04
+        elif os_name == "Ubuntu 22.04":
+            progs = programs_ubuntu22_04
+        elif os_name == "Kali":
+            progs = programs_kali
+        else:
+            print("⚠ Unknown OS—cannot select programs.")
+            sys.exit(1)
+        headless_install(progs, checked)
+        sys.exit(0)
     # Headless mode: yaml-only invocation
     if len(argv) == 2 and argv[1].lower().endswith(('.yaml', '.yml')):
         cfg = yaml.safe_load(open(argv[1], 'r'))
