@@ -24701,8 +24701,62 @@ class InstallDialog1(QtWidgets.QDialog, form_class):
         self.close()
 
 
+import yaml
+
+def detect_os_release():
+    """Simple /etc/os-release parser: returns PRETTY_NAME."""
+    try:
+        d = {}
+        with open('/etc/os-release') as f:
+            for line in f:
+                if '=' in line:
+                    k,v = line.rstrip().split('=',1)
+                    d[k] = v.strip('"')
+        return d.get('PRETTY_NAME','')
+    except:
+        return ''
+
+def headless_install(programs, checked_items):
+    import subprocess, time
+    n = len(checked_items)
+    print("⏳ Headless install: {} items".format(n))
+    for idx, name in enumerate(checked_items, start=1):
+        print("[{}/{}] Installing {}".format(idx, n, name))
+        for pkg, cmds, *rest in programs:
+            if pkg == name:
+                install_cmd, *verify = cmds.split("########## Verify ##########")
+                subprocess.run(install_cmd, shell=True, check=True)
+                if verify:
+                    try:
+                        subprocess.run(verify[0], shell=True, check=True)
+                        print("  ✔ {} verified".format(name))
+                    except subprocess.CalledProcessError:
+                        print("  ✖ {} verify FAILED".format(name))
+                break
+        else:
+            print("  ⚠ {} not found in program list".format(name))
+        time.sleep(0.2)
+    print("✅ Headless install complete.")
 def main(argv):
-    """ The start of everything.
+    """ The start of everything. """
+    # Headless mode: yaml-only invocation
+    if len(argv) == 2 and argv[1].lower().endswith(('.yaml', '.yml')):
+        cfg = yaml.safe_load(open(argv[1], 'r'))
+        checked = cfg.get('checked_items', [])
+        os_rel = detect_os_release()
+        print("Detected OS:", os_rel)
+        if "Ubuntu 20.04" in os_rel:
+            progs = programs_ubuntu20_04
+        elif "Ubuntu 22.04" in os_rel:
+            progs = programs_ubuntu22_04
+        elif "Kali" in os_rel:
+            progs = programs_kali
+        else:
+            print("⚠ Unknown OS—cannot select programs.")
+            sys.exit(1)
+        headless_install(progs, checked)
+        sys.exit(0)
+    # normal GUI startup
     """   
     app = QtWidgets.QApplication(argv) 
     
