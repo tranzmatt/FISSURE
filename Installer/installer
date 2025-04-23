@@ -24814,8 +24814,8 @@ def main(argv):
             sys.exit(1)
         headless_install(progs, checked)
         sys.exit(0)
+
     # normal GUI startup
-    """   
     app = QtWidgets.QApplication(argv) 
     
     # Operating System Dialog
