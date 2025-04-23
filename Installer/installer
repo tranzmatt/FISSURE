@@ -8,6 +8,7 @@ import os
 import sys
 import time
 import re
+import yaml
 
 this_file_directory = os.path.dirname(os.path.realpath(__file__))
 fissure_directory = os.path.abspath(os.path.join(this_file_directory, os.pardir))
@@ -24701,20 +24702,57 @@ class InstallDialog1(QtWidgets.QDialog, form_class):
         self.close()
 
 
-import yaml
-
-def detect_os_release():
-    """Simple /etc/os-release parser: returns PRETTY_NAME."""
+def detect_supported_os():
+    """Returns a supported OS identifier used by the installer."""
     try:
-        d = {}
-        with open('/etc/os-release') as f:
-            for line in f:
-                if '=' in line:
-                    k,v = line.rstrip().split('=',1)
-                    d[k] = v.strip('"')
-        return d.get('PRETTY_NAME','')
+        with open("/etc/os-release", "r") as f:
+            os_release = f.read().lower()
     except:
-        return ''
+        os_release = ""
+
+    try:
+        lsb_desc = subprocess.check_output(["lsb_release", "-d"], stderr=subprocess.DEVNULL).decode().lower()
+    except:
+        lsb_desc = ""
+
+    try:
+        with open("/etc/os-dragonos", "r") as f:
+            dragon_desc = f.read().lower()
+    except:
+        dragon_desc = ""
+
+    try:
+        with open("/etc/issue", "r") as f:
+            etc_issue = f.read().lower()
+    except:
+        etc_issue = ""
+
+    if "arch" in os_release:
+        return "Arch Linux"
+    elif "ubuntu 20.04" in lsb_desc:
+        return "Ubuntu 20.04"
+    elif "ubuntu 22.04" in lsb_desc:
+        return "Ubuntu 22.04"
+    elif "ubuntu 24.04" in lsb_desc:
+        return "Ubuntu 24.04"
+    elif "ubuntu 18.04" in lsb_desc:
+        return "Ubuntu 18.04"
+    elif "parrot" in lsb_desc:
+        return "Parrot OS 6.1"
+    elif "kde neon" in lsb_desc:
+        return "KDE neon 5.25"
+    elif "dragonos focalx" in dragon_desc:
+        return "DragonOS FocalX"
+    elif "dragonos focal" in lsb_desc:
+        return "DragonOS Focal"
+    elif "kali" in lsb_desc:
+        return "Kali"
+    elif "bookworm" in lsb_desc:
+        return "Raspberry Pi OS"
+    elif "backbox" in etc_issue:
+        return "BackBox Linux 8"
+    else:
+        return "Unknown"
 
 def headless_install(programs, checked_items):
     import subprocess, time
@@ -24737,6 +24775,7 @@ def headless_install(programs, checked_items):
             print("  ⚠ {} not found in program list".format(name))
         time.sleep(0.2)
     print("✅ Headless install complete.")
+
 def main(argv):
     """ The start of everything. """
     # Headless mode: yaml-only invocation
