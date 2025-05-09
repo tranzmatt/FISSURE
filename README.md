@@ -22,6 +22,18 @@ FISSURE is particularly effective in two key domains: 1) it provides hooks for R
 
 ## News
 
+![NEW](https://img.shields.io/badge/NEW-Documentation-brightgreen) 
+
+**Updated Info Sheet** https://www.ainfosec.com/wp-content/uploads/2023/04/AIS-FISSURE.pdf
+
+![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
+
+**Alerts and Sensor Node Positions in WebTAK** View GPS tagged alerts with custom text and sensor node GPS beacons in a WebTAK browser.
+
+![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
+
+**Attack Alerts, Reports, Exploit Recommendations** Create custom messages from attacks that show up in the Dashboard. Stage new attacks with the return data from a single button click.
+
 ![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
 
 **Alert Listeners** for creating backchannels that accept alerts. Includes: folder/file changes, Meshtastic, MQTT, serial, TCP/UDP, website polling, and ZMQ SUB.
@@ -63,11 +75,6 @@ The deployment of multiple sensor nodes on the same network unlocks many geospat
 ![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
 
 **Signal Classifier tab** for training decision tree and DNN models based solely on extracted statistical features from IQ data. This tab is used to assign truth information to features sets (produced from Feature Extractor) gathered from isolated signals files (produced from Signal Conditioner) to develop machine learning models using TensorFlow and scikit-learn. Unknown signals can be run through all available models to compare results and establish confidence. The Signal Conditioner, Feature Extractor, and Signal Classifier tabs act as a testbed for developing new algorithms and eventually the results (isolated IQ signals, statistical features, classification confidence) will be cataloged into the FISSURE library as signals of interest for further analysis or to trigger automated actions.
-
-![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
-
-**On-off keying signal generator** in the IQ Data tab for quick viewing and testing of signals/devices. Custom signals can be saved as IQ files for replay to perform actions on targets or simulate RF devices. 
-
 
 ### Upcoming/Recent Events
 
@@ -136,7 +143,7 @@ The deployment of multiple sensor nodes on the same network unlocks many geospat
 </a>
 </p>
 
-- [Info Sheet](https://www.ainfosec.com/wp-content/uploads/2022/10/AIS-FISSURE-infosheet.pdf)
+- [Info Sheet](https://www.ainfosec.com/wp-content/uploads/2023/04/AIS-FISSURE.pdf)
 - [AIS Page](https://www.ainfosec.com/technologies/fissure/)
 - [GRCon22 Slides](https://events.gnuradio.org/event/18/contributions/246/attachments/84/164/FISSURE_Poore_GRCon22.pdf)
 - [GRCon22 Paper](https://events.gnuradio.org/event/18/contributions/246/attachments/84/167/FISSURE_Paper_Poore_GRCon22.pdf)

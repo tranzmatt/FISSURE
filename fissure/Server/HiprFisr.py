@@ -130,7 +130,7 @@ class HiprFisr:
         self.ip_address = fissure.utils.get_ip_address()
 
         # Sensor Node GPS Tracker for TAK
-        self.sensor_node_tracker = SensorNodeTracker()
+        self.sensor_node_tracker = SensorNodeTracker(self.logger)
 
         # Store Collected Wideband and Narrowband Signals in Lists
         self.wideband_list = []
@@ -768,9 +768,11 @@ class HiprFisr:
         except Exception as e:
             self.logger.error(f"Error: {e}")
 
+
     def start_tak_docker_container(self):
         """
-        Starts the Tak Docker container if it is not already running.
+        Starts the TAK Docker containers (DB and server) if not already running.
+        Handles versioned container names dynamically.
         """
         def run_docker_command(command, use_sudo=False, cwd=None):
             """ Helper to run Docker commands with optional sudo and working directory. """
@@ -778,54 +780,56 @@ class HiprFisr:
                 command.insert(0, "sudo")
             return subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=cwd)
 
-        try:
-            # Define the Docker image to check
-            image_name = "takserver_db"
 
-            # Check if the Docker container is running
-            result = run_docker_command(['docker', 'ps', '--filter', f'ancestor={image_name}', '--format', '{{.Image}}'])
-
-            # If the command failed due to permissions, retry with sudo
+        def get_matching_containers(name_prefix):
+            """ Returns a list of container names matching a given prefix. """
+            cmd = ["docker", "ps", "-a", "--filter", f"name={name_prefix}", "--format", "{{.Names}}"]
+            result = run_docker_command(cmd)
             if result.returncode != 0 and "permission denied" in result.stderr.lower():
-                self.logger.info("Docker requires sudo. Retrying with sudo.")
-                result = run_docker_command(['docker', 'ps', '--filter', f'ancestor={image_name}', '--format', '{{.Image}}'], use_sudo=True)
+                result = run_docker_command(cmd, use_sudo=True)
+            if result.returncode == 0:
+                return result.stdout.strip().splitlines()
+            else:
+                self.logger.error(f"Failed to list containers with prefix '{name_prefix}': {result.stderr.strip()}")
+                return []
 
-            # Check if the container is already running
-            if image_name in result.stdout.strip():
-                self.logger.info("Tak Docker container is already running.")
+
+        def start_container(name):
+            """ Starts a container by name, handling sudo if needed. """
+            start_cmd = ["docker", "start", name]
+            result = run_docker_command(start_cmd)
+            if result.returncode != 0 and "permission denied" in result.stderr.lower():
+                result = run_docker_command(start_cmd, use_sudo=True)
+            return result
+
+        try:
+            db_containers = get_matching_containers("takserver-db-")
+            server_containers = get_matching_containers("takserver-")
+
+            # Remove DB containers from the server list (avoid duplication)
+            server_containers = [c for c in server_containers if not c.startswith("takserver-db-")]
+
+            if not db_containers and not server_containers:
+                self.logger.warning("No TAK Docker containers found.")
                 return
 
-            # Container not running, start it
-            self.logger.info("Tak Docker container not found. Starting it...")
+            for container in db_containers:
+                result = start_container(container)
+                if result.returncode == 0:
+                    self.logger.info(f"Started TAK DB container: {container}")
+                else:
+                    self.logger.error(f"Failed to start TAK DB container {container}: {result.stderr.strip()}")
 
-            # Define the start command
-            start_db_command = ["docker", "start", "takserver-db"]
-            start_server_command = ["docker", "start", "takserver"]
-            docker_compose_directory = fissure.utils.FISSURE_ROOT
-
-            # Attempt to start without sudo
-            start_db_result = run_docker_command(start_db_command, cwd=docker_compose_directory)
-            if start_db_result.returncode != 0 and "permission denied" in start_db_result.stderr.lower():
-                self.logger.info("Starting Docker with sudo.")
-                start_db_result = run_docker_command(start_db_command, use_sudo=True, cwd=docker_compose_directory)
-
-            if start_db_result.returncode == 0:
-                self.logger.info("Tak Database Docker container started successfully.")
-            else:
-                self.logger.error(f"Failed to start Tak Database Docker container: {start_db_result.stderr.strip()}")
-
-            start_server_result = run_docker_command(start_server_command, cwd=docker_compose_directory)
-            if start_server_result.returncode != 0 and "permission denied" in start_server_result.stderr.lower():
-                self.logger.info("Starting Docker with sudo.")
-                start_server_result = run_docker_command(start_server_command, use_sudo=True, cwd=docker_compose_directory)
-
-            if start_db_result.returncode == 0:
-                self.logger.info("Tak Server Docker container started successfully.")
-            else:
-                self.logger.error(f"Failed to start Tak Server Docker container: {start_db_result.stderr.strip()}")
+            for container in server_containers:
+                result = start_container(container)
+                if result.returncode == 0:
+                    self.logger.info(f"Started TAK Server container: {container}")
+                else:
+                    self.logger.error(f"Failed to start TAK Server container {container}: {result.stderr.strip()}")
 
         except Exception as e:
-            self.logger.error(f"Error: {e}")
+            self.logger.error(f"Exception while starting TAK containers: {e}")
+
 
     def openPluginEditor(self, plugin_name: str):
         self.plugin_editor = PluginEditor(plugin_name)
@@ -916,7 +920,8 @@ class HiprFisr:
 
 
 class SensorNodeTracker:
-    def __init__(self):
+    def __init__(self, logger):
+        self.logger = logger
         self.past_positions = {}
 
 

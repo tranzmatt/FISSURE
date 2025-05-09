@@ -8,7 +8,6 @@ import os
 import sys
 import time
 import re
-import yaml
 
 this_file_directory = os.path.dirname(os.path.realpath(__file__))
 fissure_directory = os.path.abspath(os.path.join(this_file_directory, os.pardir))
@@ -18,9 +17,38 @@ form_class2 = uic.loadUiType(fissure_directory + "/UI/install2.ui")[0]
 
 # Program Format: ('name','command',checked/default, parent_category)
 
-larger_categories = ['Minimum Install','Hardware','Out-of-Tree Modules','Compile Flow Graphs','433 MHz','802.11','Aircraft','AIS','Audio','Bluetooth','Data','Development','Filters',
-    'GPS','GSM','Ham Radio','HD Radio','LTE','M17','Mapping','POCSAG','Radiosonde','RFID','Satellite','SDR','SSH','Trunked Radio','V2V','Video','Z-Wave']
-
+larger_categories = [
+    'Minimum Install',
+    'Remote Sensor Node',
+    'Hardware',
+    'Out-of-Tree Modules',
+    'Compile Flow Graphs',
+    '433 MHz','802.11',
+    'Aircraft',
+    'AIS',
+    'Audio',
+    'Bluetooth',
+    'Data',
+    'Development',
+    'Filters',
+    'GPS',
+    'GSM',
+    'Ham Radio',
+    'HD Radio',
+    'LTE',
+    'M17',
+    'Mapping',
+    'POCSAG',
+    'Radiosonde',
+    'RFID',
+    'Satellite',
+    'SDR',
+    'SSH',
+    'Trunked Radio',
+    'V2V',
+    'Video',
+    'Z-Wave'
+]
 
 
 ########################################################################
@@ -107,6 +135,8 @@ sudo python3 -m pip install aiohttp
 sudo python3 -m pip install paho-mqtt
 sudo python3 -m pip install msgpack
 sudo python3 -m pip install eventlet
+sudo python3 -m pip install psycopg2-binary
+sudo python3 -m pip install python-dotenv
 . ~/.bashrc
 """,True,'Minimum Install'))
 
@@ -125,7 +155,7 @@ fi
 sudo chmod +x ~/.local/bin/fissure
 
 # Create fissure-sensor-node command
-/bin/echo -e "export PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
+/bin/echo -e "#!/bin/bash\nexport PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
 sudo chmod +x ~/.local/bin/fissure-sensor-node
 
 # Create desktop entry for FISSURE
@@ -278,6 +308,24 @@ python3 ./fissure/generate_certificates.py
 ls '""" + fissure_directory + """/certificates'
 """,True,'Minimum Install'))
 
+# Auto-Launch Sensor Node
+programs_ubuntu20_04.append(('Auto-Launch Sensor Node',
+f"""mkdir -p "$HOME/.config/autostart"
+
+cat <<EOF > "$HOME/.config/autostart/fissure-sensor-node.desktop"
+[Desktop Entry]
+Type=Application
+Terminal=true
+Name=FISSURE Sensor Node
+Exec=gnome-terminal -- bash -c 'sleep 1; $HOME/.local/bin/fissure-sensor-node; exec bash'
+EOF
+
+chmod +x "$HOME/.config/autostart/fissure-sensor-node.desktop"
+
+########## Verify ##########
+ls "$HOME/.config/autostart/fissure-sensor-node.desktop"
+""",False,'Remote Sensor Node'))
+
 # LimeSDR
 programs_ubuntu20_04.append(('LimeSDR (407.9 MB)',
 """sudo add-apt-repository -y ppa:myriadrf/drivers
@@ -296,11 +344,15 @@ programs_ubuntu20_04.append(('HackRF, RTL-SDR, gr-osmosdr',
 # HackRF
 mkdir -p ~/Installed_by_FISSURE
 cd ~/Installed_by_FISSURE
-wget https://github.com/greatscottgadgets/hackrf/releases/download/v2022.09.1/hackrf-2022.09.1.zip
-unzip hackrf-2022.09.1.zip
-rm hackrf-2022.09.1.zip
-mkdir ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
-cd ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
+wget https://github.com/greatscottgadgets/hackrf/releases/download/v2024.02.1/hackrf-2024.02.1.zip
+unzip hackrf-2024.02.1.zip
+rm hackrf-2024.02.1.zip
+mkdir ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+cd ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+sed -i 's/cmake_minimum_required(VERSION 2.8.12)/cmake_minimum_required(VERSION 3.5)/' \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/libhackrf/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/hackrf-tools/CMakeLists.txt
 cmake ..
 make
 sudo make install
@@ -403,7 +455,8 @@ cd ~/Installed_by_FISSURE
 git clone https://gitea.osmocom.org/sdr/osmo-fl2k.git/
 cd osmo-fl2k
 mkdir build
-cd build 
+cd build
+sed -i 's/cmake_minimum_required(VERSION 2.6)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/osmo-fl2k/CMakeLists.txt
 cmake ../ -DINSTALL_UDEV_RULES=ON
 make -j 3
 sudo make install
@@ -1316,6 +1369,7 @@ git clone https://github.com/baol/waving-z.git
 cd ~/Installed_by_FISSURE/waving-z
 mkdir build
 cd build
+sed -i -E 's/^cmake_minimum_required\s*\(\s*VERSION\s+3\.[0-4](\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/waving-z/CMakeLists.txt
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ########## Verify ##########
@@ -1389,6 +1443,7 @@ git clone https://github.com/szpajder/RTLSDR-Airband.git
 cd RTLSDR-Airband
 mkdir build
 cd build
+sed -i -E 's/^[[:space:]]*(cmake_minimum_required|CMAKE_MINIMUM_REQUIRED)[[:space:]]*\([[:space:]]*VERSION[[:space:]]+3\.[0-4]([[:space:]]*)?\)/cmake_minimum_required(VERSION 3.5)/I' ~/Installed_by_FISSURE/RTLSDR-Airband/CMakeLists.txt
 cmake ../
 make
 sudo make install
@@ -1822,6 +1877,7 @@ git clone https://github.com/JiaoXianjun/LTE-Cell-Scanner.git
 cd LTE-Cell-Scanner
 mkdir build
 cd build
+sed -i -E 's/[Cc][Mm][Aa][Kk][Ee]_MINIMUM_REQUIRED\s*\(\s*VERSION\s+2\.[0-9]+(\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/LTE-Cell-Scanner/CMakeLists.txt
 cmake ..
 make 
 sudo make install
@@ -2535,7 +2591,9 @@ sudo python3 -m pip install watchdog --break-system-packages
 sudo python3 -m pip install aiohttp --break-system-packages
 sudo python3 -m pip install paho-mqtt --break-system-packages
 sudo python3 -m pip install msgpack --break-system-packages
-sudo python3 -m pip install eventlet
+sudo python3 -m pip install eventlet --break-system-packages
+sudo python3 -m pip install psycopg2-binary --break-system-packages
+sudo python3 -m pip install python-dotenv --break-system-packages
 . ~/.bashrc
 """,True,"Minimum Install"))
 
@@ -2554,7 +2612,7 @@ fi
 sudo chmod +x ~/.local/bin/fissure
 
 # Create fissure-sensor-node command
-/bin/echo -e "export PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
+/bin/echo -e "#!/bin/bash\nexport PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
 sudo chmod +x ~/.local/bin/fissure-sensor-node
 
 # Create desktop entry for FISSURE
@@ -2705,6 +2763,24 @@ python3 ./fissure/generate_certificates.py
 ls '""" + fissure_directory + """/certificates'
 """,True,'Minimum Install'))
 
+# Auto-Launch Sensor Node
+programs_parrot_os_6_1.append(('Auto-Launch Sensor Node',
+f"""mkdir -p "$HOME/.config/autostart"
+
+cat <<EOF > "$HOME/.config/autostart/fissure-sensor-node.desktop"
+[Desktop Entry]
+Type=Application
+Terminal=true
+Name=FISSURE Sensor Node
+Exec=gnome-terminal -- bash -c 'sleep 1; $HOME/.local/bin/fissure-sensor-node; exec bash'
+EOF
+
+chmod +x "$HOME/.config/autostart/fissure-sensor-node.desktop"
+
+########## Verify ##########
+ls "$HOME/.config/autostart/fissure-sensor-node.desktop"
+""",False,'Remote Sensor Node'))
+
 # LimeSDR
 programs_parrot_os_6_1.append(('LimeSDR',
 """#sudo add-apt-repository -y ppa:myriadrf/drivers  # doesn't work
@@ -2749,11 +2825,15 @@ programs_parrot_os_6_1.append(('HackRF, gr-osmosdr',
 # HackRF
 mkdir -p ~/Installed_by_FISSURE
 cd ~/Installed_by_FISSURE/
-wget https://github.com/greatscottgadgets/hackrf/releases/download/v2022.09.1/hackrf-2022.09.1.zip
-unzip hackrf-2022.09.1.zip
-rm hackrf-2022.09.1.zip
-mkdir ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
-cd ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
+wget https://github.com/greatscottgadgets/hackrf/releases/download/v2024.02.1/hackrf-2024.02.1.zip
+unzip hackrf-2024.02.1.zip
+rm hackrf-2024.02.1.zip
+mkdir ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+cd ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+sed -i 's/cmake_minimum_required(VERSION 2.8.12)/cmake_minimum_required(VERSION 3.5)/' \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/libhackrf/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/hackrf-tools/CMakeLists.txt
 cmake ..
 make
 sudo make install
@@ -2815,7 +2895,8 @@ cd ~/Installed_by_FISSURE
 git clone https://gitea.osmocom.org/sdr/osmo-fl2k.git  # gets redirected: https://git.osmocom.org/osmo-fl2k.git
 cd osmo-fl2k
 mkdir build
-cd build 
+cd build
+sed -i 's/cmake_minimum_required(VERSION 2.6)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/osmo-fl2k/CMakeLists.txt
 cmake ../ -DINSTALL_UDEV_RULES=ON
 make -j 3
 sudo make install
@@ -3732,6 +3813,7 @@ git clone https://github.com/baol/waving-z.git
 cd ~/Installed_by_FISSURE/waving-z
 mkdir build
 cd build
+sed -i -E 's/^cmake_minimum_required\s*\(\s*VERSION\s+3\.[0-4](\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/waving-z/CMakeLists.txt
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ########## Verify ##########
@@ -3805,6 +3887,7 @@ git clone https://github.com/szpajder/RTLSDR-Airband.git
 cd RTLSDR-Airband
 mkdir build
 cd build
+sed -i -E 's/^[[:space:]]*(cmake_minimum_required|CMAKE_MINIMUM_REQUIRED)[[:space:]]*\([[:space:]]*VERSION[[:space:]]+3\.[0-4]([[:space:]]*)?\)/cmake_minimum_required(VERSION 3.5)/I' ~/Installed_by_FISSURE/RTLSDR-Airband/CMakeLists.txt
 cmake ../
 make
 sudo make install
@@ -4239,6 +4322,7 @@ git clone https://github.com/JiaoXianjun/LTE-Cell-Scanner.git
 cd LTE-Cell-Scanner
 mkdir build
 cd build
+sed -i -E 's/[Cc][Mm][Aa][Kk][Ee]_MINIMUM_REQUIRED\s*\(\s*VERSION\s+2\.[0-9]+(\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/LTE-Cell-Scanner/CMakeLists.txt
 cmake ..
 make 
 sudo make install
@@ -4939,6 +5023,8 @@ sudo python3 -m pip install paho-mqtt
 sudo apt install -y python3-eventlet
 sudo python3 -m pip install msgpack
 sudo python3 -m pip install eventlet
+sudo python3 -m pip install psycopg2-binary
+sudo python3 -m pip install python-dotenv
 . ~/.bashrc
 """,True,"Minimum Install"))
 
@@ -4957,7 +5043,7 @@ fi
 sudo chmod +x ~/.local/bin/fissure
 
 # Create fissure-sensor-node command
-/bin/echo -e "export PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
+/bin/echo -e "#!/bin/bash\nexport PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
 sudo chmod +x ~/.local/bin/fissure-sensor-node
 
 # Create desktop entry for FISSURE
@@ -5108,6 +5194,24 @@ python3 ./fissure/generate_certificates.py
 ls '""" + fissure_directory + """/certificates'
 """,True,'Minimum Install'))
 
+# Auto-Launch Sensor Node
+programs_ubuntu22_04.append(('Auto-Launch Sensor Node',
+f"""mkdir -p "$HOME/.config/autostart"
+
+cat <<EOF > "$HOME/.config/autostart/fissure-sensor-node.desktop"
+[Desktop Entry]
+Type=Application
+Terminal=true
+Name=FISSURE Sensor Node
+Exec=gnome-terminal -- bash -c 'sleep 1; $HOME/.local/bin/fissure-sensor-node; exec bash'
+EOF
+
+chmod +x "$HOME/.config/autostart/fissure-sensor-node.desktop"
+
+########## Verify ##########
+ls "$HOME/.config/autostart/fissure-sensor-node.desktop"
+""",False,'Remote Sensor Node'))
+
 # LimeSDR
 programs_ubuntu22_04.append(('LimeSDR (288.7 MB)',
 """#sudo add-apt-repository -y ppa:myriadrf/drivers  # doesn't work
@@ -5152,11 +5256,15 @@ programs_ubuntu22_04.append(('HackRF, gr-osmosdr',
 # HackRF
 mkdir -p ~/Installed_by_FISSURE
 cd ~/Installed_by_FISSURE/
-wget https://github.com/greatscottgadgets/hackrf/releases/download/v2022.09.1/hackrf-2022.09.1.zip
-unzip hackrf-2022.09.1.zip
-rm hackrf-2022.09.1.zip
-mkdir ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
-cd ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
+wget https://github.com/greatscottgadgets/hackrf/releases/download/v2024.02.1/hackrf-2024.02.1.zip
+unzip hackrf-2024.02.1.zip
+rm hackrf-2024.02.1.zip
+mkdir ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+cd ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+sed -i 's/cmake_minimum_required(VERSION 2.8.12)/cmake_minimum_required(VERSION 3.5)/' \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/libhackrf/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/hackrf-tools/CMakeLists.txt
 cmake ..
 make
 sudo make install
@@ -5218,7 +5326,8 @@ cd ~/Installed_by_FISSURE
 git clone https://gitea.osmocom.org/sdr/osmo-fl2k.git  # gets redirected: https://git.osmocom.org/osmo-fl2k.git
 cd osmo-fl2k
 mkdir build
-cd build 
+cd build
+sed -i 's/cmake_minimum_required(VERSION 2.6)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/osmo-fl2k/CMakeLists.txt
 cmake ../ -DINSTALL_UDEV_RULES=ON
 make -j 3
 sudo make install
@@ -6134,6 +6243,7 @@ git clone https://github.com/baol/waving-z.git
 cd ~/Installed_by_FISSURE/waving-z
 mkdir build
 cd build
+sed -i -E 's/^cmake_minimum_required\s*\(\s*VERSION\s+3\.[0-4](\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/waving-z/CMakeLists.txt
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ########## Verify ##########
@@ -6207,6 +6317,7 @@ git clone https://github.com/szpajder/RTLSDR-Airband.git
 cd RTLSDR-Airband
 mkdir build
 cd build
+sed -i -E 's/^[[:space:]]*(cmake_minimum_required|CMAKE_MINIMUM_REQUIRED)[[:space:]]*\([[:space:]]*VERSION[[:space:]]+3\.[0-4]([[:space:]]*)?\)/cmake_minimum_required(VERSION 3.5)/I' ~/Installed_by_FISSURE/RTLSDR-Airband/CMakeLists.txt
 cmake ../
 make
 sudo make install
@@ -6636,6 +6747,7 @@ git clone https://github.com/JiaoXianjun/LTE-Cell-Scanner.git
 cd LTE-Cell-Scanner
 mkdir build
 cd build
+sed -i -E 's/[Cc][Mm][Aa][Kk][Ee]_MINIMUM_REQUIRED\s*\(\s*VERSION\s+2\.[0-9]+(\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/LTE-Cell-Scanner/CMakeLists.txt
 cmake ..
 make 
 sudo make install
@@ -7328,6 +7440,8 @@ sudo python3 -m pip install aiohttp
 sudo python3 -m pip install paho-mqtt
 sudo python3 -m pip install msgpack
 sudo python3 -m pip install eventlet
+sudo python3 -m pip install psycopg2-binary
+sudo python3 -m pip install python-dotenv
 . ~/.bashrc
 """, True, "Minimum Install"))
 
@@ -7346,7 +7460,7 @@ fi
 sudo chmod +x ~/.local/bin/fissure
 
 # Create fissure-sensor-node command
-/bin/echo -e "export PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
+/bin/echo -e "#!/bin/bash\nexport PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
 sudo chmod +x ~/.local/bin/fissure-sensor-node
 
 # Create desktop entry for FISSURE
@@ -7501,6 +7615,24 @@ python3 ./fissure/generate_certificates.py
 ls '""" + fissure_directory + """/certificates'
 """,True,'Minimum Install'))
 
+# Auto-Launch Sensor Node
+programs_dragonOS_focalx.append(('Auto-Launch Sensor Node',
+f"""mkdir -p "$HOME/.config/autostart"
+
+cat <<EOF > "$HOME/.config/autostart/fissure-sensor-node.desktop"
+[Desktop Entry]
+Type=Application
+Terminal=true
+Name=FISSURE Sensor Node
+Exec=qterminal -e bash -c 'sleep 1; $HOME/.local/bin/fissure-sensor-node; exec bash'
+EOF
+
+chmod +x "$HOME/.config/autostart/fissure-sensor-node.desktop"
+
+########## Verify ##########
+ls "$HOME/.config/autostart/fissure-sensor-node.desktop"
+""",False,'Remote Sensor Node'))
+
 # # LimeSDR
 # programs_dragonOS_focalx.append(('LimeSDR (288.6 MB)',
 # """#sudo add-apt-repository -y ppa:myriadrf/drivers  # doesn't work
@@ -7543,11 +7675,15 @@ sudo sysctl -w net.core.wmem_max=24862979
 # """sudo apt-get install -y libusb-1.0-0-dev
 # mkdir -p ~/Installed_by_FISSURE
 # cd ~/Installed_by_FISSURE/
-# wget https://github.com/greatscottgadgets/hackrf/releases/download/v2022.09.1/hackrf-2022.09.1.zip
-# unzip hackrf-2022.09.1.zip
-# rm hackrf-2022.09.1.zip
-# mkdir ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
-# cd ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
+# wget https://github.com/greatscottgadgets/hackrf/releases/download/v2024.02.1/hackrf-2024.02.1.zip
+# unzip hackrf-2024.02.1.zip
+# rm hackrf-2024.02.1.zip
+# mkdir ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+# cd ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+# sed -i 's/cmake_minimum_required(VERSION 2.8.12)/cmake_minimum_required(VERSION 3.5)/' \
+#     ~/Installed_by_FISSURE/hackrf-2024.02.1/host/CMakeLists.txt \
+#     ~/Installed_by_FISSURE/hackrf-2024.02.1/host/libhackrf/CMakeLists.txt \
+#     ~/Installed_by_FISSURE/hackrf-2024.02.1/host/hackrf-tools/CMakeLists.txt
 # cmake ..
 # make
 # sudo make install
@@ -7608,6 +7744,7 @@ sudo apt-get install -y mlocate
 # cd osmo-fl2k
 # mkdir build
 # cd build
+# sed -i 's/cmake_minimum_required(VERSION 2.6)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/osmo-fl2k/CMakeLists.txt
 # cmake ../ -DINSTALL_UDEV_RULES=ON
 # make -j 3
 # sudo make install
@@ -8521,6 +8658,7 @@ git clone https://github.com/baol/waving-z.git
 cd ~/Installed_by_FISSURE/waving-z
 mkdir build
 cd build
+sed -i -E 's/^cmake_minimum_required\s*\(\s*VERSION\s+3\.[0-4](\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/waving-z/CMakeLists.txt
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ########## Verify ##########
@@ -8594,6 +8732,7 @@ git clone https://github.com/szpajder/RTLSDR-Airband.git
 cd RTLSDR-Airband
 mkdir build
 cd build
+sed -i -E 's/^[[:space:]]*(cmake_minimum_required|CMAKE_MINIMUM_REQUIRED)[[:space:]]*\([[:space:]]*VERSION[[:space:]]+3\.[0-4]([[:space:]]*)?\)/cmake_minimum_required(VERSION 3.5)/I' ~/Installed_by_FISSURE/RTLSDR-Airband/CMakeLists.txt
 cmake ../
 make
 sudo make install
@@ -9024,6 +9163,7 @@ sudo xastir -V
 # cd LTE-Cell-Scanner
 # mkdir build
 # cd build
+# sed -i -E 's/[Cc][Mm][Aa][Kk][Ee]_MINIMUM_REQUIRED\s*\(\s*VERSION\s+2\.[0-9]+(\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/LTE-Cell-Scanner/CMakeLists.txt
 # cmake ..
 # make
 # sudo make install
@@ -9764,6 +9904,8 @@ sudo python3 -m pip install aiohttp --break-system-packages
 sudo python3 -m pip install paho-mqtt --break-system-packages
 sudo python3 -m pip install msgpack --break-system-packages
 sudo python3 -m pip install eventlet --break-system-packages
+sudo python3 -m pip install psycopg2-binary --break-system-packages
+sudo python3 -m pip install python-dotenv --break-system-packages
 . ~/.bashrc
 """,True,"Minimum Install"))
 
@@ -9782,7 +9924,7 @@ fi
 sudo chmod +x ~/.local/bin/fissure
 
 # Create fissure-sensor-node command
-/bin/echo -e "export PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
+/bin/echo -e "#!/bin/bash\nexport PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
 sudo chmod +x ~/.local/bin/fissure-sensor-node
 
 # Create desktop entry for FISSURE
@@ -9938,6 +10080,24 @@ python3 ./fissure/generate_certificates.py
 ls '""" + fissure_directory + """/certificates'
 """,True,'Minimum Install'))
 
+# Auto-Launch Sensor Node
+programs_kali.append(('Auto-Launch Sensor Node',
+f"""mkdir -p "$HOME/.config/autostart"
+
+cat <<EOF > "$HOME/.config/autostart/fissure-sensor-node.desktop"
+[Desktop Entry]
+Type=Application
+Terminal=true
+Name=FISSURE Sensor Node
+Exec=qterminal -e bash -c 'sleep 1; $HOME/.local/bin/fissure-sensor-node; exec bash'
+EOF
+
+chmod +x "$HOME/.config/autostart/fissure-sensor-node.desktop"
+
+########## Verify ##########
+ls "$HOME/.config/autostart/fissure-sensor-node.desktop"
+""",False,'Remote Sensor Node'))
+
 # LimeSDR
 programs_kali.append(('LimeSDR (712.39 MB)',
 """#sudo add-apt-repository -y ppa:myriadrf/drivers  # doesn't work
@@ -9982,11 +10142,15 @@ programs_kali.append(('HackRF, gr-osmosdr (72.79)',
 # HackRF
 mkdir -p ~/Installed_by_FISSURE
 cd ~/Installed_by_FISSURE/
-wget https://github.com/greatscottgadgets/hackrf/releases/download/v2022.09.1/hackrf-2022.09.1.zip
-unzip hackrf-2022.09.1.zip
-rm hackrf-2022.09.1.zip
-mkdir ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
-cd ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
+wget https://github.com/greatscottgadgets/hackrf/releases/download/v2024.02.1/hackrf-2024.02.1.zip
+unzip hackrf-2024.02.1.zip
+rm hackrf-2024.02.1.zip
+mkdir ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+cd ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+sed -i 's/cmake_minimum_required(VERSION 2.8.12)/cmake_minimum_required(VERSION 3.5)/' \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/libhackrf/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/hackrf-tools/CMakeLists.txt
 cmake ..
 make
 sudo make install
@@ -10049,6 +10213,7 @@ git clone https://gitea.osmocom.org/sdr/osmo-fl2k.git  # gets redirected: https:
 cd osmo-fl2k
 mkdir build
 cd build 
+sed -i 's/cmake_minimum_required(VERSION 2.6)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/osmo-fl2k/CMakeLists.txt
 cmake ../ -DINSTALL_UDEV_RULES=ON
 make -j 3
 sudo make install
@@ -10965,6 +11130,7 @@ git clone https://github.com/baol/waving-z.git
 cd ~/Installed_by_FISSURE/waving-z
 mkdir build
 cd build
+sed -i -E 's/^cmake_minimum_required\s*\(\s*VERSION\s+3\.[0-4](\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/waving-z/CMakeLists.txt
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ########## Verify ##########
@@ -11045,6 +11211,7 @@ git clone https://github.com/szpajder/RTLSDR-Airband.git
 cd RTLSDR-Airband
 mkdir build
 cd build
+sed -i -E 's/^[[:space:]]*(cmake_minimum_required|CMAKE_MINIMUM_REQUIRED)[[:space:]]*\([[:space:]]*VERSION[[:space:]]+3\.[0-4]([[:space:]]*)?\)/cmake_minimum_required(VERSION 3.5)/I' ~/Installed_by_FISSURE/RTLSDR-Airband/CMakeLists.txt
 cmake ../
 make
 sudo make install
@@ -11475,6 +11642,7 @@ git clone https://github.com/JiaoXianjun/LTE-Cell-Scanner.git
 cd LTE-Cell-Scanner
 mkdir build
 cd build
+sed -i -E 's/[Cc][Mm][Aa][Kk][Ee]_MINIMUM_REQUIRED\s*\(\s*VERSION\s+2\.[0-9]+(\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/LTE-Cell-Scanner/CMakeLists.txt
 cmake ..
 make 
 sudo make install
@@ -12178,6 +12346,8 @@ sudo python3 -m pip install aiohttp
 sudo python3 -m pip install paho-mqtt
 sudo python3 -m pip install msgpack
 sudo python3 -m pip install eventlet
+sudo python3 -m pip install psycopg2-binary
+sudo python3 -m pip install python-dotenv
 . ~/.bashrc
 """,True,"Minimum Install"))
 
@@ -12196,7 +12366,7 @@ fi
 sudo chmod +x ~/.local/bin/fissure
 
 # Create fissure-sensor-node command
-/bin/echo -e "export PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
+/bin/echo -e "#!/bin/bash\nexport PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
 sudo chmod +x ~/.local/bin/fissure-sensor-node
 
 # Create desktop entry for FISSURE
@@ -12346,6 +12516,24 @@ python3 ./fissure/generate_certificates.py
 ls '""" + fissure_directory + """/certificates'
 """,True,'Minimum Install'))
 
+# Auto-Launch Sensor Node
+programs_backbox_linux_8.append(('Auto-Launch Sensor Node',
+f"""mkdir -p "$HOME/.config/autostart"
+
+cat <<EOF > "$HOME/.config/autostart/fissure-sensor-node.desktop"
+[Desktop Entry]
+Type=Application
+Terminal=true
+Name=FISSURE Sensor Node
+Exec=gnome-terminal -- bash -c 'sleep 1; $HOME/.local/bin/fissure-sensor-node; exec bash'
+EOF
+
+chmod +x "$HOME/.config/autostart/fissure-sensor-node.desktop"
+
+########## Verify ##########
+ls "$HOME/.config/autostart/fissure-sensor-node.desktop"
+""",False,'Remote Sensor Node'))
+
 # LimeSDR
 programs_backbox_linux_8.append(('LimeSDR (288.7 MB)',
 """#sudo add-apt-repository -y ppa:myriadrf/drivers  # doesn't work
@@ -12390,11 +12578,15 @@ programs_backbox_linux_8.append(('HackRF, gr-osmosdr',
 # HackRF
 mkdir -p ~/Installed_by_FISSURE
 cd ~/Installed_by_FISSURE/
-wget https://github.com/greatscottgadgets/hackrf/releases/download/v2022.09.1/hackrf-2022.09.1.zip
-unzip hackrf-2022.09.1.zip
-rm hackrf-2022.09.1.zip
-mkdir ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
-cd ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
+wget https://github.com/greatscottgadgets/hackrf/releases/download/v2024.02.1/hackrf-2024.02.1.zip
+unzip hackrf-2024.02.1.zip
+rm hackrf-2024.02.1.zip
+mkdir ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+cd ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+sed -i 's/cmake_minimum_required(VERSION 2.8.12)/cmake_minimum_required(VERSION 3.5)/' \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/libhackrf/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/hackrf-tools/CMakeLists.txt
 cmake ..
 make
 sudo make install
@@ -12456,7 +12648,8 @@ cd ~/Installed_by_FISSURE
 git clone https://gitea.osmocom.org/sdr/osmo-fl2k.git  # gets redirected: https://git.osmocom.org/osmo-fl2k.git
 cd osmo-fl2k
 mkdir build
-cd build 
+cd build
+sed -i 's/cmake_minimum_required(VERSION 2.6)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/osmo-fl2k/CMakeLists.txt
 cmake ../ -DINSTALL_UDEV_RULES=ON
 make -j 3
 sudo make install
@@ -13372,6 +13565,7 @@ git clone https://github.com/baol/waving-z.git
 cd ~/Installed_by_FISSURE/waving-z
 mkdir build
 cd build
+sed -i -E 's/^cmake_minimum_required\s*\(\s*VERSION\s+3\.[0-4](\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/waving-z/CMakeLists.txt
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ########## Verify ##########
@@ -13445,6 +13639,7 @@ git clone https://github.com/szpajder/RTLSDR-Airband.git
 cd RTLSDR-Airband
 mkdir build
 cd build
+sed -i -E 's/^[[:space:]]*(cmake_minimum_required|CMAKE_MINIMUM_REQUIRED)[[:space:]]*\([[:space:]]*VERSION[[:space:]]+3\.[0-4]([[:space:]]*)?\)/cmake_minimum_required(VERSION 3.5)/I' ~/Installed_by_FISSURE/RTLSDR-Airband/CMakeLists.txt
 cmake ../
 make
 sudo make install
@@ -13874,6 +14069,7 @@ git clone https://github.com/JiaoXianjun/LTE-Cell-Scanner.git
 cd LTE-Cell-Scanner
 mkdir build
 cd build
+sed -i -E 's/[Cc][Mm][Aa][Kk][Ee]_MINIMUM_REQUIRED\s*\(\s*VERSION\s+2\.[0-9]+(\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/LTE-Cell-Scanner/CMakeLists.txt
 cmake ..
 make 
 sudo make install
@@ -14576,6 +14772,8 @@ sudo python3 -m pip install aiohttp --break-system-packages
 sudo python3 -m pip install paho-mqtt --break-system-packages
 sudo python3 -m pip install msgpack --break-system-packages
 sudo python3 -m pip install eventlet --break-system-packages
+sudo python3 -m pip install psycopg2-binary --break-system-packages
+sudo python3 -m pip install python-dotenv --break-system-packages
 . ~/.bashrc
 """,True,"Minimum Install"))
 
@@ -14594,7 +14792,7 @@ fi
 sudo chmod +x ~/.local/bin/fissure
 
 # Create fissure-sensor-node command
-/bin/echo -e "export PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
+/bin/echo -e "#!/bin/bash\nexport PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
 sudo chmod +x ~/.local/bin/fissure-sensor-node
 
 # Create desktop entry for FISSURE
@@ -14751,6 +14949,24 @@ python3 ./fissure/generate_certificates.py
 ls '""" + fissure_directory + """/certificates'
 """,True,'Minimum Install'))
 
+# Auto-Launch Sensor Node
+programs_raspberry_pi_os.append(('Auto-Launch Sensor Node',
+f"""mkdir -p "$HOME/.config/autostart"
+
+cat <<EOF > "$HOME/.config/autostart/fissure-sensor-node.desktop"
+[Desktop Entry]
+Type=Application
+Terminal=true
+Name=FISSURE Sensor Node
+Exec=lxterminal -e bash -c 'sleep 1; $HOME/.local/bin/fissure-sensor-node; exec bash'
+EOF
+
+chmod +x "$HOME/.config/autostart/fissure-sensor-node.desktop"
+
+########## Verify ##########
+ls "$HOME/.config/autostart/fissure-sensor-node.desktop"
+""",False,'Remote Sensor Node'))
+
 # LimeSDR
 programs_raspberry_pi_os.append(('LimeSDR',
 """#sudo add-apt-repository -y ppa:myriadrf/drivers  # doesn't work
@@ -14795,11 +15011,15 @@ programs_raspberry_pi_os.append(('HackRF, gr-osmosdr',
 # HackRF
 mkdir -p ~/Installed_by_FISSURE
 cd ~/Installed_by_FISSURE/
-wget https://github.com/greatscottgadgets/hackrf/releases/download/v2022.09.1/hackrf-2022.09.1.zip
-unzip hackrf-2022.09.1.zip
-rm hackrf-2022.09.1.zip
-mkdir ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
-cd ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
+wget https://github.com/greatscottgadgets/hackrf/releases/download/v2024.02.1/hackrf-2024.02.1.zip
+unzip hackrf-2024.02.1.zip
+rm hackrf-2024.02.1.zip
+mkdir ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+cd ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+sed -i 's/cmake_minimum_required(VERSION 2.8.12)/cmake_minimum_required(VERSION 3.5)/' \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/libhackrf/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/hackrf-tools/CMakeLists.txt
 cmake ..
 make
 sudo make install
@@ -14861,7 +15081,8 @@ cd ~/Installed_by_FISSURE
 git clone https://gitea.osmocom.org/sdr/osmo-fl2k.git  # gets redirected: https://git.osmocom.org/osmo-fl2k.git
 cd osmo-fl2k
 mkdir build
-cd build 
+cd build
+sed -i 's/cmake_minimum_required(VERSION 2.6)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/osmo-fl2k/CMakeLists.txt
 cmake ../ -DINSTALL_UDEV_RULES=ON
 make -j 3
 sudo make install
@@ -15777,6 +15998,7 @@ git clone https://github.com/baol/waving-z.git
 cd ~/Installed_by_FISSURE/waving-z
 mkdir build
 cd build
+sed -i -E 's/^cmake_minimum_required\s*\(\s*VERSION\s+3\.[0-4](\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/waving-z/CMakeLists.txt
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ########## Verify ##########
@@ -15850,6 +16072,7 @@ git clone https://github.com/szpajder/RTLSDR-Airband.git
 cd RTLSDR-Airband
 mkdir build
 cd build
+sed -i -E 's/^[[:space:]]*(cmake_minimum_required|CMAKE_MINIMUM_REQUIRED)[[:space:]]*\([[:space:]]*VERSION[[:space:]]+3\.[0-4]([[:space:]]*)?\)/cmake_minimum_required(VERSION 3.5)/I' ~/Installed_by_FISSURE/RTLSDR-Airband/CMakeLists.txt
 cmake ../
 make
 sudo make install
@@ -16279,6 +16502,7 @@ git clone https://github.com/JiaoXianjun/LTE-Cell-Scanner.git
 cd LTE-Cell-Scanner
 mkdir build
 cd build
+sed -i -E 's/[Cc][Mm][Aa][Kk][Ee]_MINIMUM_REQUIRED\s*\(\s*VERSION\s+2\.[0-9]+(\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/LTE-Cell-Scanner/CMakeLists.txt
 cmake ..
 make 
 sudo make install
@@ -16980,6 +17204,8 @@ sudo python3 -m pip install aiohttp
 sudo python3 -m pip install paho-mqtt
 sudo python3 -m pip install msgpack
 sudo python3 -m pip install eventlet
+sudo python3 -m pip install psycopg2-binary
+sudo python3 -m pip install python-dotenv
 . ~/.bashrc
 """,True,"Minimum Install"))
 
@@ -16998,7 +17224,7 @@ fi
 sudo chmod +x ~/.local/bin/fissure
 
 # Create fissure-sensor-node command
-/bin/echo -e "export PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
+/bin/echo -e "#!/bin/bash\nexport PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
 sudo chmod +x ~/.local/bin/fissure-sensor-node
 
 # Create desktop entry for FISSURE
@@ -17150,6 +17376,24 @@ python3 ./fissure/generate_certificates.py
 ls '""" + fissure_directory + """/certificates'
 """,True,'Minimum Install'))
 
+# Auto-Launch Sensor Node
+programs_ubuntu22_04_arm.append(('Auto-Launch Sensor Node',
+f"""mkdir -p "$HOME/.config/autostart"
+
+cat <<EOF > "$HOME/.config/autostart/fissure-sensor-node.desktop"
+[Desktop Entry]
+Type=Application
+Terminal=true
+Name=FISSURE Sensor Node
+Exec=gnome-terminal -- bash -c 'sleep 1; $HOME/.local/bin/fissure-sensor-node; exec bash'
+EOF
+
+chmod +x "$HOME/.config/autostart/fissure-sensor-node.desktop"
+
+########## Verify ##########
+ls "$HOME/.config/autostart/fissure-sensor-node.desktop"
+""",False,'Remote Sensor Node'))
+
 # LimeSDR
 programs_ubuntu22_04_arm.append(('LimeSDR (288.7 MB)',
 """#sudo add-apt-repository -y ppa:myriadrf/drivers  # doesn't work
@@ -17194,11 +17438,15 @@ programs_ubuntu22_04_arm.append(('HackRF, gr-osmosdr',
 # HackRF
 mkdir -p ~/Installed_by_FISSURE
 cd ~/Installed_by_FISSURE/
-wget https://github.com/greatscottgadgets/hackrf/releases/download/v2022.09.1/hackrf-2022.09.1.zip
-unzip hackrf-2022.09.1.zip
-rm hackrf-2022.09.1.zip
-mkdir ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
-cd ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
+wget https://github.com/greatscottgadgets/hackrf/releases/download/v2024.02.1/hackrf-2024.02.1.zip
+unzip hackrf-2024.02.1.zip
+rm hackrf-2024.02.1.zip
+mkdir ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+cd ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+sed -i 's/cmake_minimum_required(VERSION 2.8.12)/cmake_minimum_required(VERSION 3.5)/' \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/libhackrf/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/hackrf-tools/CMakeLists.txt
 cmake ..
 make
 sudo make install
@@ -17260,7 +17508,8 @@ cd ~/Installed_by_FISSURE
 git clone https://gitea.osmocom.org/sdr/osmo-fl2k.git  # gets redirected: https://git.osmocom.org/osmo-fl2k.git
 cd osmo-fl2k
 mkdir build
-cd build 
+cd build
+sed -i 's/cmake_minimum_required(VERSION 2.6)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/osmo-fl2k/CMakeLists.txt
 cmake ../ -DINSTALL_UDEV_RULES=ON
 make -j 3
 sudo make install
@@ -18176,6 +18425,7 @@ git clone https://github.com/baol/waving-z.git
 cd ~/Installed_by_FISSURE/waving-z
 mkdir build
 cd build
+sed -i -E 's/^cmake_minimum_required\s*\(\s*VERSION\s+3\.[0-4](\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/waving-z/CMakeLists.txt
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ########## Verify ##########
@@ -18249,6 +18499,7 @@ git clone https://github.com/szpajder/RTLSDR-Airband.git
 cd RTLSDR-Airband
 mkdir build
 cd build
+sed -i -E 's/^[[:space:]]*(cmake_minimum_required|CMAKE_MINIMUM_REQUIRED)[[:space:]]*\([[:space:]]*VERSION[[:space:]]+3\.[0-4]([[:space:]]*)?\)/cmake_minimum_required(VERSION 3.5)/I' ~/Installed_by_FISSURE/RTLSDR-Airband/CMakeLists.txt
 cmake ../
 make
 sudo make install
@@ -18678,6 +18929,7 @@ git clone https://github.com/JiaoXianjun/LTE-Cell-Scanner.git
 cd LTE-Cell-Scanner
 mkdir build
 cd build
+sed -i -E 's/[Cc][Mm][Aa][Kk][Ee]_MINIMUM_REQUIRED\s*\(\s*VERSION\s+2\.[0-9]+(\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/LTE-Cell-Scanner/CMakeLists.txt
 cmake ..
 make 
 sudo make install
@@ -19386,6 +19638,8 @@ sudo python3 -m pip install paho-mqtt --break-system-packages
 sudo apt install -y python3-eventlet
 sudo python3 -m pip install msgpack --break-system-packages
 sudo python3 -m pip install eventlet --break-system-packages
+sudo python3 -m pip install psycopg2-binary --break-system-packages
+sudo python3 -m pip install python-dotenv --break-system-packages
 . ~/.bashrc
 """,True,"Minimum Install"))
 
@@ -19404,7 +19658,7 @@ fi
 sudo chmod +x ~/.local/bin/fissure
 
 # Create fissure-sensor-node command
-/bin/echo -e "export PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
+/bin/echo -e "#!/bin/bash\nexport PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
 sudo chmod +x ~/.local/bin/fissure-sensor-node
 
 # Create desktop entry for FISSURE
@@ -19555,6 +19809,24 @@ python3 ./fissure/generate_certificates.py
 ls '""" + fissure_directory + """/certificates'
 """,True,'Minimum Install'))
 
+# Auto-Launch Sensor Node
+programs_ubuntu24_04.append(('Auto-Launch Sensor Node',
+f"""mkdir -p "$HOME/.config/autostart"
+
+cat <<EOF > "$HOME/.config/autostart/fissure-sensor-node.desktop"
+[Desktop Entry]
+Type=Application
+Terminal=true
+Name=FISSURE Sensor Node
+Exec=gnome-terminal -- bash -c 'sleep 1; $HOME/.local/bin/fissure-sensor-node; exec bash'
+EOF
+
+chmod +x "$HOME/.config/autostart/fissure-sensor-node.desktop"
+
+########## Verify ##########
+ls "$HOME/.config/autostart/fissure-sensor-node.desktop"
+""",False,'Remote Sensor Node'))
+
 # LimeSDR
 programs_ubuntu24_04.append(('LimeSDR (417.08 MB)',
 """#sudo add-apt-repository -y ppa:myriadrf/drivers  # doesn't work
@@ -19599,11 +19871,15 @@ programs_ubuntu24_04.append(('HackRF, gr-osmosdr (73.12 MB)',
 # HackRF
 mkdir -p ~/Installed_by_FISSURE
 cd ~/Installed_by_FISSURE/
-wget https://github.com/greatscottgadgets/hackrf/releases/download/v2022.09.1/hackrf-2022.09.1.zip
-unzip hackrf-2022.09.1.zip
-rm hackrf-2022.09.1.zip
-mkdir ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
-cd ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
+wget https://github.com/greatscottgadgets/hackrf/releases/download/v2024.02.1/hackrf-2024.02.1.zip
+unzip hackrf-2024.02.1.zip
+rm hackrf-2024.02.1.zip
+mkdir ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+cd ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+sed -i 's/cmake_minimum_required(VERSION 2.8.12)/cmake_minimum_required(VERSION 3.5)/' \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/libhackrf/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/hackrf-tools/CMakeLists.txt
 cmake ..
 make
 sudo make install
@@ -19665,7 +19941,8 @@ cd ~/Installed_by_FISSURE
 git clone https://gitea.osmocom.org/sdr/osmo-fl2k.git  # gets redirected: https://git.osmocom.org/osmo-fl2k.git
 cd osmo-fl2k
 mkdir build
-cd build 
+cd build
+sed -i 's/cmake_minimum_required(VERSION 2.6)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/osmo-fl2k/CMakeLists.txt
 cmake ../ -DINSTALL_UDEV_RULES=ON
 make -j 3
 sudo make install
@@ -20588,6 +20865,7 @@ git clone https://github.com/baol/waving-z.git
 cd ~/Installed_by_FISSURE/waving-z
 mkdir build
 cd build
+sed -i -E 's/^cmake_minimum_required\s*\(\s*VERSION\s+3\.[0-4](\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/waving-z/CMakeLists.txt
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ########## Verify ##########
@@ -20661,6 +20939,7 @@ git clone https://github.com/szpajder/RTLSDR-Airband.git
 cd RTLSDR-Airband
 mkdir build
 cd build
+sed -i -E 's/^[[:space:]]*(cmake_minimum_required|CMAKE_MINIMUM_REQUIRED)[[:space:]]*\([[:space:]]*VERSION[[:space:]]+3\.[0-4]([[:space:]]*)?\)/cmake_minimum_required(VERSION 3.5)/I' ~/Installed_by_FISSURE/RTLSDR-Airband/CMakeLists.txt
 cmake ../
 make
 sudo make install
@@ -21091,6 +21370,7 @@ git clone https://github.com/JiaoXianjun/LTE-Cell-Scanner.git
 cd LTE-Cell-Scanner
 mkdir build
 cd build
+sed -i -E 's/[Cc][Mm][Aa][Kk][Ee]_MINIMUM_REQUIRED\s*\(\s*VERSION\s+2\.[0-9]+(\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/LTE-Cell-Scanner/CMakeLists.txt
 cmake ..
 make 
 sudo make install
@@ -21796,6 +22076,8 @@ sudo python3 -m pip install aiohttp --break-system-packages
 sudo python3 -m pip install paho-mqtt --break-system-packages
 sudo python3 -m pip install msgpack --break-system-packages
 sudo python3 -m pip install eventlet --break-system-packages
+sudo python3 -m pip install psycopg2-binary --break-system-packages
+sudo python3 -m pip install python-dotenv --break-system-packages
 . ~/.bashrc
 """,True,"Minimum Install"))
 
@@ -21814,7 +22096,7 @@ fi
 sudo chmod +x ~/.local/bin/fissure
 
 # Create fissure-sensor-node command
-/bin/echo -e "export PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
+/bin/echo -e "#!/bin/bash\nexport PYTHONPATH=$PYTHONPATH:{fissure_directory} \ncd {fissure_directory} \npython3 {fissure_directory}/fissure/Sensor_Node/SensorNode.py" > ~/.local/bin/fissure-sensor-node
 sudo chmod +x ~/.local/bin/fissure-sensor-node
 
 # Create desktop entry for FISSURE
@@ -21965,6 +22247,24 @@ python3 ./fissure/generate_certificates.py
 ls '""" + fissure_directory + """/certificates'
 """,True,'Minimum Install'))
 
+# Auto-Launch Sensor Node
+programs_arch_linux.append(('Auto-Launch Sensor Node',
+f"""mkdir -p "$HOME/.config/autostart"
+
+cat <<EOF > "$HOME/.config/autostart/fissure-sensor-node.desktop"
+[Desktop Entry]
+Type=Application
+Terminal=true
+Name=FISSURE Sensor Node
+Exec=gnome-terminal -- bash -c 'sleep 1; $HOME/.local/bin/fissure-sensor-node; exec bash'
+EOF
+
+chmod +x "$HOME/.config/autostart/fissure-sensor-node.desktop"
+
+########## Verify ##########
+ls "$HOME/.config/autostart/fissure-sensor-node.desktop"
+""",False,'Remote Sensor Node'))
+
 # LimeSDR
 programs_arch_linux.append(('LimeSDR (417.08 MB)',
 """#sudo add-apt-repository -y ppa:myriadrf/drivers  # doesn't work
@@ -22009,11 +22309,15 @@ programs_arch_linux.append(('HackRF, gr-osmosdr (73.12 MB)',
 # HackRF
 mkdir -p ~/Installed_by_FISSURE
 cd ~/Installed_by_FISSURE/
-wget https://github.com/greatscottgadgets/hackrf/releases/download/v2022.09.1/hackrf-2022.09.1.zip
-unzip hackrf-2022.09.1.zip
-rm hackrf-2022.09.1.zip
-mkdir ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
-cd ~/Installed_by_FISSURE/hackrf-2022.09.1/host/build
+wget https://github.com/greatscottgadgets/hackrf/releases/download/v2024.02.1/hackrf-2024.02.1.zip
+unzip hackrf-2024.02.1.zip
+rm hackrf-2024.02.1.zip
+mkdir ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+cd ~/Installed_by_FISSURE/hackrf-2024.02.1/host/build
+sed -i 's/cmake_minimum_required(VERSION 2.8.12)/cmake_minimum_required(VERSION 3.5)/' \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/libhackrf/CMakeLists.txt \
+    ~/Installed_by_FISSURE/hackrf-2024.02.1/host/hackrf-tools/CMakeLists.txt
 cmake ..
 make
 sudo make install
@@ -22075,7 +22379,8 @@ cd ~/Installed_by_FISSURE
 git clone https://gitea.osmocom.org/sdr/osmo-fl2k.git  # gets redirected: https://git.osmocom.org/osmo-fl2k.git
 cd osmo-fl2k
 mkdir build
-cd build 
+cd build
+sed -i 's/cmake_minimum_required(VERSION 2.6)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/osmo-fl2k/CMakeLists.txt
 cmake ../ -DINSTALL_UDEV_RULES=ON
 make -j 3
 sudo make install
@@ -22992,6 +23297,7 @@ git clone https://github.com/baol/waving-z.git
 cd ~/Installed_by_FISSURE/waving-z
 mkdir build
 cd build
+sed -i -E 's/^cmake_minimum_required\s*\(\s*VERSION\s+3\.[0-4](\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/waving-z/CMakeLists.txt
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ########## Verify ##########
@@ -23065,6 +23371,7 @@ git clone https://github.com/szpajder/RTLSDR-Airband.git
 cd RTLSDR-Airband
 mkdir build
 cd build
+sed -i -E 's/^[[:space:]]*(cmake_minimum_required|CMAKE_MINIMUM_REQUIRED)[[:space:]]*\([[:space:]]*VERSION[[:space:]]+3\.[0-4]([[:space:]]*)?\)/cmake_minimum_required(VERSION 3.5)/I' ~/Installed_by_FISSURE/RTLSDR-Airband/CMakeLists.txt
 cmake ../
 make
 sudo make install
@@ -23495,6 +23802,7 @@ git clone https://github.com/JiaoXianjun/LTE-Cell-Scanner.git
 cd LTE-Cell-Scanner
 mkdir build
 cd build
+sed -i -E 's/[Cc][Mm][Aa][Kk][Ee]_MINIMUM_REQUIRED\s*\(\s*VERSION\s+2\.[0-9]+(\.[0-9]+)?\s*\)/cmake_minimum_required(VERSION 3.5)/' ~/Installed_by_FISSURE/LTE-Cell-Scanner/CMakeLists.txt
 cmake ..
 make 
 sudo make install
@@ -24702,120 +25010,9 @@ class InstallDialog1(QtWidgets.QDialog, form_class):
         self.close()
 
 
-def detect_supported_os():
-    """Returns a supported OS identifier used by the installer."""
-    try:
-        with open("/etc/os-release", "r") as f:
-            os_release = f.read().lower()
-    except:
-        os_release = ""
-
-    try:
-        lsb_desc = subprocess.check_output(["lsb_release", "-d"], stderr=subprocess.DEVNULL).decode().lower()
-    except:
-        lsb_desc = ""
-
-    try:
-        with open("/etc/os-dragonos", "r") as f:
-            dragon_desc = f.read().lower()
-    except:
-        dragon_desc = ""
-
-    try:
-        with open("/etc/issue", "r") as f:
-            etc_issue = f.read().lower()
-    except:
-        etc_issue = ""
-
-    if "arch" in os_release:
-        return "Arch Linux"
-    elif "ubuntu 20.04" in lsb_desc:
-        return "Ubuntu 20.04"
-    elif "ubuntu 22.04" in lsb_desc:
-        return "Ubuntu 22.04"
-    elif "ubuntu 24.04" in lsb_desc:
-        return "Ubuntu 24.04"
-    elif "ubuntu 18.04" in lsb_desc:
-        return "Ubuntu 18.04"
-    elif "parrot" in lsb_desc:
-        return "Parrot OS 6.1"
-    elif "kde neon" in lsb_desc:
-        return "KDE neon 5.25"
-    elif "dragonos focalx" in dragon_desc:
-        return "DragonOS FocalX"
-    elif "dragonos focal" in lsb_desc:
-        return "DragonOS Focal"
-    elif "kali" in lsb_desc:
-        return "Kali"
-    elif "bookworm" in lsb_desc:
-        return "Raspberry Pi OS"
-    elif "backbox" in etc_issue:
-        return "BackBox Linux 8"
-    else:
-        return "Unknown"
-
-def headless_install(programs, checked_items):
-    import subprocess, time
-    n = len(checked_items)
-    print("⏳ Headless install: {} items".format(n))
-    for idx, name in enumerate(checked_items, start=1):
-        print("[{}/{}] Installing {}".format(idx, n, name))
-        for pkg, cmds, *rest in programs:
-            if pkg == name:
-                install_cmd, *verify = cmds.split("########## Verify ##########")
-                subprocess.run(install_cmd, shell=True, check=True)
-                if verify:
-                    try:
-                        subprocess.run(verify[0], shell=True, check=True)
-                        print("  ✔ {} verified".format(name))
-                    except subprocess.CalledProcessError:
-                        print("  ✖ {} verify FAILED".format(name))
-                break
-        else:
-            print("  ⚠ {} not found in program list".format(name))
-        time.sleep(0.2)
-    print("✅ Headless install complete.")
-
 def main(argv):
-    """ The start of everything. """
-    # Headless mode: YAML-only invocation
-    if len(argv) == 2 and argv[1].lower().endswith(('.yaml', '.yml')):
-        import yaml
-        from installer import detect_supported_os, headless_install  # adjust as needed if refactored
-        cfg = yaml.safe_load(open(argv[1]))
-        checked = cfg.get('checked_items', [])
-        os_name = detect_supported_os()
-        print("Detected OS:", os_name)
-        if os_name == "Ubuntu 20.04":
-            progs = programs_ubuntu20_04
-        elif os_name == "Ubuntu 22.04":
-            progs = programs_ubuntu22_04
-        elif os_name == "Kali":
-            progs = programs_kali
-        else:
-            print("⚠ Unknown OS—cannot select programs.")
-            sys.exit(1)
-        headless_install(progs, checked)
-        sys.exit(0)
-    # Headless mode: yaml-only invocation
-    if len(argv) == 2 and argv[1].lower().endswith(('.yaml', '.yml')):
-        cfg = yaml.safe_load(open(argv[1], 'r'))
-        checked = cfg.get('checked_items', [])
-        os_rel = detect_os_release()
-        print("Detected OS:", os_rel)
-        if "Ubuntu 20.04" in os_rel:
-            progs = programs_ubuntu20_04
-        elif "Ubuntu 22.04" in os_rel:
-            progs = programs_ubuntu22_04
-        elif "Kali" in os_rel:
-            progs = programs_kali
-        else:
-            print("⚠ Unknown OS—cannot select programs.")
-            sys.exit(1)
-        headless_install(progs, checked)
-        sys.exit(0)
-
-    # normal GUI startup
+    """ The start of everything.
+    """   
     app = QtWidgets.QApplication(argv) 
     
     # Operating System Dialog

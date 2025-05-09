@@ -49,6 +49,7 @@ def _alert_sender(
         "IP" or "Meshtastic"
     """
     try:
+        # Start the Command
         self.proc = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
@@ -59,6 +60,15 @@ def _alert_sender(
             shell=True,
             preexec_fn=os.setsid,
         )
+
+        # Print the Errors While Running
+        def _read_stderr(pipe):
+            for line in iter(pipe.readline, ''):
+                logger.error(f"[STDERR] {line.strip()}")
+            pipe.close()
+
+        threading.Thread(target=_read_stderr, args=(self.proc.stderr,), daemon=True).start()
+
     except Exception as e:
         logger.error(f"Failed to start alertSender command: {e}")
         self.proc = None

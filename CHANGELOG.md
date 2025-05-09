@@ -1,6 +1,32 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2025-5-02
+
+Sensor node auto-launch option, installer and other fixes
+
+### Added
+
+- Auto-Launch Sensor Node installer item option to run fissure-sensor-node in a terminal on boot
+
+### Changed
+
+- Adding shebang to top of fissure-sensor-node command in installer
+- Updating HackRF version to 2024.02.1
+
+### Fixed
+
+- Updating FISSURE Infosheet link in README for new content
+- Monitoring/printing errors while running scripts in alert_sender.py
+- Replacing "user" with keyword from password_prompt_exceptions.txt
+- Putting psycopg2-binary and python-dotenv in Misc. Dependencies for sensor node installs without the database
+- Applying set_channel() and set_freq() with the network interface on in Wifi_Exploit_Finder.py attacks
+- Replacing username in flow graph filepaths when running scripts on remote sensor nodes
+- Popup windows in Sensor Node Configuration dialog now close properly
+- Start TAK docker containers on launch works for TAK containers named after different versions
+- Feeding logger into SensorNodeTracker() in HiprFisr.py to prevent errors
+- Updating CMakeLists.txt across many installer programs to fix cmake 4.0 errors
+
 ## 2025-4-17
 
 Adjusting monitor mode tool, attacks, and demo files.

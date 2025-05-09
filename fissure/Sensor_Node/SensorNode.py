@@ -698,9 +698,13 @@ class SensorNode():
             try:
                 # Replace Username in Filepaths
                 if self.local_remote == "remote":
+                    # In Variables
                     for n in range(0,len(variable_names)):
                         if 'filepath' in variable_names[n]:
                             variable_values[n] = self.replaceUsername(variable_values[n], os.getenv('USER'))
+
+                    # In Filepath
+                    flow_graph_filename = self.replaceUsername(flow_graph_filename, os.getenv('USER'))
                 
                 # Check for Quotes and Backticks
                 for n in range(0,len(variable_values)):
@@ -763,8 +767,12 @@ class SensorNode():
             # Replace Username in Filepaths
             if self.local_remote == "remote":
                 for n in range(0,len(variable_names)):
+                    # In Variables
                     if 'filepath' in variable_names[n]:
                         variable_values[n] = self.replaceUsername(variable_values[n], os.getenv('USER'))
+
+                    # In Filepath
+                    flow_graph_filename = self.replaceUsername(flow_graph_filename, os.getenv('USER'))
 
             # Check for Quotes and Backticks
             for n in range(0,len(variable_values)):

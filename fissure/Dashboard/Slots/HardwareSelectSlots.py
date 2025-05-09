@@ -1640,10 +1640,10 @@ async def ping(HWSelect: QtCore.QObject):
     response = os.system("ping -c 1 " + get_ip)
     if response == 0:
         HWSelect.dashboard.logger.info(get_ip + " is up!")
-        ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(HWSelect.dashboard, get_ip + " is up!")
+        ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(HWSelect, get_ip + " is up!")
     else:
         HWSelect.dashboard.logger.info(get_ip + " is down!")
-        ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(HWSelect.dashboard, get_ip + " is down!")
+        ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(HWSelect, get_ip + " is down!")
 
 
 @qasync.asyncSlot(QtCore.QObject)
@@ -1698,7 +1698,7 @@ async def connect(HWSelect: QtCore.QObject):
     get_sensor_node = ["sensor_node1", "sensor_node2", "sensor_node3", "sensor_node4", "sensor_node5"]
     for n in range(0, len(get_sensor_node)):
         if (get_ip == HWSelect.dashboard.backend.settings[get_sensor_node[n]]["ip_address"]) and (n != tab_index):
-            ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(HWSelect.dashboard, "IP address already in use.")
+            ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(HWSelect, "IP address already in use.")
             return
 
     # Disable Buttons
@@ -2520,7 +2520,7 @@ async def meshtastic_connect(HWSelect: QtCore.QObject):
     get_sensor_node = ["sensor_node1", "sensor_node2", "sensor_node3", "sensor_node4", "sensor_node5"]
     for n in range(0, len(get_sensor_node)):
         if (get_serial_port == HWSelect.dashboard.backend.settings[get_sensor_node[n]]["meshtastic_serial_port"]) and (n != tab_index):
-            ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(HWSelect.dashboard, "Serial port is already in use.")
+            ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(HWSelect, "Serial port is already in use.")
             return
 
     # Disable Buttons
