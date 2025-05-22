@@ -151,19 +151,21 @@ async def findGPS_CoordinatesLT(component: object, tab_index=0, gps_source="", f
         # Use Existing Serial Connection
         if component.local_remote == "remote":
             gps_data = await component.hiprfisr_socket.get_gps_position()
-            get_coordinates = fissure.utils.format_coordinates(
-                gps_data['latitude'], 
-                gps_data['longitude'],
-                format
-            )
+
         # Establish Serial Connection
         else:
             gps_data = await fissure.utils.hardware.probeMeshtasticGPS(component.meshtastic_serial_port, 10)
+
+        # Format Data
+        if gps_data:
             get_coordinates = fissure.utils.format_coordinates(
                 gps_data['latitude'], 
                 gps_data['longitude'],
                 format
             )
+        else:
+            component.logger.warning("GPS data unavailable — skipping coordinate formatting.")
+            get_coordinates = "GPS unavailable"
 
     elif gps_source == "Saved":
         get_coordinates = fissure.utils.format_coordinates(

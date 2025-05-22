@@ -13,10 +13,58 @@ import string
 from collections import deque
 import msgpack
 import binascii
+import io
+import re
 
 POLL_TIMEOUT = 5  # Adjust as needed
 ACK_TIMEOUT = 3  # Time to wait for an ACK
 ID_EXPIRATION_SECONDS = 60  # Keep message IDs for 60 seconds
+
+def extract_lat_lon_from_log_line(log_line:str)-> Optional[tuple]:
+    """Extract latitude, longitude, and altitude from a log line.
+
+    Parameters
+    ----------
+    log_line : str
+        A log line containing GPS data.
+
+    Returns
+    -------
+    Optional[tuple]
+        A tuple containing latitude, longitude and altitude as floats, or None if not found.
+    """
+    # Regular expression to match lat, lon, and alt in the log line
+    #print(log_line)
+    match = re.search(r'lat=(-?\d+\.\d+)\s+lon=(-?\d+\.\d+)\s+alt=(-?\d+)', log_line)
+    if match:
+        latitude = float(match.group(1))
+        longitude = float(match.group(2))
+        altitude = float(match.group(3))
+        return latitude, longitude, altitude
+    return None
+
+def extract_lat_lon_from_log(log_buffer:io.StringIO) -> Optional[List[float]]:
+    """Extract latitude, longitude, and altitude from the log buffer.
+
+    Parameters
+    ----------
+    log_buffer : io.StringIO
+        A buffer containing log lines.
+
+    Returns
+    -------
+    Optional[List[float]]
+        A list containing latitude, longitude, and altitude as floats, or None if not found.
+    """
+    # Process the log stream
+    log_buffer.seek(0)  # Reset the stream position to the beginning
+    output = None
+    for line in log_buffer:
+        result = extract_lat_lon_from_log_line(line)
+        if result:
+            output = [float(r) for r in result]
+    log_buffer.truncate(0)  # Clear the stream for the next read
+    return output
 
 class FissureMeshtasticNode:
     """Handles communication via Meshtastic, integrating with existing ZMQ infrastructure."""
@@ -26,12 +74,16 @@ class FissureMeshtasticNode:
         self.parent_component = name.split("::")[0] if "::" in name else name
         self.name = name.split("::")[1] if "::" in name else name
         self.logger = fissure.utils.get_logger(source=self.parent_component)
+        self.log_stream = io.StringIO()
 
         self.loop = asyncio.get_event_loop()
-        self.interface = SerialInterface(serial_port)
+        self.interface = SerialInterface(serial_port, self.log_stream)
         self.message_queue = asyncio.Queue()  # Queue for received messages
         self.context = context  # Object containing the callback methods
         self.running = True  # Flag to control async processing
+
+        self.last_gps_fix = None
+        self.last_gps_fix_time = 0
         
         # Cache for recently sent message IDs
         self.recent_message_ids = deque()
@@ -287,22 +339,52 @@ class FissureMeshtasticNode:
         self.recent_message_ids.clear()
         self.logger.info(f"Meshtastic node [{self.name}] disconnected and cleaned up.")
 
+    async def get_gps_position(self, timeout: int = 10, max_cache_age: int = 300) -> Optional[Dict[str, float]]:
+        """
+        Get GPS position from the Meshtastic device by parsing the log stream.
+        Caches the last known good fix and returns it if no new data is available.
 
-    async def get_gps_position(self, timeout: int = 10) -> Optional[Dict[str, float]]:
+        Parameters
+        ----------
+        timeout : int
+            Time to wait for fresh GPS data (seconds)
+        max_cache_age : int
+            Max age (seconds) for returning a cached position
+
+        Returns
+        -------
+        Dict[str, float] or None
+            A dictionary with latitude, longitude, and altitude
+        """
         try:
             start_time = asyncio.get_running_loop().time()
+
             while asyncio.get_running_loop().time() - start_time < timeout:
-                node_info = self.interface.getMyNodeInfo()
-                if node_info and "position" in node_info:
-                    position = node_info["position"]
-                    if "latitudeI" in position and "longitudeI" in position:
-                        latitude = round(position["latitudeI"] / 1e7, 6)
-                        longitude = round(position["longitudeI"] / 1e7, 6)
-                        altitude = position.get("altitude", 0.0)
-                        return {"latitude": latitude, "longitude": longitude, "altitude": altitude}
+                result = extract_lat_lon_from_log(self.log_stream)
+                if result:
+                    gps_fix = {
+                        "latitude": result[0],
+                        "longitude": result[1],
+                        "altitude": result[2]
+                    }
+                    self.last_gps_fix = gps_fix
+                    self.last_gps_fix_time = time.time()
+                    return gps_fix
+
                 await asyncio.sleep(1)
-            print("GPS data not available within timeout.")
+
+            # No fresh GPS data, return cached if valid
+            if hasattr(self, "last_gps_fix") and self.last_gps_fix:
+                age = time.time() - getattr(self, "last_gps_fix_time", 0)
+                if age <= max_cache_age:
+                    self.logger.warning(f"Returning cached GPS fix (age: {int(age)}s)")
+                    return self.last_gps_fix
+                else:
+                    self.logger.warning(f"Cached GPS fix too old (age: {int(age)}s) — ignoring.")
+
+            self.logger.warning("GPS data not available within timeout.")
             return None
+
         except Exception as e:
-            print(f"Error accessing Meshtastic GPS: {e}")
+            self.logger.error(f"Error accessing Meshtastic GPS: {e}")
             return None

@@ -1,9 +1,23 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2025-5-21
+
+Merging pull request #84: Meshtastic GPS reading from log to fix stale reading issue.
+
+### Changed
+
+- Reporting back cached GPS values for Meshtastic and providing warnings with stale time since last acquisition
+
+### Fixed
+
+- Updating Find/Beacon GPS values for Meshtastic to use the logs and not MyNodeInfo
+- Adding missing re python package in FissureMeshtasticNode.py
+- Improved error handling when GPS is not acquired from Meshtastic device
+
 ## 2025-5-02
 
-Sensor node auto-launch option, installer and other fixes
+Sensor node auto-launch option, installer and other fixes.
 
 ### Added
 
