@@ -26,7 +26,7 @@ from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 from gnuradio import soapy
 from gnuradio.fft import logpwrfft
-import fixed_threshold_rtl2832u_epy_block_0 as epy_block_0  # embedded python block
+import fixed_threshold_cariboulite_epy_block_0 as epy_block_0  # embedded python block
 import numpy as np
 import random
 import sip
@@ -34,9 +34,9 @@ import time
 
 
 
-class fixed_threshold_rtl2832u(gr.top_block, Qt.QWidget):
+class fixed_threshold_cariboulite(gr.top_block, Qt.QWidget):
 
-    def __init__(self, antenna_default='', channel_default='', gain_default='20', ip_address='', rx_freq_default='102.4', sample_rate_default='2.56e6', serial='', threshold_default='0'):
+    def __init__(self, antenna_default='', channel_default='', gain_default='50', ip_address='', rx_freq_default='2412', sample_rate_default='20e6', sensor_node_ip_address="127.0.0.1", serial="0", threshold_default='0'):
         gr.top_block.__init__(self, "Not titled yet", catch_exceptions=True)
         Qt.QWidget.__init__(self)
         self.setWindowTitle("Not titled yet")
@@ -57,7 +57,7 @@ class fixed_threshold_rtl2832u(gr.top_block, Qt.QWidget):
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
 
-        self.settings = Qt.QSettings("GNU Radio", "fixed_threshold_rtl2832u")
+        self.settings = Qt.QSettings("GNU Radio", "fixed_threshold_cariboulite")
 
         try:
             geometry = self.settings.value("geometry")
@@ -75,6 +75,7 @@ class fixed_threshold_rtl2832u(gr.top_block, Qt.QWidget):
         self.ip_address = ip_address
         self.rx_freq_default = rx_freq_default
         self.sample_rate_default = sample_rate_default
+        self.sensor_node_ip_address = sensor_node_ip_address
         self.serial = serial
         self.threshold_default = threshold_default
 
@@ -116,9 +117,9 @@ class fixed_threshold_rtl2832u(gr.top_block, Qt.QWidget):
         for c in range(0, 4):
             self.top_grid_layout.setColumnStretch(c, 1)
         # Create the options list
-        self._samp_rate_options = [250000.0, 1024000.0, 1536000.0, 1792000.0, 1920000.0, 2048000.0, 2160000.0, 2560000.0, 2880000.0, 3200000.0]
+        self._samp_rate_options = [1000000.0, 2000000.0, 5000000.0, 10000000.0, 20000000.0]
         # Create the labels list
-        self._samp_rate_labels = ['0.25 MS/s', '1.024 MS/s', '1.536 MS/s', '1.792 MS/s', '1.92 MS/s', '2.048 MS/s', '2.16 MS/s', '2.56 MS/s', '2.88 MS/s', '3.2 MS/s']
+        self._samp_rate_labels = ['1 MS/s', '2 MS/s', '5 MS/s', '10 MS/s', '20 MS/s']
         # Create the combo box
         self._samp_rate_tool_bar = Qt.QToolBar(self)
         self._samp_rate_tool_bar.addWidget(Qt.QLabel("Sample Rate" + ": "))
@@ -135,14 +136,14 @@ class fixed_threshold_rtl2832u(gr.top_block, Qt.QWidget):
             self.top_grid_layout.setRowStretch(r, 1)
         for c in range(0, 1):
             self.top_grid_layout.setColumnStretch(c, 1)
-        self._rx_gain_range = qtgui.Range(0, 50, 1, float(gain_default), 200)
+        self._rx_gain_range = qtgui.Range(-1, 60, 1, float(gain_default), 200)
         self._rx_gain_win = qtgui.RangeWidget(self._rx_gain_range, self.set_rx_gain, "              Gain:", "counter_slider", float, QtCore.Qt.Horizontal)
         self.top_grid_layout.addWidget(self._rx_gain_win, 2, 0, 1, 4)
         for r in range(2, 3):
             self.top_grid_layout.setRowStretch(r, 1)
         for c in range(0, 4):
             self.top_grid_layout.setColumnStretch(c, 1)
-        self._rx_freq_range = qtgui.Range(50, 2200, .1, float(rx_freq_default), 200)
+        self._rx_freq_range = qtgui.Range(50, 6000, .1, float(rx_freq_default), 200)
         self._rx_freq_win = qtgui.RangeWidget(self._rx_freq_range, self.set_rx_freq, " Freq. (MHz):", "counter_slider", float, QtCore.Qt.Horizontal)
         self.top_grid_layout.addWidget(self._rx_freq_win, 1, 0, 1, 4)
         for r in range(1, 2):
@@ -156,41 +157,24 @@ class fixed_threshold_rtl2832u(gr.top_block, Qt.QWidget):
             self.top_grid_layout.setRowStretch(r, 1)
         for c in range(0, 4):
             self.top_grid_layout.setColumnStretch(c, 1)
-        self.soapy_rtlsdr_source_0 = None
-        dev = 'driver=rtlsdr'
-        stream_args = 'bufflen=16384'
+        self.soapy_custom_source_0 = None
+        dev = 'driver=' + ''
+        stream_args = ''
         tune_args = ['']
         settings = ['']
-
-        def _set_soapy_rtlsdr_source_0_gain_mode(channel, agc):
-            self.soapy_rtlsdr_source_0.set_gain_mode(channel, agc)
-            if not agc:
-                  self.soapy_rtlsdr_source_0.set_gain(channel, self._soapy_rtlsdr_source_0_gain_value)
-        self.set_soapy_rtlsdr_source_0_gain_mode = _set_soapy_rtlsdr_source_0_gain_mode
-
-        def _set_soapy_rtlsdr_source_0_gain(channel, name, gain):
-            self._soapy_rtlsdr_source_0_gain_value = gain
-            if not self.soapy_rtlsdr_source_0.get_gain_mode(channel):
-                self.soapy_rtlsdr_source_0.set_gain(channel, gain)
-        self.set_soapy_rtlsdr_source_0_gain = _set_soapy_rtlsdr_source_0_gain
-
-        def _set_soapy_rtlsdr_source_0_bias(bias):
-            if 'biastee' in self._soapy_rtlsdr_source_0_setting_keys:
-                self.soapy_rtlsdr_source_0.write_setting('biastee', bias)
-        self.set_soapy_rtlsdr_source_0_bias = _set_soapy_rtlsdr_source_0_bias
-
-        self.soapy_rtlsdr_source_0 = soapy.source(dev, "fc32", 1, '',
+        self.soapy_custom_source_0 = soapy.source(dev, "fc32",
+                                  1, '',
                                   stream_args, tune_args, settings)
-
-        self._soapy_rtlsdr_source_0_setting_keys = [a.key for a in self.soapy_rtlsdr_source_0.get_setting_info()]
-
-        self.soapy_rtlsdr_source_0.set_sample_rate(0, float(samp_rate))
-        self.soapy_rtlsdr_source_0.set_frequency(0, (float(rx_freq)*1e6))
-        self.soapy_rtlsdr_source_0.set_frequency_correction(0, 0)
-        self.set_soapy_rtlsdr_source_0_bias(bool(False))
-        self._soapy_rtlsdr_source_0_gain_value = float(rx_gain)
-        self.set_soapy_rtlsdr_source_0_gain_mode(0, bool(False))
-        self.set_soapy_rtlsdr_source_0_gain(0, 'TUNER', float(rx_gain))
+        self.soapy_custom_source_0.set_sample_rate(0, float(samp_rate))
+        self.soapy_custom_source_0.set_bandwidth(0, 0)
+        self.soapy_custom_source_0.set_antenna(0, 'RX')
+        self.soapy_custom_source_0.set_frequency(0, (float(rx_freq)*1e6))
+        self.soapy_custom_source_0.set_frequency_correction(0, 0)
+        self.soapy_custom_source_0.set_gain_mode(0, False)
+        self.soapy_custom_source_0.set_gain(0, float(rx_gain))
+        self.soapy_custom_source_0.set_dc_offset_mode(0, True)
+        self.soapy_custom_source_0.set_dc_offset(0, 0)
+        self.soapy_custom_source_0.set_iq_balance(0, 0)
         self.qtgui_vector_sink_f_0 = qtgui.vector_sink_f(
             fft_size,
             0,
@@ -260,11 +244,11 @@ class fixed_threshold_rtl2832u(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_vector_source_x_0_1, 0), (self.qtgui_vector_sink_f_0, 2))
         self.connect((self.logpwrfft_x_0, 0), (self.blocks_add_const_vxx_0, 0))
         self.connect((self.logpwrfft_x_0, 0), (self.qtgui_vector_sink_f_0, 0))
-        self.connect((self.soapy_rtlsdr_source_0, 0), (self.logpwrfft_x_0, 0))
+        self.connect((self.soapy_custom_source_0, 0), (self.logpwrfft_x_0, 0))
 
 
     def closeEvent(self, event):
-        self.settings = Qt.QSettings("GNU Radio", "fixed_threshold_rtl2832u")
+        self.settings = Qt.QSettings("GNU Radio", "fixed_threshold_cariboulite")
         self.settings.setValue("geometry", self.saveGeometry())
         self.stop()
         self.wait()
@@ -309,6 +293,12 @@ class fixed_threshold_rtl2832u(gr.top_block, Qt.QWidget):
     def set_sample_rate_default(self, sample_rate_default):
         self.sample_rate_default = sample_rate_default
         self.set_samp_rate(float(self.sample_rate_default))
+
+    def get_sensor_node_ip_address(self):
+        return self.sensor_node_ip_address
+
+    def set_sensor_node_ip_address(self, sensor_node_ip_address):
+        self.sensor_node_ip_address = sensor_node_ip_address
 
     def get_serial(self):
         return self.serial
@@ -400,14 +390,13 @@ class fixed_threshold_rtl2832u(gr.top_block, Qt.QWidget):
         self._samp_rate_callback(self.samp_rate)
         self.epy_block_0.sample_rate = self.samp_rate
         self.logpwrfft_x_0.set_sample_rate(self.samp_rate)
-        self.soapy_rtlsdr_source_0.set_sample_rate(0, float(self.samp_rate))
 
     def get_rx_gain(self):
         return self.rx_gain
 
     def set_rx_gain(self, rx_gain):
         self.rx_gain = rx_gain
-        self.set_soapy_rtlsdr_source_0_gain(0, 'TUNER', float(self.rx_gain))
+        self.soapy_custom_source_0.set_gain(0, float(self.rx_gain))
 
     def get_rx_freq(self):
         return self.rx_freq
@@ -415,7 +404,7 @@ class fixed_threshold_rtl2832u(gr.top_block, Qt.QWidget):
     def set_rx_freq(self, rx_freq):
         self.rx_freq = rx_freq
         self.epy_block_0.rx_freq_mhz = self.rx_freq
-        self.soapy_rtlsdr_source_0.set_frequency(0, (float(self.rx_freq)*1e6))
+        self.soapy_custom_source_0.set_frequency(0, (float(self.rx_freq)*1e6))
 
     def get_low_bound_vec_top_half(self):
         return self.low_bound_vec_top_half
@@ -456,33 +445,36 @@ def argument_parser():
         "--channel-default", dest="channel_default", type=str, default='',
         help="Set channel_default [default=%(default)r]")
     parser.add_argument(
-        "--gain-default", dest="gain_default", type=str, default='20',
-        help="Set 20 [default=%(default)r]")
+        "--gain-default", dest="gain_default", type=str, default='50',
+        help="Set 50 [default=%(default)r]")
     parser.add_argument(
         "--ip-address", dest="ip_address", type=str, default='',
         help="Set ip_address [default=%(default)r]")
     parser.add_argument(
-        "--rx-freq-default", dest="rx_freq_default", type=str, default='102.4',
-        help="Set 102.4 [default=%(default)r]")
+        "--rx-freq-default", dest="rx_freq_default", type=str, default='2412',
+        help="Set 2412 [default=%(default)r]")
     parser.add_argument(
-        "--sample-rate-default", dest="sample_rate_default", type=str, default='2.56e6',
-        help="Set 2.56e6 [default=%(default)r]")
+        "--sample-rate-default", dest="sample_rate_default", type=str, default='20e6',
+        help="Set 20e6 [default=%(default)r]")
     parser.add_argument(
-        "--serial", dest="serial", type=str, default='',
-        help="Set serial [default=%(default)r]")
+        "--sensor-node-ip-address", dest="sensor_node_ip_address", type=str, default="127.0.0.1",
+        help="Set 127.0.0.1 [default=%(default)r]")
+    parser.add_argument(
+        "--serial", dest="serial", type=str, default="0",
+        help="Set 0 [default=%(default)r]")
     parser.add_argument(
         "--threshold-default", dest="threshold_default", type=str, default='0',
         help="Set 0 [default=%(default)r]")
     return parser
 
 
-def main(top_block_cls=fixed_threshold_rtl2832u, options=None):
+def main(top_block_cls=fixed_threshold_cariboulite, options=None):
     if options is None:
         options = argument_parser().parse_args()
 
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls(antenna_default=options.antenna_default, channel_default=options.channel_default, gain_default=options.gain_default, ip_address=options.ip_address, rx_freq_default=options.rx_freq_default, sample_rate_default=options.sample_rate_default, serial=options.serial, threshold_default=options.threshold_default)
+    tb = top_block_cls(antenna_default=options.antenna_default, channel_default=options.channel_default, gain_default=options.gain_default, ip_address=options.ip_address, rx_freq_default=options.rx_freq_default, sample_rate_default=options.sample_rate_default, sensor_node_ip_address=options.sensor_node_ip_address, serial=options.serial, threshold_default=options.threshold_default)
 
     tb.start()
 

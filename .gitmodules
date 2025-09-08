@@ -170,3 +170,7 @@
 	path = Custom_Blocks/maint-3.10/gr-sdrplay3
 	url = https://github.com/fventuri/gr-sdrplay3
 	branch = main
+[submodule "Custom_Blocks/maint-3.10/gr-sidekiq"]
+	path = Custom_Blocks/maint-3.10/gr-sidekiq
+	url = https://github.com/epiqsolutions/gr-sidekiq.git
+	branch = master

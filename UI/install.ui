@@ -202,7 +202,7 @@
      <string>Raspberry Pi OS (bookworm)</string>
     </property>
    </widget>
-   <widget class="QRadioButton" name="radioButton_dragonos_focalx">
+   <widget class="QRadioButton" name="radioButton_dragonos_noble">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -215,7 +215,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>DragonOS FocalX</string>
+     <string>DragonOS Noble (beta)</string>
     </property>
    </widget>
    <widget class="QRadioButton" name="radioButton_ubuntu24_04">

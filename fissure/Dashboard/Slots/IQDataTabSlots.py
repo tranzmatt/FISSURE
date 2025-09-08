@@ -120,7 +120,7 @@ def _slotIQ_RecordHardwareChanged(dashboard: QtCore.QObject):
     """
     # Sensor Node Hardware Information
     get_current_hardware = str(dashboard.ui.comboBox_iq_record_hardware.currentText())
-    get_hardware_type, get_hardware_uid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
+    get_hardware_type, get_hardware_uuid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
 
     # Utility Functions   
     get_gain = fissure.utils.hardware.getHardwareGain(get_hardware_type, "RX")
@@ -576,6 +576,32 @@ def _slotIQ_RecordHardwareChanged(dashboard: QtCore.QObject):
 
         dashboard.ui.frame_iq_record.setEnabled(True)
 
+    elif get_hardware_type == "CaribouLite":
+        spinbox_frequency = QtWidgets.QDoubleSpinBox(dashboard)
+        spinbox_frequency.setMaximum(6000)
+        spinbox_frequency.setMinimum(30)
+        spinbox_frequency.setAlignment(QtCore.Qt.AlignCenter)
+        dashboard.ui.tableWidget_iq_record.setCellWidget(0,1,spinbox_frequency)
+        comboBox_channel = QtWidgets.QComboBox(dashboard, objectName='comboBox2_')
+        comboBox_channel.addItems(get_channels)
+        dashboard.ui.tableWidget_iq_record.setCellWidget(0,2,comboBox_channel)
+        comboBox_antenna = QtWidgets.QComboBox(dashboard, objectName='comboBox2_')
+        # comboBox_antenna.addItems(get_antennas) 
+        dashboard.ui.tableWidget_iq_record.setCellWidget(0,3,comboBox_antenna)
+        spinbox_gain = QtWidgets.QDoubleSpinBox(dashboard)
+        spinbox_gain.setMaximum(get_gain[1])
+        spinbox_gain.setMinimum(get_gain[0])
+        spinbox_gain.setValue(get_gain[2])
+        spinbox_gain.setAlignment(QtCore.Qt.AlignCenter)
+        dashboard.ui.tableWidget_iq_record.setCellWidget(0,4,spinbox_gain)
+        dashboard.ui.tableWidget_iq_record.removeCellWidget(0,7)
+        dashboard.ui.tableWidget_iq_record.resizeColumnsToContents()
+        dashboard.ui.tableWidget_iq_record.setColumnWidth(0,300)
+        dashboard.ui.tableWidget_iq_record.horizontalHeader().setStretchLastSection(False)  # Needs to toggle in PyQt5
+        dashboard.ui.tableWidget_iq_record.horizontalHeader().setStretchLastSection(True)
+
+        dashboard.ui.frame_iq_record.setEnabled(True)
+
     # Enable Recording
     dashboard.ui.pushButton_iq_record.setEnabled(True)
     dashboard.ui.label2_iq_status_files.setEnabled(True)
@@ -588,7 +614,7 @@ def _slotIQ_PlaybackHardwareChanged(dashboard: QtCore.QObject):
     """
     # Sensor Node Hardware Information
     get_current_hardware = str(dashboard.ui.comboBox_iq_playback_hardware.currentText())
-    get_hardware_type, get_hardware_uid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
+    get_hardware_type, get_hardware_uuid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
     
     # Utility Functions   
     get_gain = fissure.utils.hardware.getHardwareGain(get_hardware_type, "TX")
@@ -859,6 +885,28 @@ def _slotIQ_PlaybackHardwareChanged(dashboard: QtCore.QObject):
     elif get_hardware_type == "RSPdx R2":
         pass
 
+    elif get_hardware_type == "CaribouLite":
+        playback_spinbox_frequency = QtWidgets.QDoubleSpinBox(dashboard)
+        playback_spinbox_frequency.setMaximum(6000)
+        playback_spinbox_frequency.setMinimum(30)
+        playback_spinbox_frequency.setAlignment(QtCore.Qt.AlignCenter)
+        dashboard.ui.tableWidget_iq_playback.setCellWidget(0,0,playback_spinbox_frequency)
+        comboBox_playback_channel = QtWidgets.QComboBox(dashboard, objectName='comboBox2_')
+        comboBox_playback_channel.addItems(get_channels)
+        dashboard.ui.tableWidget_iq_playback.setCellWidget(0,1,comboBox_playback_channel)
+        comboBox_playback_antenna = QtWidgets.QComboBox(dashboard, objectName='comboBox2_')
+        # comboBox_playback_antenna.addItems(get_antennas)
+        dashboard.ui.tableWidget_iq_playback.setCellWidget(0,2,comboBox_playback_antenna)
+        playback_spinbox_gain = QtWidgets.QDoubleSpinBox(dashboard)
+        playback_spinbox_gain.setMaximum(get_gain[1])
+        playback_spinbox_gain.setMinimum(get_gain[0])
+        playback_spinbox_gain.setValue(get_gain[2])
+        playback_spinbox_gain.setAlignment(QtCore.Qt.AlignCenter)
+        dashboard.ui.tableWidget_iq_playback.setCellWidget(0,3,playback_spinbox_gain)
+        dashboard.ui.tableWidget_iq_playback.resizeColumnsToContents()
+        dashboard.ui.tableWidget_iq_playback.horizontalHeader().setStretchLastSection(False)
+        dashboard.ui.tableWidget_iq_playback.horizontalHeader().setStretchLastSection(True)    
+
     # Enable Playback and Recording
     dashboard.ui.pushButton_iq_playback.setEnabled(True)
     dashboard.ui.label2_iq_playback_status.setEnabled(True)
@@ -880,7 +928,7 @@ def _slotIQ_InspectionHardwareChanged(dashboard: QtCore.QObject):
     """
     # Sensor Node Hardware Information
     get_current_hardware = str(dashboard.ui.comboBox_iq_inspection_hardware.currentText())
-    get_hardware_type, get_hardware_uid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
+    get_hardware_type, get_hardware_uuid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
     
     # Clear Widgets
     dashboard.ui.listWidget_iq_inspection_flow_graphs.clear()
@@ -1038,7 +1086,7 @@ def _slotIQ_InspectionFlowGraphClicked(dashboard: QtCore.QObject):
         
     # Sensor Node Hardware Information
     get_current_hardware = str(dashboard.ui.comboBox_iq_inspection_hardware.currentText())
-    get_hardware_type, get_hardware_uid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
+    get_hardware_type, get_hardware_uuid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
 
     # Read Flow Graph Variables
     try:
@@ -1097,6 +1145,9 @@ def _slotIQ_InspectionFlowGraphClicked(dashboard: QtCore.QObject):
                                 parameter_value = "0"
                             else:
                                 parameter_value = "False"
+                    elif parameter_name == "uuid":
+                        if get_hardware_type == "CaribouLite":
+                            parameter_value = get_hardware_uuid
                     else:
                         parameter_value = fg_parameters[p].lstrip(' ').split('=')[1].replace('"','')
 
@@ -1266,7 +1317,7 @@ def _slotIQ_LoadIQ_Data(dashboard: QtCore.QObject):
 
     # Sensor Node Hardware Information
     get_current_hardware = str(dashboard.ui.comboBox_iq_playback_hardware.currentText())
-    get_hardware_type, get_hardware_uid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
+    get_hardware_type, get_hardware_uuid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
     
     # Playback
     dashboard.ui.textEdit_iq_playback_filepath.setPlainText(get_file_path)
@@ -6007,7 +6058,7 @@ def _slotIQ_RecordSigMF_ConfigureClicked(dashboard: QtCore.QObject):
     """
     # Sensor Node Hardware Information
     get_current_hardware = str(dashboard.ui.comboBox_iq_record_hardware.currentText())
-    get_hardware_type, get_hardware_uid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
+    get_hardware_type, get_hardware_uuid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
     
     # Copy Values from Table
     # Sample Rate
@@ -6072,7 +6123,7 @@ async def _slotIQ_RecordClicked(dashboard: QtCore.QObject, called_from_thread=Fa
         if dashboard.iq_file_counter > 0:
             # Sensor Node Hardware Information
             get_current_hardware = str(dashboard.ui.comboBox_iq_record_hardware.currentText())
-            get_hardware_type, get_hardware_uid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
+            get_hardware_type, get_hardware_uuid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
 
             # Get the Values from the Table
             try:
@@ -6165,7 +6216,9 @@ async def _slotIQ_RecordClicked(dashboard: QtCore.QObject, called_from_thread=Fa
             elif get_hardware_type == "RSPdx":
                 fname = "iq_recorder_rspdx"                                
             elif get_hardware_type == "RSPdx R2":
-                fname = "iq_recorder_rspdx_r2"                                
+                fname = "iq_recorder_rspdx_r2"
+            elif get_hardware_type == "CaribouLite":
+                fname = "iq_recorder_cariboulite"                
 
             # LimeSDR Channel
             if get_hardware_type == "LimeSDR":
@@ -6259,7 +6312,7 @@ async def _slotIQ_PlaybackClicked(dashboard: QtCore.QObject):
 
         # Sensor Node Hardware Information
         get_current_hardware = str(dashboard.ui.comboBox_iq_playback_hardware.currentText())
-        get_hardware_type, get_hardware_uid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
+        get_hardware_type, get_hardware_uuid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
     
         try:
             # Get the Values from the Table
@@ -6366,6 +6419,11 @@ async def _slotIQ_PlaybackClicked(dashboard: QtCore.QObject):
                 fname = "iq_playback_single_x410"
             else:
                 fname = "iq_playback_x410"
+        elif get_hardware_type == "CaribouLite":
+            if get_repeat == "No":
+                fname = "iq_playback_single_cariboulite"
+            else:
+                fname = "iq_playback_cariboulite"   
 
         # LimeSDR Channel
         if get_hardware_type == "LimeSDR":

@@ -22,6 +22,21 @@ MESSAGE_CODE_MAP = {
     "L1": "takPlotGpsUpdateLT",
     "M1": "gpsBeaconEnableMeshtasticLT",
     "M2": "gpsBeaconDisableMeshtasticLT",
+    "N1": "rebootMeshtasticLT",
+    "O1": "uptimeMeshtasticLT",
+    "O2": "uptimeMeshtasticReturnLT",
+    "P1": "memoryMeshtasticLT",
+    "P2": "memoryMeshtasticReturnLT",
+    "Q1": "diskMeshtasticLT",
+    "Q2": "diskMeshtasticReturnLT",
+    "R1": "cpuMeshtasticLT",
+    "R2": "cpuMeshtasticReturnLT",
+    "S1": "processesMeshtasticLT",
+    "S2": "processesMeshtasticReturnLT",
+    "T1": "ifconfigMeshtasticLT",
+    "T2": "ifconfigMeshtasticReturnLT",
+    "U1": "iwconfigMeshtasticLT",
+    "U2": "iwconfigMeshtasticReturnLT",     
 }
 
 # Reverse mapping for sending messages

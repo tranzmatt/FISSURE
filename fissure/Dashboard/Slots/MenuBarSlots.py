@@ -253,7 +253,7 @@ def setStyleSheet(dashboard: QtWidgets.QMainWindow, mode: str = "light"):
     stylesheet = __updateSettings__(stylesheet, dashboard.backend.settings)
 
     # Fix Dragon OS Padding
-    if (dashboard.backend.os_info == "DragonOS Focal") or (dashboard.backend.os_info == "DragonOS FocalX"):
+    if (dashboard.backend.os_info == "DragonOS"):
         stylesheet = stylesheet.replace("@menu_hover_padding", "0px")
     else:
         stylesheet = stylesheet.replace("@menu_hover_padding", "2px")
@@ -660,7 +660,7 @@ def _slotMenuRdsRx2Clicked(dashboard: QtWidgets.QMainWindow):
         rds_command = """grcc \\\"""" + rds_filepath + """rds_rx.grc\\\" -o \\\"""" + rds_filepath + """\\\" -r"""
         proc = subprocess.Popen("gnome-terminal -- " + expect_script_filepath + ' "' + rds_command + '"', shell=True)
     elif fissure.utils.get_default_expect_terminal(dashboard.backend.os_info) == "qterminal":
-        if dashboard.backend.os_info == "DragonOS Focal" or dashboard.backend.os_info == "DragonOS FocalX":
+        if dashboard.backend.os_info == "DragonOS":
             proc = subprocess.Popen(
                 "qterminal -e "
                 + expect_script_filepath
@@ -693,7 +693,7 @@ def _slotMenuSrsLTE_Clicked(dashboard: QtWidgets.QMainWindow):
             shell=True,
         )
     elif fissure.utils.get_default_expect_terminal(dashboard.backend.os_info) == "qterminal":
-        if dashboard.backend.os_info == "DragonOS Focal" or dashboard.backend.os_info == "DragonOS FocalX":
+        if dashboard.backend.os_info == "DragonOS":
             srsLTE_dir = "/usr/src/srsRAN_4G/srsepc"
             proc = subprocess.Popen(
                 "qterminal -e " + expect_script_filepath + ' "sudo srsepc ~/.config/srsran/epc.conf"',
@@ -835,7 +835,7 @@ def _slotMenuFALCON_Clicked(dashboard: QtWidgets.QMainWindow):
     if fissure.utils.get_default_expect_terminal(dashboard.backend.os_info) == "gnome-terminal":
         proc = subprocess.Popen("gnome-terminal -- " + expect_script_filepath + ' "FalconGUI"', shell=True)
     elif fissure.utils.get_default_expect_terminal(dashboard.backend.os_info) == "qterminal":
-        if dashboard.backend.os_info == "DragonOS Focal" or dashboard.backend.os_info == "DragonOS FocalX":
+        if dashboard.backend.os_info == "DragonOS":
             proc = subprocess.Popen(
                 "qterminal -e " + expect_script_filepath + ' "/usr/src/falcon/build/src/gui/FalconGUI"', shell=True
             )
@@ -1181,7 +1181,7 @@ def _slotMenu4G_IMSI_CatcherClicked(dashboard: QtWidgets.QMainWindow):
                 + " &"
             )
         elif fissure.utils.get_default_expect_terminal(dashboard.backend.os_info) == "qterminal":
-            if dashboard.backend.os_info == "DragonOS Focal" or dashboard.backend.os_info == "DragonOS FocalX":
+            if dashboard.backend.os_info == "DragonOS":
                 cell_search_binary_location = "/usr/src/srsRAN/build/lib/examples/cell_search"
             command_text = (
                 'qterminal -e python3 "'
@@ -1436,7 +1436,7 @@ def _slotMenuSDR_TrunkClicked(dashboard: QtWidgets.QMainWindow):
             "gnome-terminal -- " + expect_script_filepath + ' "' + sdr_trunk_filepath + '"', shell=True
         )
     elif fissure.utils.get_default_expect_terminal(dashboard.backend.os_info) == "qterminal":
-        if dashboard.backend.os_info == "DragonOS Focal" or dashboard.backend.os_info == "DragonOS FocalX":
+        if dashboard.backend.os_info == "DragonOS":
             sdr_trunk_filepath = "/usr/src/sdr-trunk-linux-x86_64-v0.6.0-alpha6/bin/sdr-trunk"
             proc = subprocess.Popen("qterminal -e " + expect_script_filepath + ' "' + sdr_trunk_filepath + '"', shell=True)
         else:
@@ -1606,8 +1606,7 @@ def _slotMenuUS_FrequencyAllocationsClicked(dashboard: QtWidgets.QMainWindow):
     # Open the File
     us_freq_allocations_filepath = os.path.join(fissure.utils.TOOLS_DIR, "january_2016_spectrum_wall_chart.pdf")
     if (
-        dashboard.backend.os_info == "DragonOS Focal" or
-        dashboard.backend.os_info == "DragonOS FocalX" or
+        dashboard.backend.os_info == "DragonOS" or
         dashboard.backend.os_info == "Kali" or
         dashboard.backend.os_info == "Raspberry Pi OS"
     ):
@@ -2941,8 +2940,7 @@ def _slotMenu2022_2026_TechnicianPoolClicked(dashboard: QtWidgets.QMainWindow):
         fissure.utils.TOOLS_DIR, "Ham Radio Exam", "2022-2026 Technician Pool Released Jan17 Revised.pdf"
     )
     if (
-        dashboard.backend.os_info == "DragonOS Focal" or
-        dashboard.backend.os_info == "DragonOS FocalX" or
+        dashboard.backend.os_info == "DragonOS" or
         dashboard.backend.os_info == "Kali" or
         dashboard.backend.os_info == "Raspberry Pi OS"
     ):
@@ -2998,8 +2996,7 @@ def _slotMenuCommandClassSpecificationClicked(dashboard: QtWidgets.QMainWindow):
     # Open the File
     pdf_location = os.path.join(fissure.utils.TOOLS_DIR, "SDS13781-Z-Wave-Application-Command-Class-Specification.pdf")
     if (
-        dashboard.backend.os_info == "DragonOS Focal" or
-        dashboard.backend.os_info == "DragonOS FocalX" or
+        dashboard.backend.os_info == "DragonOS" or
         dashboard.backend.os_info == "Kali" or
         dashboard.backend.os_info == "Raspberry Pi OS"
     ):
@@ -3337,8 +3334,7 @@ def _slotMenu2019_2023_GeneralPoolClicked(dashboard: QtWidgets.QMainWindow):
     # Open the File
     pdf_location = os.path.join(fissure.utils.TOOLS_DIR, "Ham Radio Exam", "2019-2023GeneralClassQuestionPool.pdf")
     if (
-        dashboard.backend.os_info == "DragonOS Focal" or
-        dashboard.backend.os_info == "DragonOS FocalX" or
+        dashboard.backend.os_info == "DragonOS" or
         dashboard.backend.os_info == "Kali" or
         dashboard.backend.os_info == "Raspberry Pi OS"
     ):
@@ -3805,7 +3801,7 @@ def _slotMenuICE9_BluetoothSnifferClicked(dashboard: QtWidgets.QMainWindow):
             "gnome-terminal -- " + expect_script_filepath + ' "' + ice9_command + '"', cwd=ice9_directory, shell=True
         )
     elif fissure.utils.get_default_expect_terminal(dashboard.backend.os_info) == "qterminal":
-        if dashboard.backend.os_info == "DragonOS Focal" or dashboard.backend.os_info == "DragonOS FocalX":
+        if dashboard.backend.os_info == "DragonOS":
             ice9_directory = '/usr/src/ice9-bluetooth-sniffer/build/'
         proc = subprocess.Popen(
             "qterminal -e " + expect_script_filepath + ' "' + ice9_command + '"', cwd=ice9_directory, shell=True

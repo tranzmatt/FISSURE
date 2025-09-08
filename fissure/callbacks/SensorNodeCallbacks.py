@@ -13,6 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 import asyncio
 import zmq
 from typing import List
+import re
 
 
 async def updateLoggingLevels(component: object, new_console_level="", new_file_level=""):
@@ -892,6 +893,11 @@ async def probeHardware(component: object, tab_index=0, table_row_text=[]):
         if not output.startswith("Error:"):
             height_width = [300, 500]
 
+    elif get_hardware == "CaribouLite":
+        output = await fissure.utils.hardware.probeCaribouLite()
+        if not output.startswith("Error:"):
+            height_width = [300, 500]
+
     # Return the Text
     PARAMETERS = {"tab_index": tab_index, "output": output, "height_width": height_width}
     msg = {
@@ -946,6 +952,8 @@ async def scanHardware(component: object, tab_index=0, hardware_list=[]):
             all_scan_results.append(fissure.utils.hardware.findRSPdx()[0])
         elif get_hardware == "RSPdx R2":
             all_scan_results.append(fissure.utils.hardware.findRSPdxR2()[0])
+        elif get_hardware == "CaribouLite":
+            all_scan_results.append(fissure.utils.hardware.findCaribouLite())            
 
     # Return Scan Results
     PARAMETERS = {"tab_index": tab_index, "hardware_scan_results": all_scan_results}
@@ -1028,7 +1036,10 @@ async def guessHardware(component: object, tab_index=0, table_row=[], table_row_
 
     elif get_hardware == "RSPdx R2":
         get_serial = str(table_row_text[3])
-        scan_results, new_guess_index = fissure.utils.hardware.findRSPdxR2(get_serial, guess_index)        
+        scan_results, new_guess_index = fissure.utils.hardware.findRSPdxR2(get_serial, guess_index)
+
+    elif get_hardware == "CaribouLite":
+        scan_results = fissure.utils.hardware.findCaribouLite()
 
     # Return Guess Results
     PARAMETERS = {
@@ -1370,7 +1381,7 @@ async def gpsBeaconRefreshIP(component: object, sensor_node_id: str):
     """
     Retrieves the state of the GPS TAK beacon.
     """
-    # Semd Status
+    # Send Status
     PARAMETERS = {
         "sensor_node_id": sensor_node_id,
         "gps_tak_beacon_status": component.gps_tak_beacon
@@ -1378,6 +1389,168 @@ async def gpsBeaconRefreshIP(component: object, sensor_node_id: str):
     msg = {
         fissure.comms.MessageFields.IDENTIFIER: component.identifier,
         fissure.comms.MessageFields.MESSAGE_NAME: "gpsBeaconEnableDisableIP_Return",
+        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    }
+    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+async def rebootIP(component: object, sensor_node_id: str):
+    """
+    Reboots the sensor node computer.
+    """
+    component.logger.info("Rebooting")
+    
+    # Reboot
+    os.system("sudo reboot")
+
+
+async def uptimeIP(component: object, sensor_node_id: str):
+    """
+    Retrieves the uptime of the sensor node computer.
+    """
+    # Get Uptime
+    result = subprocess.check_output("uptime", shell=True, text=True)
+    result = result.strip()
+
+    # Extract current time and uptime duration
+    match = re.search(r'(\d{1,2}:\d{2}(?::\d{2})?)\s+up\s+([^,]+)', result)
+    if match:
+        current_time = match.group(1)
+        uptime_short = match.group(2).strip()
+        uptime_string = f"{current_time} up {uptime_short}"
+        component.logger.info(uptime_string)
+    else:
+        component.logger.error("Uptime format not recognized")
+        uptime_string = "Uptime format not recognized"
+
+    # Send Status
+    PARAMETERS = {
+        "sensor_node_id": sensor_node_id,
+        "uptime": uptime_string
+    }
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+        fissure.comms.MessageFields.MESSAGE_NAME: "uptimeIP_Return",
+        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    }
+    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+async def memoryIP(component: object, sensor_node_id: str):
+    """
+    Retrieves the memory usage of the sensor node computer.
+    """
+    # Run the command
+    output = subprocess.check_output("free -h", shell=True, text=True)
+
+    # Send Status
+    PARAMETERS = {
+        "sensor_node_id": sensor_node_id,
+        "memory": output
+    }
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+        fissure.comms.MessageFields.MESSAGE_NAME: "memoryIP_Return",
+        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    }
+    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+async def diskIP(component: object, sensor_node_id: str):
+    """
+    Retrieves the disk usage of the sensor node computer.
+    """
+    # Get disk usage for root
+    disk_string = subprocess.check_output("df -h /", shell=True, text=True)
+
+    # Send Status
+    PARAMETERS = {
+        "sensor_node_id": sensor_node_id,
+        "disk": disk_string
+    }
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+        fissure.comms.MessageFields.MESSAGE_NAME: "diskIP_Return",
+        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    }
+    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+async def cpuIP(component: object, sensor_node_id: str):
+    """
+    Retrieves the CPU percentrage of the sensor node computer.
+    """
+    # Get CPU Percentage
+    cpu_result = subprocess.check_output("top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}'", shell=True, text=True).strip()
+
+    # Send Status
+    PARAMETERS = {
+        "sensor_node_id": sensor_node_id,
+        "cpu": cpu_result
+    }
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+        fissure.comms.MessageFields.MESSAGE_NAME: "cpuIP_Return",
+        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    }
+    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+async def processesIP(component: object, sensor_node_id: str):
+    """
+    Retrieves the processes on the sensor node computer.
+    """
+    # Get Processes
+    processes_result = subprocess.check_output("ps aux | grep -i fissure", shell=True, text=True).strip()
+
+    # Send Status
+    PARAMETERS = {
+        "sensor_node_id": sensor_node_id,
+        "processes": processes_result
+    }
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+        fissure.comms.MessageFields.MESSAGE_NAME: "processesIP_Return",
+        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    }
+    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+async def ifconfigIP(component: object, sensor_node_id: str):
+    """
+    Retrieves the ifconfig output on the sensor node computer.
+    """
+    # Get Processes
+    ifconfig_result = subprocess.check_output("ifconfig", shell=True, text=True).strip()
+
+    # Send Status
+    PARAMETERS = {
+        "sensor_node_id": sensor_node_id,
+        "ifconfig": ifconfig_result
+    }
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+        fissure.comms.MessageFields.MESSAGE_NAME: "ifconfigIP_Return",
+        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    }
+    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+async def iwconfigIP(component: object, sensor_node_id: str):
+    """
+    Retrieves the iwconfig output on the sensor node computer.
+    """
+    # Get Processes
+    iwconfig_result = subprocess.check_output("iwconfig", shell=True, text=True).strip()
+
+    # Send Status
+    PARAMETERS = {
+        "sensor_node_id": sensor_node_id,
+        "iwconfig": iwconfig_result
+    }
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+        fissure.comms.MessageFields.MESSAGE_NAME: "iwconfigIP_Return",
         fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)

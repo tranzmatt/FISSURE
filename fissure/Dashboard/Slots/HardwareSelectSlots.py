@@ -10,6 +10,7 @@ import asyncio
 import tempfile
 import subprocess
 import serial.tools.list_ports
+import re
 
 
 @QtCore.pyqtSlot(QtCore.QObject)
@@ -1502,7 +1503,7 @@ def local(HWSelect: QtCore.QObject, tab_index=0):
         "textEdit_ip_addr", "textEdit_msg_port", "textEdit_hb_port",
         "pushButton_ping", "pushButton_connect",
         "label2_ip_addr", "label2_msg_port", "label2_hb_port",
-        "checkBox_recall_settings_remote", "label2_nickname", "textEdit_nickname"
+        "checkBox_recall_settings_remote", "label2_nickname", "textEdit_nickname",
     ]
 
     # List of widgets to hide
@@ -1515,6 +1516,9 @@ def local(HWSelect: QtCore.QObject, tab_index=0):
         element = getattr(HWSelect, f"{widget}_{index}", None)
         if element:
             element.setEnabled(False)
+    tab_widget_element = getattr(HWSelect, f"tabWidget_on_connect_{index}", None)
+    if tab_widget_element:
+        tab_widget_element.setTabEnabled(2,False)
 
     # Hide only the required widgets
     for widget in hide_widgets:
@@ -1531,7 +1535,7 @@ def local(HWSelect: QtCore.QObject, tab_index=0):
     stacked_widget = getattr(HWSelect, f"stackedWidget_local_remote_{index}", None)
     if (stacked_widget and stacked_widget.currentIndex() == 1) or (stacked_widget and stacked_widget.currentIndex() == 3):
         stacked_widget.setCurrentIndex(0)
-
+    
 
 @QtCore.pyqtSlot(QtCore.QObject)
 def remote(HWSelect: QtCore.QObject, tab_index=0):
@@ -1559,6 +1563,9 @@ def remote(HWSelect: QtCore.QObject, tab_index=0):
         element = getattr(HWSelect, f"{widget}_{index}", None)
         if element:
             element.setEnabled(True)
+    tab_widget_element = getattr(HWSelect, f"tabWidget_on_connect_{index}", None)
+    if tab_widget_element:
+        tab_widget_element.setTabEnabled(2,True)
 
     # Set only the required widgets to visible
     for widget in visible_widgets:
@@ -1688,6 +1695,13 @@ async def connect(HWSelect: QtCore.QObject):
         HWSelect.pushButton_connect_4,
         HWSelect.pushButton_connect_5,
     ]
+    network_type_widgets = [
+        HWSelect.comboBox_network_type_1,
+        HWSelect.comboBox_network_type_2,
+        HWSelect.comboBox_network_type_3,
+        HWSelect.comboBox_network_type_4,
+        HWSelect.comboBox_network_type_5,
+    ]
 
     get_ip = str(ip_widgets[tab_index].toPlainText())
     get_msg_port = str(msg_port_widgets[tab_index].toPlainText())
@@ -1707,6 +1721,7 @@ async def connect(HWSelect: QtCore.QObject):
     ip_widgets[tab_index].setEnabled(False)
     msg_port_widgets[tab_index].setEnabled(False)
     hb_port_widgets[tab_index].setEnabled(False)
+    network_type_widgets[tab_index].setEnabled(False)
     QtWidgets.QApplication.processEvents()
 
     # Send Message for HIPRFISR to Sensor Node Connections
@@ -1792,7 +1807,7 @@ async def disconnect(HWSelect: QtCore.QObject, delete_node=False):
 
             # Send Message for HIPRFISR to end Meshtastic Serial Connection
             await HWSelect.dashboard.backend.disconnectFromMeshtastic(str(tab_index))
-
+    
 
 @QtCore.pyqtSlot(QtCore.QObject)
 def remove_all(HWSelect: QtCore.QObject):
@@ -2443,10 +2458,17 @@ def network_type_changed(HWSelect: QtCore.QObject):
     tab_index = HWSelect.tabWidget_nodes.currentIndex()
     stacked_widget = getattr(HWSelect, f"stackedWidget_local_remote_{tab_index + 1}", None)
     network_type_widget = getattr(HWSelect, f"comboBox_network_type_{tab_index + 1}", None)
+    local_actions_stacked_widget = getattr(HWSelect, f"stackedWidget_local_actions_{tab_index + 1}", None)
+    remote_actions_stacked_widget = getattr(HWSelect, f"stackedWidget_remote_actions_{tab_index + 1}", None)
+    
     if str(network_type_widget.currentText()) == "IP":
         stacked_widget.setCurrentIndex(1)
+        local_actions_stacked_widget.setCurrentIndex(0)        
+        remote_actions_stacked_widget.setCurrentIndex(0)        
     elif str(network_type_widget.currentText()) == "Meshtastic":
         stacked_widget.setCurrentIndex(3)
+        local_actions_stacked_widget.setCurrentIndex(1)        
+        remote_actions_stacked_widget.setCurrentIndex(1)  
 
 
 @QtCore.pyqtSlot(QtCore.QObject)
@@ -2463,7 +2485,16 @@ def meshtastic_refresh(HWSelect: QtCore.QObject):
         HWSelect.comboBox_meshtastic_port_4, 
         HWSelect.comboBox_meshtastic_port_5
     ]
-    ports = [port.device for port in serial.tools.list_ports.comports()]
+    # ports = [port.device for port in serial.tools.list_ports.comports()]
+
+    # Only include /dev/ttyACM* and /dev/ttyUSB*
+    ports = [
+        port.device 
+        for port in serial.tools.list_ports.comports() 
+        if '/dev/ttyACM' in port.device or '/dev/ttyUSB' in port.device
+    ]
+    ports.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split(r'(\d+)', s)])
+
     serial_port_widgets[tab_index].clear()
     serial_port_widgets[tab_index].addItems(ports if ports else ["No ports found"])
 
@@ -2512,6 +2543,13 @@ async def meshtastic_connect(HWSelect: QtCore.QObject):
         HWSelect.stackedWidget_local_remote_4,
         HWSelect.stackedWidget_local_remote_5,
     ]
+    network_type_widgets = [
+        HWSelect.comboBox_network_type_1,
+        HWSelect.comboBox_network_type_2,
+        HWSelect.comboBox_network_type_3,
+        HWSelect.comboBox_network_type_4,
+        HWSelect.comboBox_network_type_5,
+    ]
 
     get_serial_port = str(serial_port[tab_index].currentText())
     get_serial_baud_rate = str(serial_baud_rate[tab_index].currentText())
@@ -2525,6 +2563,7 @@ async def meshtastic_connect(HWSelect: QtCore.QObject):
 
     # Disable Buttons
     local_remote_stacked_widgets[tab_index].setEnabled(False)
+    network_type_widgets[tab_index].setEnabled(False)
     QtWidgets.QApplication.processEvents()
 
     # Send Message for HIPRFISR to Create Sensor Node Connection
@@ -2545,8 +2584,16 @@ async def meshtastic_disconnect(HWSelect: QtCore.QObject):
         HWSelect.stackedWidget_local_remote_4,
         HWSelect.stackedWidget_local_remote_5,
     ]
+    network_type_widgets = [
+        HWSelect.comboBox_network_type_1,
+        HWSelect.comboBox_network_type_2,
+        HWSelect.comboBox_network_type_3,
+        HWSelect.comboBox_network_type_4,
+        HWSelect.comboBox_network_type_5,
+    ]
 
     stacked_widgets[tab_index].setCurrentIndex(3)
+    network_type_widgets[tab_index].setEnabled(True)
 
     # Send Message for HIPRFISR to end Meshtastic Serial Connection
     await HWSelect.dashboard.backend.disconnectFromMeshtastic(str(tab_index))
@@ -2620,4 +2667,165 @@ async def ip_gps_beacon_refresh(HWSelect: QtCore.QObject):
     # Send Message to Backend
     tab_index = HWSelect.tabWidget_nodes.currentIndex()
     await HWSelect.dashboard.backend.gpsBeaconRefreshIP(str(tab_index))
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def meshtastic_reboot(HWSelect: QtCore.QObject):
+    """
+    Sends a message to the HIPRFISR to reboot the sensor node.
+    """
+    # Send Message to Backend
+    tab_index = HWSelect.tabWidget_nodes.currentIndex()
+    await HWSelect.dashboard.backend.rebootMeshtasticLT(str(tab_index))
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def ip_reboot(HWSelect: QtCore.QObject):
+    """
+    Sends a message to the HIPRFISR to reboot the sensor node.
+    """
+    # Send Message to Backend
+    tab_index = HWSelect.tabWidget_nodes.currentIndex()
+    await HWSelect.dashboard.backend.rebootIP(str(tab_index))
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def meshtastic_uptime(HWSelect: QtCore.QObject):
+    """
+    Sends a message to the HIPRFISR to retrieve the uptime of the sensor node.
+    """
+    # Send Message to Backend
+    tab_index = HWSelect.tabWidget_nodes.currentIndex()
+    await HWSelect.dashboard.backend.uptimeMeshtasticLT(str(tab_index))
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def ip_uptime(HWSelect: QtCore.QObject):
+    """
+    Sends a message to the HIPRFISR to retrieve the uptime of the sensor node.
+    """
+    # Send Message to Backend
+    tab_index = HWSelect.tabWidget_nodes.currentIndex()
+    await HWSelect.dashboard.backend.uptimeIP(str(tab_index))
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def meshtastic_memory(HWSelect: QtCore.QObject):
+    """
+    Sends a message to the HIPRFISR to retrieve the memory usage of the sensor node.
+    """
+    # Send Message to Backend
+    tab_index = HWSelect.tabWidget_nodes.currentIndex()
+    await HWSelect.dashboard.backend.memoryMeshtasticLT(str(tab_index))
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def ip_memory(HWSelect: QtCore.QObject):
+    """
+    Sends a message to the HIPRFISR to retrieve the memory usage of the sensor node.
+    """
+    # Send Message to Backend
+    tab_index = HWSelect.tabWidget_nodes.currentIndex()
+    await HWSelect.dashboard.backend.memoryIP(str(tab_index))
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def meshtastic_disk(HWSelect: QtCore.QObject):
+    """
+    Sends a message to the HIPRFISR to retrieve the disk usage of the sensor node.
+    """
+    # Send Message to Backend
+    tab_index = HWSelect.tabWidget_nodes.currentIndex()
+    await HWSelect.dashboard.backend.diskMeshtasticLT(str(tab_index))
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def ip_disk(HWSelect: QtCore.QObject):
+    """
+    Sends a message to the HIPRFISR to retrieve the disk usage of the sensor node.
+    """
+    # Send Message to Backend
+    tab_index = HWSelect.tabWidget_nodes.currentIndex()
+    await HWSelect.dashboard.backend.diskIP(str(tab_index))
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def meshtastic_cpu(HWSelect: QtCore.QObject):
+    """
+    Sends a message to the HIPRFISR to retrieve the CPU percentage of the sensor node.
+    """
+    # Send Message to Backend
+    tab_index = HWSelect.tabWidget_nodes.currentIndex()
+    await HWSelect.dashboard.backend.cpuMeshtasticLT(str(tab_index))
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def ip_cpu(HWSelect: QtCore.QObject):
+    """
+    Sends a message to the HIPRFISR to retrieve the CPU percentage of the sensor node.
+    """
+    # Send Message to Backend
+    tab_index = HWSelect.tabWidget_nodes.currentIndex()
+    await HWSelect.dashboard.backend.cpuIP(str(tab_index))
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def meshtastic_processes(HWSelect: QtCore.QObject):
+    """
+    Sends a message to the HIPRFISR to retrieve the processes on the sensor node.
+    """
+    # Send Message to Backend
+    tab_index = HWSelect.tabWidget_nodes.currentIndex()
+    await HWSelect.dashboard.backend.processesMeshtasticLT(str(tab_index))
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def ip_processes(HWSelect: QtCore.QObject):
+    """
+    Sends a message to the HIPRFISR to retrieve the processes on the sensor node.
+    """
+    # Send Message to Backend
+    tab_index = HWSelect.tabWidget_nodes.currentIndex()
+    await HWSelect.dashboard.backend.processesIP(str(tab_index))
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def meshtastic_ifconfig(HWSelect: QtCore.QObject):
+    """
+    Sends a message to the HIPRFISR to retrieve the ifconfig output on the sensor node.
+    """
+    # Send Message to Backend
+    tab_index = HWSelect.tabWidget_nodes.currentIndex()
+    await HWSelect.dashboard.backend.ifconfigMeshtasticLT(str(tab_index))
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def ip_ifconfig(HWSelect: QtCore.QObject):
+    """
+    Sends a message to the HIPRFISR to retrieve the ifconfig output on the sensor node.
+    """
+    # Send Message to Backend
+    tab_index = HWSelect.tabWidget_nodes.currentIndex()
+    await HWSelect.dashboard.backend.ifconfigIP(str(tab_index))  
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def meshtastic_iwconfig(HWSelect: QtCore.QObject):
+    """
+    Sends a message to the HIPRFISR to retrieve the iwconfig output on the sensor node.
+    """
+    # Send Message to Backend
+    tab_index = HWSelect.tabWidget_nodes.currentIndex()
+    await HWSelect.dashboard.backend.iwconfigMeshtasticLT(str(tab_index))
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def ip_iwconfig(HWSelect: QtCore.QObject):
+    """
+    Sends a message to the HIPRFISR to retrieve the iwconfig output on the sensor node.
+    """
+    # Send Message to Backend
+    tab_index = HWSelect.tabWidget_nodes.currentIndex()
+    await HWSelect.dashboard.backend.iwconfigIP(str(tab_index))  
+
 

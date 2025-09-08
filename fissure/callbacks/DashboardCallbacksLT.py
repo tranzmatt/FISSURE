@@ -158,6 +158,65 @@ async def hardwareGuessResultsLT(component: object, tab_index=0, table_row=0, ha
     component.frontend.popups["HardwareSelectDialog"].guessReturn(tab_index, table_row, hardware_type, scan_results, new_guess_index)
 
 
+async def uptimeMeshtasticReturnLT(component: object, sensor_node_id:str, uptime: str):
+    """
+    Returns the uptime results to the HardwareSelectDialog.
+    """
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], uptime)
+
+
+async def memoryMeshtasticReturnLT(component: object, sensor_node_id:str, memory: list):
+    """
+    Returns the memory usage results to the HardwareSelectDialog.
+    """
+    # Open a Text Dialog
+    headers = ["total", "used", "free", "shared", "buff/cache", "available"]
+    memory_string = "\n".join(f"{key}: {value}" for key, value in zip(headers, memory))
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], memory_string)
+
+
+async def diskMeshtasticReturnLT(component: object, sensor_node_id:str, disk: dict):
+    """
+    Returns the disk usage results to the HardwareSelectDialog.
+    """
+    # Open a Text Dialog
+    disk_string = "\n".join(f"{k}: {v}" for k, v in disk.items())
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], disk_string)
+
+
+async def cpuMeshtasticReturnLT(component: object, sensor_node_id:str, cpu: str):
+    """
+    Returns the CPU percentage results to the HardwareSelectDialog.
+    """
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], cpu)
+
+
+async def processesMeshtasticReturnLT(component: object, sensor_node_id:str, processes: str):
+    """
+    Returns the processes results to the HardwareSelectDialog.
+    """
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], processes)
+
+
+async def ifconfigMeshtasticReturnLT(component: object, sensor_node_id:str, ifconfig:str):
+    """
+    Returns the ifconfig results to the HardwareSelectDialog.
+    """
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], ifconfig)
+
+
+async def iwconfigMeshtasticReturnLT(component: object, sensor_node_id:str, iwconfig:str):
+    """
+    Returns the iwconfig results to the HardwareSelectDialog.
+    """
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], iwconfig)
+
+
 ########################################################################
 
 async def alertReturnLT(component: object, sensor_node_id=0, alert_text=""):

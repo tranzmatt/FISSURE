@@ -2339,7 +2339,7 @@ class SensorNode():
             with open(filename) as yaml_library_file:
                 playlist_dict = yaml.load(yaml_library_file, yaml.FullLoader)
                 trigger_dict = playlist_dict['trigger_values']
-            self.autorunPlaylistStart('', playlist_dict, trigger_dict)
+            self.autorunPlaylistStart(sensor_node_id, playlist_dict, trigger_dict)
 
 
     def autorunPlaylistThreadStart(self, sensor_node_id, playlist_dict):
@@ -2488,13 +2488,14 @@ class SensorNode():
             
             # Repeat for Another Loop
             if get_repetition_interval > 0:
-                self.logger.info("Sleeping until next playlist run.")
-                time.sleep(get_repetition_interval)
-                self.logger.info("Done sleeping.")
-                
                 # Exit if Stop is Clicked
                 if self.autorun_playlist_stop_event.is_set():
                     break
+
+                # Sleep for Repetition Interval
+                self.logger.info("Sleeping until next playlist run.")
+                time.sleep(get_repetition_interval)
+                self.logger.info("Done sleeping.")   
             else:
                 break
     

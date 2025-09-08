@@ -46,8 +46,8 @@
   <widget class="QPushButton" name="pushButton_default">
    <property name="geometry">
     <rect>
-     <x>135</x>
-     <y>490</y>
+     <x>25</x>
+     <y>520</y>
      <width>100</width>
      <height>27</height>
     </rect>
@@ -196,8 +196,8 @@
   <widget class="QPushButton" name="pushButton_expand_all">
    <property name="geometry">
     <rect>
-     <x>25</x>
-     <y>520</y>
+     <x>135</x>
+     <y>490</y>
      <width>100</width>
      <height>27</height>
     </rect>
@@ -274,6 +274,19 @@
     <string>Export</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="pushButton_sensor_node">
+   <property name="geometry">
+    <rect>
+     <x>25</x>
+     <y>550</y>
+     <width>100</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Sensor Node</string>
+   </property>
+  </widget>
   <zorder>treeWidget_software</zorder>
   <zorder>pushButton_ok</zorder>
   <zorder>pushButton_cancel</zorder>
@@ -290,6 +303,7 @@
   <zorder>pushButton_needs_help</zorder>
   <zorder>pushButton_import</zorder>
   <zorder>pushButton_export</zorder>
+  <zorder>pushButton_sensor_node</zorder>
  </widget>
  <resources/>
  <connections/>

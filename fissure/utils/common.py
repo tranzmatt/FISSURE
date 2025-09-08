@@ -36,10 +36,10 @@ FISSURE_CONFIG_FILE = os.path.join(YAML_DIR, "fissure_config.yaml")
 FISSURE_CONFIG_DEFAULT = os.path.join(YAML_DIR, "User Configs", "default.yaml")
 LOG_CONFIG_FILE = "logging.yaml"
 
-OS_3_8_KEYWORDS = ["DragonOS Focal", "Ubuntu 20.04"]
-OS_3_10_KEYWORDS = ["Ubuntu 22.04", "Kali", "DragonOS FocalX", "Raspberry Pi OS", "Parrot", "Ubuntu 24.04"]
+OS_3_8_KEYWORDS = ["Ubuntu 20.04"]
+OS_3_10_KEYWORDS = ["Ubuntu 22.04", "Kali", "DragonOS", "Raspberry Pi OS", "Parrot", "Ubuntu 24.04"]
 
-QTERMINAL_LIST = ["DragonOS Focal", "DragonOS FocalX", "Kali"]
+QTERMINAL_LIST = ["DragonOS", "Kali"]
 LXTERMINAL_LIST = ["Raspberry Pi OS"]
 GNOME_TERMINAL_LIST = ["Ubuntu 20.04", "Ubuntu 22.04", "Parrot", "Ubuntu 24.04"]
 
@@ -369,17 +369,11 @@ def get_os_info() -> Tuple[str, str, str]:
     if len(output) > 0:
         return "Ubuntu 20.04"
     
-    # DragonOS Focal
-    proc = subprocess.Popen("lsb_release -d 2>&1 | grep 'DragonOS Focal$'", shell=True, stdout=subprocess.PIPE, )
+    # DragonOS
+    proc = subprocess.Popen("cat /etc/os-dragonos 2>&1 | grep 'DragonOS'", shell=True, stdout=subprocess.PIPE, )
     output = proc.communicate()[0].decode()
     if len(output) > 0:
-        return "DragonOS Focal"
-
-    # DragonOS FocalX
-    proc = subprocess.Popen("cat /etc/os-dragonos 2>&1 | grep 'DragonOS FocalX'", shell=True, stdout=subprocess.PIPE, )
-    output = proc.communicate()[0].decode()
-    if len(output) > 0:
-        return "DragonOS FocalX"
+        return "DragonOS"
     
     # Kali
     proc = subprocess.Popen("lsb_release -d 2>&1 | grep 'Kali'", shell=True, stdout=subprocess.PIPE, )

@@ -1210,11 +1210,12 @@ async def sensorNodeConnectTimeout(component: object, sensor_node_id=0):
     """
     # Gather Widgets
     tab_index = int(sensor_node_id)
-    ip_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"textEdit_ip_addr_{int(sensor_node_id) + 1}")
-    hb_port_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"textEdit_hb_port_{int(sensor_node_id) + 1}")
-    msg_port_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"textEdit_msg_port_{int(sensor_node_id) + 1}")
-    recall_settings_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"checkBox_recall_settings_remote_{int(sensor_node_id) + 1}")
-    connect_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"pushButton_connect_{int(sensor_node_id) + 1}")
+    ip_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"textEdit_ip_addr_{tab_index + 1}")
+    hb_port_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"textEdit_hb_port_{tab_index + 1}")
+    msg_port_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"textEdit_msg_port_{tab_index + 1}")
+    recall_settings_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"checkBox_recall_settings_remote_{tab_index + 1}")
+    connect_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"pushButton_connect_{tab_index + 1}")
+    network_type_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"comboBox_network_type_{tab_index + 1}")
 
     # Restore Widgets
     ip_widget.setEnabled(True)
@@ -1222,6 +1223,7 @@ async def sensorNodeConnectTimeout(component: object, sensor_node_id=0):
     msg_port_widget.setEnabled(True)
     recall_settings_widget.setEnabled(True)
     connect_widget.setEnabled(True)
+    network_type_widget.setEnabled(True)
 
     # Warning
     component.logger.warning("Timeout occurred establishing connection to remote sensor node")
@@ -1766,13 +1768,53 @@ async def gpsBeaconEnableDisableIP_Return(component: object, sensor_node_id:str,
     """
     # Populate Location
     enable_disable_button = [
-        component.frontend.popups["HardwareSelectDialog"].pushButton_ip_gps_beacon_enable_disable_1,
-        component.frontend.popups["HardwareSelectDialog"].pushButton_ip_gps_beacon_enable_disable_2,
-        component.frontend.popups["HardwareSelectDialog"].pushButton_ip_gps_beacon_enable_disable_3,
-        component.frontend.popups["HardwareSelectDialog"].pushButton_ip_gps_beacon_enable_disable_4,
-        component.frontend.popups["HardwareSelectDialog"].pushButton_ip_gps_beacon_enable_disable_5
+        component.frontend.popups["HardwareSelectDialog"].pushButton_remote_actions_ip_gps_beacon_enable_disable_1,
+        component.frontend.popups["HardwareSelectDialog"].pushButton_remote_actions_ip_gps_beacon_enable_disable_2,
+        component.frontend.popups["HardwareSelectDialog"].pushButton_remote_actions_ip_gps_beacon_enable_disable_3,
+        component.frontend.popups["HardwareSelectDialog"].pushButton_remote_actions_ip_gps_beacon_enable_disable_4,
+        component.frontend.popups["HardwareSelectDialog"].pushButton_remote_actions_ip_gps_beacon_enable_disable_5
     ]
     if gps_tak_beacon_status == True:
         enable_disable_button[int(sensor_node_id)].setText("Disable")
     else:
         enable_disable_button[int(sensor_node_id)].setText("Enable")
+
+
+async def uptimeIP_Return(component: object, sensor_node_id:str, uptime: str):
+    """
+    Returns the uptime results to the HardwareSelectDialog.
+    """
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], uptime)
+
+
+async def cpuIP_Return(component: object, sensor_node_id:str, cpu: str):
+    """
+    Returns the CPU percentage results to the HardwareSelectDialog.
+    """
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], cpu)
+
+
+async def processesIP_Return(component: object, sensor_node_id:str, processes: str):
+    """
+    Returns the processes results to the HardwareSelectDialog.
+    """
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], processes)
+
+
+async def ifconfigIP_Return(component: object, sensor_node_id:str, ifconfig: str):
+    """
+    Returns the ifconfig results to the HardwareSelectDialog.
+    """
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], ifconfig)
+
+
+async def iwconfigIP_Return(component: object, sensor_node_id:str, iwconfig: str):
+    """
+    Returns the iwconfig results to the HardwareSelectDialog.
+    """
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], iwconfig)

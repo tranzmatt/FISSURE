@@ -15,6 +15,7 @@ import zmq
 from typing import List
 import json
 from fissure.comms import MessageFields, MessageTypes, Identifiers
+import re
 
 
 async def recallInfoMeshtasticLT(component: object, tab_index=""):
@@ -262,6 +263,11 @@ async def probeHardwareLT(component: object, tab_index=0, table_row_text=[]):
         if not output.startswith("Error:"):
             height_width = [300, 500]
 
+    elif get_hardware == "CaribouLite":
+        output = await fissure.utils.hardware.probeCaribouLite()
+        if not output.startswith("Error:"):
+            height_width = [300, 500]
+
     # Return Text up to a Limit
     print(output)
     if output and len(output) > 10:
@@ -323,6 +329,8 @@ async def scanHardwareLT(component: object, tab_index=0, hardware_list=[]):
             all_scan_results.append(fissure.utils.hardware.findRSPdx()[0])
         elif get_hardware == "RSPdx R2":
             all_scan_results.append(fissure.utils.hardware.findRSPdxR2()[0])
+        elif get_hardware == "CaribouLite":
+            all_scan_results.append(fissure.utils.hardware.findCaribouLite())
 
     # Return Scan Results
     PARAMETERS = {"tab_index": tab_index, "hardware_scan_results": all_scan_results}
@@ -406,7 +414,10 @@ async def guessHardwareLT(component: object, tab_index=0, table_row=[], table_ro
 
     elif get_hardware == "RSPdx R2":
         get_serial = str(table_row_text[3])
-        scan_results, new_guess_index = fissure.utils.hardware.findRSPdxR2(get_serial, guess_index)        
+        scan_results, new_guess_index = fissure.utils.hardware.findRSPdxR2(get_serial, guess_index)
+
+    elif get_hardware == "CaribouLite":
+        scan_results, new_guess_index = fissure.utils.hardware.findCaribouLite()        
 
     # Return Guess Results
     PARAMETERS = {"results": [tab_index, table_row, get_hardware, scan_results, new_guess_index]}
@@ -463,3 +474,216 @@ async def gpsBeaconDisableMeshtasticLT(component: object):
     # Disable
     component.logger.info("Disabling the GPS TAK beacon")
     component.gps_tak_beacon = False
+
+
+async def rebootMeshtasticLT(component: object, sensor_node_id=0):
+    """
+    Reboots the sensor node computer.
+    """
+    component.logger.info("Rebooting")
+    
+    # Reboot
+    os.system("sudo reboot")
+
+
+async def uptimeMeshtasticLT(component: object, sensor_node_id: str):
+    """
+    Retrieves the uptime of the sensor node computer.
+    """
+    # Get Uptime
+    result = subprocess.check_output("uptime", shell=True, text=True)
+    result = result.strip()
+
+    # Extract current time and uptime duration
+    match = re.search(r'(\d{1,2}:\d{2}(?::\d{2})?)\s+up\s+([^,]+)', result)
+    if match:
+        current_time = match.group(1)
+        uptime_short = match.group(2).strip()
+        uptime_string = f"{current_time} up {uptime_short}"
+        component.logger.info(uptime_string)
+    else:
+        component.logger.error("Uptime format not recognized")
+        uptime_string = "Uptime format not recognized"
+
+    # Return the Text
+    PARAMETERS = {"sensor_node_id": sensor_node_id, "uptime": uptime_string}
+    response_message = {
+        MessageFields.SOURCE: component.identifier,
+        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.MESSAGE_NAME: "uptimeMeshtasticReturnLT",
+        MessageFields.PARAMETERS: PARAMETERS,
+    }
+
+    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
+
+
+async def memoryMeshtasticLT(component: object, sensor_node_id: str):
+    """
+    Retrieves the memory usage of the sensor node computer.
+    """
+    # Run the command
+    output = subprocess.check_output("free -h", shell=True, text=True).splitlines()
+
+    # Parse lines
+    # headers = output[0].split()
+    memory_list = output[1].split()[1:]  # Skip "Mem:"
+
+    # Return the Text
+    PARAMETERS = {"sensor_node_id": sensor_node_id, "memory": memory_list}
+    response_message = {
+        MessageFields.SOURCE: component.identifier,
+        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.MESSAGE_NAME: "memoryMeshtasticReturnLT",
+        MessageFields.PARAMETERS: PARAMETERS,
+    }
+
+    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
+
+
+async def diskMeshtasticLT(component: object, sensor_node_id: str):
+    """
+    Retrieves the disk usage of the sensor node computer.
+    """
+    # Get disk usage for root
+    result = subprocess.check_output("df -h /", shell=True, text=True)
+    lines = result.strip().split('\n')
+    headers = lines[0].split()
+    values = lines[1].split()
+
+    # Create dictionary
+    disk_dict = dict(zip(headers, values))
+
+    # # Make it more readable
+    # for key, value in disk_dict.items():
+    #     print(f"{key}: {value}")
+
+    # Return the Text
+    PARAMETERS = {"sensor_node_id": sensor_node_id, "disk": disk_dict}
+    response_message = {
+        MessageFields.SOURCE: component.identifier,
+        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.MESSAGE_NAME: "diskMeshtasticReturnLT",
+        MessageFields.PARAMETERS: PARAMETERS,
+    }
+
+    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
+
+
+async def cpuMeshtasticLT(component: object, sensor_node_id: str):
+    """
+    Retrieves the CPU percentage of the sensor node computer.
+    """
+    # Get CPU Percentage
+    cpu_result = subprocess.check_output("top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}'", shell=True, text=True).strip()
+
+    # Return the Text
+    PARAMETERS = {"sensor_node_id": sensor_node_id, "cpu": cpu_result}
+    response_message = {
+        MessageFields.SOURCE: component.identifier,
+        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.MESSAGE_NAME: "cpuMeshtasticReturnLT",
+        MessageFields.PARAMETERS: PARAMETERS,
+    }
+
+    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
+
+
+async def processesMeshtasticLT(component: object, sensor_node_id: str):
+    """
+    Retrieves the processes on the sensor node computer.
+    """
+    # Get Processes
+    processes_result = subprocess.check_output(
+        "ps -eo pid,args | grep -i fissure | grep -v grep | awk '{pid=$1; $1=\"\"; split($NF,f,\"/\"); print pid, f[length(f)]}'",
+        shell=True,
+        text=True
+    ).strip()
+
+    # Return the Text
+    PARAMETERS = {"sensor_node_id": sensor_node_id, "processes": processes_result}
+    response_message = {
+        MessageFields.SOURCE: component.identifier,
+        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.MESSAGE_NAME: "processesMeshtasticReturnLT",
+        MessageFields.PARAMETERS: PARAMETERS,
+    }
+
+    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
+
+
+async def ifconfigMeshtasticLT(component: object, sensor_node_id: str):
+    """
+    Retrieves an abbreviated ifconfig output: only physical Ethernet/Wi-Fi interfaces with their IPv4 address or '-'.
+    """
+    cmd = r"""
+    ifconfig | awk '
+    /^[a-z]/ {
+        iface=$1
+        sub(":", "", iface)
+        ip="-"
+        if (iface ~ /^(br|docker|veth|lo)/) {
+            skip=1
+        } else if (iface ~ /^(en|eth|wl)/) {
+            skip=0
+            interfaces[iface] = "-"
+        } else {
+            skip=1
+        }
+    }
+    /inet / && $2 != "127.0.0.1" && !skip {
+        interfaces[iface] = $2
+    }
+    END {
+        for (i in interfaces) print i, interfaces[i]
+    }'
+    """
+
+    try:
+        ifconfig_result = subprocess.check_output(cmd, shell=True, text=True).strip()
+    except subprocess.CalledProcessError as e:
+        ifconfig_result = f"Error: {e}"
+
+    # Return the Text
+    PARAMETERS = {"sensor_node_id": sensor_node_id, "ifconfig": ifconfig_result}
+    response_message = {
+        MessageFields.SOURCE: component.identifier,
+        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.MESSAGE_NAME: "ifconfigMeshtasticReturnLT",
+        MessageFields.PARAMETERS: PARAMETERS,
+    }
+
+    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
+
+
+async def iwconfigMeshtasticLT(component: object, sensor_node_id: str):
+    """
+    Retrieves the wireless interface name and mode (Managed or Monitor) on the sensor node computer.
+    """
+    cmd = r"""
+    iwconfig 2>/dev/null | awk '
+    /^[a-z]/ {iface=$1}
+    /Mode:/ {
+      for (i = 1; i <= NF; i++) {
+        if ($i ~ /^Mode:/) {
+          split($i, a, ":")
+          print iface, a[2]
+        }
+      }
+    }'
+    """
+
+    try:
+        iwconfig_result = subprocess.check_output(cmd, shell=True, text=True).strip()
+    except subprocess.CalledProcessError as e:
+        iwconfig_result = f"Error: {e}"
+
+    # Return the Text
+    PARAMETERS = {"sensor_node_id": sensor_node_id, "iwconfig": iwconfig_result}
+    response_message = {
+        MessageFields.SOURCE: component.identifier,
+        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.MESSAGE_NAME: "iwconfigMeshtasticReturnLT",
+        MessageFields.PARAMETERS: PARAMETERS,
+    }
+
+    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)

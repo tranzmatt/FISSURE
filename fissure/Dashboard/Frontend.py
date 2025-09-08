@@ -914,7 +914,7 @@ class Dashboard(QtWidgets.QMainWindow):
 
         # Operating System Specific Menu Items
         get_os = fissure.utils.get_os_info()  # self.backend.os_info not loaded yet
-        if get_os == 'DragonOS FocalX':
+        if get_os == 'DragonOS':
             self.window.actionwl_color_picker.setEnabled(False)
             self.window.actionSrsLTE.setEnabled(False)
             self.window.action4G_IMSI_Catcher.setEnabled(False)

@@ -11,7 +11,7 @@ options:
     gen_linking: dynamic
     generate_options: qt_gui
     hier_block_src_path: '.:'
-    id: fixed_threshold_rtl2832u
+    id: fixed_threshold_cariboulite
     max_nouts: '0'
     output_language: python
     placement: (0,0)
@@ -167,7 +167,7 @@ blocks:
     rangeType: float
     start: '50'
     step: '.1'
-    stop: '2200'
+    stop: '6000'
     value: float(rx_freq_default)
     widget: counter_slider
   states:
@@ -186,9 +186,9 @@ blocks:
     min_len: '200'
     orient: QtCore.Qt.Horizontal
     rangeType: float
-    start: '0'
+    start: '-1'
     step: '1'
-    stop: '50'
+    stop: '60'
     value: float(gain_default)
     widget: counter_slider
   states:
@@ -209,16 +209,14 @@ blocks:
     label2: ''
     label3: ''
     label4: ''
-    labels: '["0.25 MS/s", "1.024 MS/s", "1.536 MS/s", "1.792 MS/s", "1.92 MS/s",
-      "2.048 MS/s", "2.16 MS/s", "2.56 MS/s", "2.88 MS/s", "3.2 MS/s"]'
+    labels: '["1 MS/s", "2 MS/s", "5 MS/s", "10 MS/s", "20 MS/s"]'
     num_opts: '0'
     option0: '0'
     option1: '1'
     option2: '2'
     option3: '3'
     option4: '4'
-    options: '[0.25e6,1.024e6, 1.536e6, 1.792e6, 1.92e6, 2.048e6, 2.16e6, 2.56e6,
-      2.88e6, 3.2e6]'
+    options: '[1e6, 2e6, 5e6, 10e6, 20e6]'
     orient: Qt.QVBoxLayout
     type: real
     value: float(sample_rate_default)
@@ -227,7 +225,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1304, 76.0]
+    coordinate: [1288, 76.0]
     rotation: 0
     state: enabled
 - name: thresh_adj
@@ -549,7 +547,7 @@ blocks:
     label: gain_default
     short_id: ''
     type: str
-    value: '20'
+    value: '50'
   states:
     bus_sink: false
     bus_source: false
@@ -867,7 +865,7 @@ blocks:
     label: rx_freq_default
     short_id: ''
     type: str
-    value: '102.4'
+    value: '2412'
   states:
     bus_sink: false
     bus_source: false
@@ -884,7 +882,7 @@ blocks:
     label: sample_rate_default
     short_id: ''
     type: str
-    value: 2.56e6
+    value: 20e6
   states:
     bus_sink: false
     bus_source: false
@@ -908,7 +906,7 @@ blocks:
     bus_structure: null
     coordinate: [1208, 676.0]
     rotation: 0
-    state: disabled
+    state: true
 - name: serial
   id: parameter
   parameters:
@@ -918,7 +916,7 @@ blocks:
     label: serial
     short_id: ''
     type: str
-    value: ''
+    value: '"0"'
   states:
     bus_sink: false
     bus_source: false
@@ -926,29 +924,49 @@ blocks:
     coordinate: [1104, 668.0]
     rotation: 0
     state: true
-- name: soapy_rtlsdr_source_0
-  id: soapy_rtlsdr_source
+- name: soapy_custom_source_0
+  id: soapy_custom_source
   parameters:
     affinity: ''
-    agc: 'False'
+    agc0: 'False'
+    agc1: 'False'
     alias: ''
-    bias: 'False'
-    center_freq: float(rx_freq)*1e6
+    antenna0: RX
+    antenna1: ''
+    bandwidth0: '0'
+    bandwidth1: '0'
+    center_freq0: float(rx_freq)*1e6
+    center_freq1: '0'
     comment: ''
+    dc_offset0: '0'
+    dc_offset1: '0'
+    dc_removal0: 'True'
+    dc_removal1: 'True'
     dev_args: ''
-    freq_correction: '0'
-    gain: float(rx_gain)
+    driver: ''
+    freq_correction0: '0'
+    freq_correction1: '0'
+    gain0: float(rx_gain)
+    gain1: '0'
+    iq_balance0: '0'
+    iq_balance1: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
+    nchan: '1'
     samp_rate: float(samp_rate)
+    settings0: ''
+    settings1: ''
+    stream_args: ''
+    tune_args0: ''
+    tune_args1: ''
     type: fc32
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [88, 604.0]
+    coordinate: [96, 600.0]
     rotation: 0
-    state: true
+    state: enabled
 - name: threshold_default
   id: parameter
   parameters:
@@ -982,8 +1000,8 @@ connections:
 - [epy_block_0, detected_signals, ainfosec_msg_str_to_PUB_1, Message]
 - [logpwrfft_x_0, '0', blocks_add_const_vxx_0, '0']
 - [logpwrfft_x_0, '0', qtgui_vector_sink_f_0, '0']
-- [soapy_rtlsdr_source_0, '0', logpwrfft_x_0, '0']
+- [soapy_custom_source_0, '0', logpwrfft_x_0, '0']
 
 metadata:
   file_format: 1
-  grc_version: 3.10.7.0
+  grc_version: 3.10.9.2
