@@ -1,0 +1,227 @@
+tgt-00000000-0000-4000-8000-000000000001:
+  target_id: "tgt-00000000-0000-4000-8000-000000000001"
+  sensor_node_id: "node-bravo-01"
+  source_soi_id: "soi-demo-123"
+
+  created_time: "2026-02-02T18:32:11Z"
+  last_update_time: "2026-02-02T18:32:11Z"
+
+  frequency_mhz: 311.0
+
+  classification:
+    display_label: "Garage Door Opener"
+    candidates:
+      - source: "database"
+        label: "Garage Door Opener"
+      - source: "model"
+        label: "Garage_Door"
+        confidence: 0.62
+
+  location:
+    lat: 41.2457
+    lon: -76.9983
+    hae_m: 0
+    ce_m: 50
+    timestamp: "2026-02-02T18:31:55Z"
+    source: "node_last_known"
+
+  state: "imported"
+
+  geolocate:
+    status: "idle"
+    mode: ""
+    plugin: ""
+    action: ""
+    node_uids: []
+    error: ""
+    updated_time: ""
+
+  history: []
+
+wifiap-5555A28F4444:
+  target_id: "wifiap-5555A28F4444"
+  sensor_node_id: "node-bravo-01"
+  source_soi_id: ""
+
+  created_time: "2026-03-18T18:32:11Z"
+  last_update_time: "2026-03-18T18:32:11Z"
+
+  frequency_mhz: 2437.0
+
+  classification:
+    display_label: "Wi-Fi AP"
+    candidates:
+      - source: "database"
+        label: "Wi-Fi AP"
+      - source: "model"
+        label: "802.11 Access Point"
+        confidence: 0.95
+
+  location:
+    lat: 40.712776
+    lon: -74.005974
+    hae_m: 10.5
+    ce_m: 42.0
+    timestamp: "2026-03-18T18:32:11Z"
+    source: "wifi_geo"
+
+  state: "imported"
+
+  geolocate:
+    status: "idle"
+    mode: ""
+    plugin: ""
+    action: ""
+    node_uids: []
+    error: ""
+    updated_time: ""
+
+  wifi:
+    ssid: "MyNetwork"
+    bssid: "24:F5:A2:8F:C8:DF"
+    channel: 6
+    band: "2.4GHz"
+    rssi_dbm: -61
+    encryption: "WPA2"
+    last_observation_time: "2026-03-18T18:32:11Z"
+
+  history: []
+
+wifiap-A1B2C3D4E5F6:
+  target_id: "wifiap-A1B2C3D4E5F6"
+  sensor_node_id: "node-charlie-02"
+  source_soi_id: ""
+
+  created_time: "2026-03-18T19:05:44Z"
+  last_update_time: "2026-03-18T19:05:44Z"
+
+  frequency_mhz: 5180.0
+
+  classification:
+    display_label: "Wi-Fi AP"
+    candidates:
+      - source: "database"
+        label: "Wi-Fi AP"
+      - source: "model"
+        label: "802.11 Access Point"
+        confidence: 0.91
+
+  location:
+    lat: 40.713401
+    lon: -74.004901
+    hae_m: 12.0
+    ce_m: 28.0
+    timestamp: "2026-03-18T19:05:44Z"
+    source: "wifi_geo"
+
+  state: "imported"
+
+  geolocate:
+    status: "idle"
+    mode: ""
+    plugin: ""
+    action: ""
+    node_uids: []
+    error: ""
+    updated_time: ""
+
+  wifi:
+    ssid: "Office-5G"
+    bssid: "A1:B2:C3:D4:E5:F6"
+    channel: 36
+    band: "5GHz"
+    rssi_dbm: -54
+    encryption: "WPA3"
+    last_observation_time: "2026-03-18T19:05:44Z"
+
+  history: []
+
+
+lfmbeacon-433920000:
+  target_id: "lfmbeacon-433920000"
+  sensor_node_id: "node-bravo-01"
+  source_soi_id: ""
+
+  created_time: "2026-03-23T13:00:00Z"
+  last_update_time: "2026-03-23T13:00:00Z"
+
+  frequency_mhz: 433.92
+
+  classification:
+    display_label: "LFM Beacon"
+    candidates:
+      - source: "database"
+        label: "LFM Beacon"
+
+  location:
+    lat: 40.712776
+    lon: -74.005974
+    hae_m: 10.0
+    ce_m: 100.0
+    timestamp: "2026-03-23T13:00:00Z"
+    source: "imported"
+
+  state: "imported"
+
+  geolocate:
+    status: "idle"
+    mode: ""
+    plugin: ""
+    action: ""
+    node_uids: []
+    error: ""
+    updated_time: ""
+
+  rf:
+    signal_type: "lfm_beacon"
+    description: "Test LFM beacon target used for hub multilateration"
+    nominal_frequency_mhz: 433.92
+    last_observation_time: ""
+
+  history: []
+
+
+signal-2436mhz-demo:
+  target_id: "signal-2436mhz-demo"
+  sensor_node_id: "node-bravo-01"
+  source_soi_id: ""
+
+  created_time: "2026-03-23T19:10:00Z"
+  last_update_time: "2026-03-23T19:10:00Z"
+
+  frequency_mhz: 2436.0
+
+  classification:
+    display_label: "Generic RF Signal"
+    candidates:
+      - source: "database"
+        label: "Generic RF Signal"
+      - source: "manual"
+        label: "2.436 GHz Signal"
+
+  location:
+    lat: 42.191356
+    lon: -76.953738
+    hae_m: 556.8
+    ce_m: 100.0
+    timestamp: "2026-03-23T19:10:00Z"
+    source: "imported"
+
+  state: "imported"
+
+  geolocate:
+    status: "idle"
+    mode: ""
+    plugin: ""
+    action: ""
+    node_uids: []
+    error: ""
+    updated_time: ""
+
+  rf:
+    signal_type: "generic_frequency"
+    description: "Generic RF target for hub-side geolocation testing"
+    nominal_frequency_mhz: 2436.0
+    last_observation_time: ""
+
+  history: []

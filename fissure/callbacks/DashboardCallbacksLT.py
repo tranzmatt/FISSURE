@@ -12,7 +12,7 @@ import json
 import qasync
 import datetime
 
-from fissure.Dashboard.UI_Components.Qt5 import MyMessageBox
+# from fissure.Dashboard.UI_Components.Qt5 import MyMessageBox
 # from ..Dashboard.Slots import StatusBarSlots  # how do you go from callbacks to slots?
 from fissure.Dashboard.Slots import (
     ArchiveTabSlots,
@@ -67,7 +67,7 @@ async def recallHardwareMeshtasticReturnLT(component: object, tsi={}):
     """
     Populates the HardwareSelectDialog with the sensor node settings on connect.
     """
-    print("HARDWARE RETURN @#$#@$@#$#@$#@")  # To Do
+    print("HARDWARE RETURN @#$#@$@#$#@$#@")  # TODO
     print(tsi)
     # Pass Sensor Node Settings to HardwareSelectDialog
     # component.frontend.popups["HardwareSelectDialog"].importResults(settings_dict=settings_dict)
@@ -136,11 +136,7 @@ async def hardwareProbeResultsLT(component: object, tab_index=0, output="", heig
     probe_buttons[int(tab_index)].setEnabled(True)
 
     # Open a Text Dialog
-    if height_width[0] == '':
-        msgBox = MyMessageBox(my_text = probe_text)
-    else:
-        msgBox = MyMessageBox(my_text = probe_text, height=height_width[0], width=height_width[1])
-    msgBox.exec_()
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], probe_text)
     
 
 async def hardwareScanResultsLT(component: object, tab_index=0, hardware_scan_results=[]):

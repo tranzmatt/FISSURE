@@ -74,19 +74,6 @@ def main(device:int=DEVICE, frequency:float=FREQUENCY, gain:float=GAIN, whitelis
                         }) + '\n')
                         sys.stdout.flush()
 
-                    # tactical report
-                    sys.stdout.write(json.dumps({
-                        'msg': 'snreport',
-                        'text': [ # https://www.globalsecurity.org/intell/library/policy/army/fm/34-35/appc.htm#figc_5
-                            'UNCLAS',
-                            f'MSGID/TACREP/FISSURE REPORT//', # TACREP=Tactical Report
-                            f'GNDOP/{datetime.now(timezone.utc).strftime('%H%M%SZ')}/1/US/ENEMY COMBATANT/TPMS:{id}//', # GNDOP=Ground Operations
-                            'LOCATION/TAMPA,FL/%(latitude_ddm)s%(longitude_ddm)s//', # City as city,state or city,country and Location in DM format
-                            f'COMEW/{frequency/1e6:06.2f}MHZ/100KHZ//', # COMEW=Communications Electronic Warfare
-                        ]
-                    }) + '\n')
-                    sys.stdout.flush()
-
                     if 'time' in data.keys():
                         _ = data.pop('time')
                     sys.stdout.write(json.dumps({
@@ -96,7 +83,8 @@ def main(device:int=DEVICE, frequency:float=FREQUENCY, gain:float=GAIN, whitelis
                         'lon': '%(longitude)f',
                         'alt': '%(altitude)f',
                         'time': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-                        'remarks': '"' + json.dumps(data, separators=(',', ':')) + '"'
+                        'remarks': '"' + json.dumps(data, separators=(',', ':')) + '"',
+                        'type': 'a-h-G-U-C', # red ground symbol
                     }) + '\n')
                     sys.stdout.flush()
     finally:

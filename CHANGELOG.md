@@ -1,6 +1,548 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2026-3-24
+
+TAK geolocation, multi-node actions, CoT logging, and plugin enhancements.
+
+### Added
+
+- python3-pyproj and python3-uhd dependencies to the installer
+- LFM beacon transmit flow graph to standalone flow graphs
+- Target patch functions from actions to the hub
+- Support for specifying expected node hardware in YAML to be used by filtering in plugin actions
+- Example target list YAML file for importing from TAK
+- Optional CoT logging support for TAK replay
+- CoT replay script for logged sessions
+- Multilateration utility functions for the hub
+- More TAK support for geolocation and multi-node actions
+- Action filtering for target classification/keywords
+
+## 2026-3-06
+
+Installer fixes and data conversion fixes.
+
+### Added
+
+- ainfosec.dev link to README
+- Select button for IQ Data > Convert tab to pick the current directory in the IQ Viewer to use as the output directory
+
+### Changed
+
+- tak_on_startup variable in the config YAML file now support strings and booleans
+
+### Fixed
+
+- Modified opencv installer dependency to use `opencv-python-headless<4.12` to prevent numpy 2.0+ from being installed
+- Removed sudo from pip package installs
+- Fixing the data conversion algorithms to convert between data types better
+- Removed extra '&' in _slotMenuStandalone_ais_rx_demodClicked() flow graph filepath
+
+## 2026-3-03
+
+Support for TAK alerts and action input parameters.
+
+### Added
+
+- Default TAK CoT types for node idle/busy in FISSURE YAML file.
+- Alert callbacks for populating tables in TAK
+- Support for querying action parameters from TAK
+
+### Changed
+
+- Pulling status from GPS position reports instead of its own message
+
+## 2026-2-23
+
+Compile flow graphs for Plugins and TAK features for status and control.
+
+### Added
+
+- Compile flow graphs for Plugins folder installer option
+- TAK receive code for refreshing status and stopping operations
+
+### Changed
+
+- Adjusted functions for GPS beaconing to support on-demand single message responses
+
+## 2026-2-18
+
+Mechanisms for adding targets and displaying status.
+
+### Added
+
+- Functions for creating new targets
+- Operation callbacks for SOIs, status, and targets
+- Import target lists from WinTAK stored at the HIPRFISR
+
+### Changed
+
+- Providing status and version info in GPS position updates
+
+## 2026-2-10
+
+SOI management and plugin operations fixes.
+
+### Added
+
+- Functions to update and store SOIs for TAK
+- Functions to import a target list for TAK
+- Applying database classification to SOIs at the HIPRFISR for TAK
+- Zip function for creating SOI evidence as an artifact for TAK
+- TAK callbacks for specific WinTAK button presses
+
+### Changed
+
+- Changing CoT type for events and populating lat/lon/alt in CoT
+
+### Fixed
+
+- Passing in the node UID to plugin start/stop actions
+- Updating node read_hiprfisr_messages() to create a new task for plugin actions to avoid blocking stop command
+
+## 2026-1-13
+
+Fixing artifact download errors.
+
+### Fixed
+
+- Rewrote updateArtifact() to use valid Python syntax
+- Updating utils init file to support importing artifact functions
+- Removing extra quote in RTL-SDR installer verify line
+- Installing new clang dependency with gr-ieee802.11
+
+## 2026-1-12
+
+Modifying TAK-HIPRFISR messaging and bug fixes.
+
+### Added
+
+- Added a wait option to run_plugin_operation to block on operations
+
+### Changed
+
+- Commented out the old low throughput TAK functions that do not lead to the consolidated TAK utilities
+- Modified the TAK receive at the HIPRFISR to allow message parameters in the xml and avoid string parsing
+
+### Fixed
+
+- Python strip() filepath issues with the second installer script
+- Meshtastic GPS beacon messages using new TAK functions
+- Timing error when running operations complete too quickly which would prevent start/stop status updates from occurring 
+
+## 2025-12-29
+
+Updating OpenWebRX installer.
+
+### Fixed
+
+- Removing interactive installer for OpenWebRX and adding prints for password prompts.
+
+## 2025-12-19
+
+Updating the FISSURE plugin to TAK message chain to pass dictionaries.
+
+### Added
+
+- Added "iw" package to the installer
+- hackrf_sweep and rtl_power detectors in the Tools folder for scanning specific frequency bands
+
+### Changed
+
+- Removed HIPRFISR TAK send code and replaced with utility calls in the callback functions.
+- Renamed HIPRFISR callback for TAK messages to takReturn()
+- Updated SensorNode.py send_tak_cot() to use a dictionary when accepting inputs from FISSURE plugins and sending to the HIPRFISR
+- Updated GPS beacons and plugin querying returns to use new dictionaries for TAK messages
+
+### Fixed
+
+- Added support for optional dictionary fields in tak_messages.py utilities
+
+## 2025-12-17
+
+Updating TAK messaging.
+
+### Added
+
+- Added unified TAK message API supporting pin, event, and track message types
+- Added structured XML payloads under "fissure" for plugin lists, actions, detections, SOIs, and targets
+- Added automatic UID generation for event messages to prevent map icon conflicts
+- Added tak_messages.py utility file for uniformity
+
+### Changed
+
+- Replaced remarks-based message parsing with structured XML parsing
+- Using pytak for sending all messages to TAK
+- Updated plugin_list and plugin_action responses to use new formatting
+
+### Fixed
+
+- Fixed malformed XML issues caused by manual CoT construction
+- Fixed suppressed-point events appearing as pins on the map
+
+## 2025-12-15
+
+Fixing pytak installer and freezing bugs.
+
+### Changed
+
+- Installing pytak with sudo
+- Removed pytak from TAK Server installation across all dependencies
+
+### Fixed
+
+- Adding pytak to the Misc. Dependencies for all operating systems
+- Disabling auto connect to TAK server in the FISSURE config file to prevent freezing without a TAK server
+- Unmerging IQEngine and TAK server installer items for Ubuntu 24.04
+- Updating first TAK server connect try in HiprFisr.py so it no longer blocks on auto connect without a reachable TAK server 
+
+## 2025-12-12
+
+Simple database frequency lookup for protocols on alerts.
+
+### Added
+
+- Added a frequency_lookup table to the database. Columns: id, freq_low, freq_high, protocol_name, region, priority, notes
+- Created a library utility function (classifyFrequencyFromTextDirect) which takes in text with a frequency unit or alert text following a pattern and returns the first table match in bounds with the highest priority
+- Created a common utility function that converts CoT UID text to a frequency string with a label (extractFrequencyFromUID)
+- Updated these functions to classify signals from frequency: alertReturn, alertReturnLT, takPlot, takPlotLT
+
+## 2025-12-08
+
+Headless HIPRFISR bug fixes.
+
+### Added
+
+- Pull request #103: Fixed sensor node alert sender IP vs. Meshtastic message fields
+- Added fissure_install.log to .gitignore
+- Ignoring unapproved plugins via .gitignore
+
+### Changed
+
+- Renamed installer.log to fissure_install.log and placed in Installer folder during install
+
+### Fixed
+
+- Adding checks for dashboard_connected with the dashboard socket in HIPRFISR code to prevent freezing with headless HIPRFISR
+- Removed creation of Install_Log folder during install
+- Local sensor nodes set their nickname to "Local Sensor Node" in SensorNode.py
+
+## 2025-12-07
+
+Meshtastic networking overhaul.
+
+### Added
+
+- Pull request #102: Hiprfisr logging
+  - Hiprfisr logging of received sensor node heartbeat
+  - Fixed HIPRFISR TAK plot messaging incorrect use of UID
+- Assigned short-ID system with hub-managed ID counter
+- Complete Meshtastic handshake flow
+- Reverse lookup helper: resolve UUID from assigned_id
+- Persistent UUID-based log identifier for sensor nodes
+- Meshtastic-safe last-seen tracking (no disconnect toggling)
+- Integer validation/cast for sn_assigned_id
+- Updated routing to support assigned_id as message SOURCE
+
+### Changed
+
+- Removed SensorNode class and associated functions in HiprFisr.py
+- Reworked Meshtastic node registration logic (new vs. existing node behavior)
+- Overhauled heartbeat handling: Meshtastic nodes no longer treated like IP nodes
+- Updated send_msg behavior to use assigned_id instead of legacy identifier
+- Dashboard mapping updated to rely strictly on UUID references
+- Refactored node update paths for consistent state management
+- Removed dependence on sn_int for RF timing; Meshtastic interval ignored
+- Standardized node identity model (uuid = permanent, assigned_id = routing, identifier = logging)
+
+### Fixed
+
+- pingIP() now acquires the IP address using the UUID and the nodes dictionary
+- Log identifiers regenerating randomly instead of matching persisitent UUID
+
+## 2025-12-02
+
+Adding callsigns to TAK CoT messages and using long UUID for IP nodes.
+
+### Added
+
+- Callsign prefix in YAML config file for CoT messages
+
+### Changed
+
+- Removed UUID from message envelopes coming from sensor nodes
+- Set IDENTIFIER constant to UUID value in sensor nodes
+- Using 8 character identifier for Meshtastic connections
+- Inserted uuid variable into all HIPRFISR callbacks as part of read_sensor_node_messages()
+- Removed uuid from message PARAMETERS coming from the sensor node since it is in the identifier
+
+### Fixed
+
+- Added checks to exit the connect loop and not print warnings continuously when running a headless HIPRFISR
+- Removed resolving identities from Dashboard mappings for TAK operations
+
+## 2025-12-01
+
+Switching IP node connection to ROUTER-DEALER and fixing shutdown procedures.
+
+### Added
+
+- Replaced ZMQ PAIR with ROUTER-DEALER
+- HIPRFISR/hub no longer sends heartbeats to nodes
+- Nodes send more information in heartbeats
+- HIPRFISR/hub maps dashboard slots to node UUIDs and stores node info by UUID
+- Message from nodes contain UUID
+- New Dashboard widgets for connecting to sensor nodes
+- Code in README for killing all FISSURE related programs in one line
+- Added more password prompt exceptions to the list
+
+### Changed
+
+- Changed default remote sensor node heartbeat and message ports to 6100 and 6101 to not overlap with HIPRFISR ports when sharing an IP
+- Heartbeats transmit their interval in each message
+- Sensor Node reads its config file for heartbeat_interval
+- UUID is written to a file in ~/.fissure directory for local and remote nodes
+
+### Fixed
+
+- Revamped shutdown and task cleanup
+- Error in operations.py when not passing in all the expected arguments
+- Added aircrack-ng from source to installer for raspberry pi setups
+- Simplified hardware select dialog functions that listed all widgets for every tab
+
+## 2025-11-12
+
+Adjusting GPS behavior, adding saved and internet GPS source options.
+
+### Added
+
+- Saved and Internet options for gps_source in sensor node config file
+- Internet option for Find button in sensor node configuration dialog
+- Pull request #101: TAK plugin interaction functionality
+  - Moved TAK server connection to Hiprfisr init.
+  - Added TAK to Sensor Node plugin names query functionality.
+  - Removed legacy test plugins.
+  - Wifi plugin updated: TAK integration ready, channel switching bug fixed, automatic device selection
+  - TAK FISSURE plugin operation fully functional.
+  - Resolved merge conflicts.
+  - Removed pytak increased tx queue size that held messages to TAK server.
+
+### Changed
+
+- Put a lock around accessing the Meshtastic serial port for Find button and beacons
+- No longer passing in current position into GPSManager, handling all position updates in gpsUpdate callback
+- Moved Ping button from remote actions to local actions in sensor node configuration dialog
+- Added a % to the end of CPU button return value
+
+### Fixed
+
+- Meshtastic GPS source (for new temporary Meshtastic serial connections) option now works for remote IP networking, updated beacon and findGPS_Coordinates
+- Sensor node no longer crashes if Meshtastic GPS probe does not return a position during Find
+- Remote IP Address Ping returns values after connected to a remote node
+- Created missing memoryIP_Return, diskIP_Return functions in Dashboard callbacks
+
+## 2025-11-05
+
+Fixing auto-connect to TAK server and suppressing warnings.
+
+### Changed
+
+- Updated TakReceiver run() to loop continuously to work with new connect behavior
+
+### Fixed
+
+- Pull request #99: Adding fixes to TAK logic for fresh OS boot and reconnects
+- Updated HiprFisr.py begin()/event loop with new connections to pytak and reconnect behavior with TAK connect_mode set to auto
+
+## 2025-10-29
+
+Dashboard connection and logging fixes for a remote HIPRFISR.
+
+### Fixed
+
+- Merging pull request #98: `For compatibility with <Python3.10 changed instances of parameter definitions in format type1\|type2 to format Union\[type1,type2\].`
+- Updating FissureZMQNode.py to perform safe logging during shutdown to suppress warnings
+- Adding a sleep line to prevent warnings during shutdown in backend event loop
+- Resetting Dashboard states when disconnecting from HIPRFISR to enable UI widgets on reconnect
+- Commented out async function calls in LibraryTabPluginManagerTabSlots.py in connect_slots() that were called too early in the Dashboard startup
+- Dashboard disconnects from HIPRFISR instead of shutting down the HIPRFISR for a remote HIPRFISR
+
+## 2025-10-28
+
+Fixes for connecting to remote HIPRFISR.
+
+### Added
+
+- Added new image in README under Key Capabilities
+
+### Changed
+
+- Removed "server" variables from YAML config files
+- Added "--remote" argument to fissure-hiprfisr command
+- Changed default remote IP address hint from "127.0.0.1" to "192.168.1.xxx"
+
+### Fixed
+
+- Commented out IP address update in HiprFisr.py initialize_comms()
+- Fixed connect() in StatusBarSlots.py to perform connect_to_hiprfisr() without errors
+
+## 2025-10-26
+
+Fixes for standalone HIPRFISR testing.
+
+### Added
+
+- fissure-hiprfisr command to the installer for launching the HIPRFISR and processing engines without the Dashboard
+
+### Changed
+
+- Updated all fissure Command installer items to match Ubuntu 24.04 installer
+- Updated interactive roadmap with search and list of immediate children
+
+### Fixed
+
+- Fixed wget filepath error for 5 MS/s online archive IQ files
+- Increased range values for decimation and center sliders in demodulation tool
+- Increased the number of digits for center and threshold sliders in demodulation tool
+
+## 2025-10-23
+
+Merging pull request #97, fixing Apptainer install.
+
+### Added
+
+- Merging pull request #97: 
+  - Fixed issue in wifi plugin wifi_scan_ap where monitor mode disabled during scan
+  - Added functionality to stop all plugin operations on a sensor node
+
+### Fixed
+
+- Creating .local/bin folder for fissure-apptainer command and adding the path to .bashrc
+- Fixed Wayland GUI launch issue by binding `$XDG_RUNTIME_DIR` to a writable `/tmp` path inside the Apptainer, allowing Qt5/XWayland to initialize properly when running in headless writable containers
+- Adding `--no-sandbox` to chrome command in Apptainer %post
+
+## 2025-10-22
+
+Apptainer containerization updates.
+
+### Added
+
+- install_apptainer.sh script for configuring containerization with Apptainer
+- fissure-apptainer.sh template for executing a new apptainer terminal shortcut
+- fissure_apptainer.def for managing the apptainer build
+- helpful_apptainer_commands.txt for reference
+
+### Changed
+
+- Modified Ubuntu 24.04 installer for Apptainer containerization
+
+### Fixed
+
+- Adjusting bit extraction technique in the demodulation tool to match the plot window samples using midpoint sampling
+- Restoring line-buffered mode in the installer by calling the second script with `python3 -u`
+
+## 2025-10-16
+
+Preparing installer for containerization.
+
+### Changed
+
+- Merging pull requests #94, #95, #96
+
+### Fixed
+
+- Removing first installer script prompts from headless install
+- Running second installer script as an executable instead of with Python
+
+## 2025-10-15
+
+Adding headless installer and deployment modes.
+
+### Added
+
+- Headless installer for operating systems and modes for FISSURE deployments
+- Buttons in installer GUI for recalling modes for Full (previously Default), HIPRFISR, Dashboard, and Sensor Node
+
+### Changed
+
+- Renamed "Default" button in installer to "Full"
+
+## 2025-10-15
+
+Cleaning installer code.
+
+### Changed
+
+- Removed code from OS installer files
+- Updated labels for first installer GUI
+- Removed programs from second installer script
+- Pointed first installer script to call second installer script instead of OS installer files
+- Updated installer info in the README
+
+## 2025-10-14
+
+Fixing pytak import errors on install and sample offset slider in demod tool.
+
+### Fixed
+
+- Moving pytak imports away from the start of the HiprFisr.py
+- Adding sample_offset to plotting function in demod tool
+- Removing extra disk_usage.txt file in Installer folder
+
+## 2025-10-13
+
+Adding simple FM demodulation tool in IQ Data tab.
+
+### Added
+
+- Demod button and dialog in IQ Data tab for obtaining bits from signals
+- Function for initializing tab indices on Dashboard launch
+
+## 2025-10-06
+
+Updating README roadmap and white papers.
+
+### Added
+
+- Interactive roadmap link and current priorities in README Roadmap section
+- FISSURE white papers and updated links in README White Papers section
+
+## 2025-10-02
+
+Merging pull requests #86-#90, #92: TAK, plugins, GPS, and Raspberry Pi updates.
+
+### Added
+
+- Update hardware.py #88
+  - Update to gpsd receive to not kill and restart the service on each read attempt
+- Tak integration #89
+  - TAK server module added
+  - Hipfisr TAK server monitor interface added
+  - Hipfisr send_cot now accepts TAK type string
+  - Beacon stale time changed to 60 seconds instead of 60 minutes
+  - Beacon cot message switched to provide track
+- Sensor node updates #90
+  - Sensor node updates based on Raspberry Pi 4 Ubuntu 24.04 installation and operation as a sensor node. TPMS, Wifi AP detection and Wifi reboot playlists included for reference. Alert sender handling of types in TAK messages added.
+  - TPMS alert: dropped snreport, added type to TAK report
+  - Wifi AP finder and autorun playlist added
+  - Added iwlist to password exception commands
+  - Added raspberry pi remote sensor node config for reference
+  - Alert sender now handles type arguments on TAK messages
+  - Added wifi reboot autorun playlist
+- Fixed error on fissure dashboard launch if fissure-plugin-editor is n… #92
+  - Fixed error on fissure dashboard launch if fissure-plugin-editor is not found
+- TAK connect_mode variable in config files to choose auto/manual/disabled for connecting the HIPRFISR to a TAK server
+- TAK menu for starting/stopping a local TAK server and for connecting/disconnecting to a TAK server (preconfigured in YAML config files)
+
+### Changed
+
+- Moved TAK menu items from Tools to TAK
+- Updated README with videos, intros, diagrams, white papers, blog posts, TAK setup, testimonials
+
+### Fixed
+
+- Made config file checks to determine if the HIPRFISR should connect to a TAK server on boot
+
 ## 2025-8-03
 
 Fixing remote IP actions.

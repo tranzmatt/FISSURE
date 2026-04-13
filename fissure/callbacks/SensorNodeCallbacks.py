@@ -3,10 +3,13 @@ import fissure.comms
 import fissure.utils
 import fissure.utils.hardware
 from fissure.utils import plugin
+from fissure.utils.artifacts import ArtifactManager
+import logging
 import os
 import shutil
 import subprocess
 import threading
+import traceback
 import time
 import yaml
 from concurrent.futures import ThreadPoolExecutor
@@ -14,6 +17,7 @@ import asyncio
 import zmq
 from typing import List
 import re
+from typing import Optional
 
 
 async def updateLoggingLevels(component: object, new_console_level="", new_file_level=""):
@@ -26,9 +30,12 @@ async def updateLoggingLevels(component: object, new_console_level="", new_file_
 
 async def hiprfisrDisconnecting(component: object):
     """
-    Stop trying to send data and heartbeats to the HIPRFISSR on an intentional disconnect.
+    HIPRFISR is intentionally disconnecting from this Sensor Node.
+    Stop sending messages, mark connection down, and shut down socket cleanly.
     """
-    # Stop Outgoing Messages
+    component.logger.info("Received hiprfisrDisconnecting")
+
+    # Mark HIPRFISR as disconnected
     component.hiprfisr_connected = False
 
 
@@ -786,11 +793,14 @@ async def stopPD(component: object, sensor_node_id=0):
 
 async def terminateSensorNode(component: object):
     """
-    Stops sensor_node.py for local operations.
+    Stops sensor_node.py entirely (local or remote) by triggering shutdown.
     """
-    # Exit
-    component.logger.info("sensor node shutdown")
+    component.logger.info("terminateSensorNode callback triggered — shutting down sensor node")
+
+    # Tell begin loop to exit
     component.shutdown = True
+
+    # Let task termination and socket shutdown fall naturally through the checks at the end of begin()
 
 
 async def recallSettings(component: object):
@@ -811,7 +821,29 @@ async def recallSettings(component: object):
         fissure.comms.MessageFields.MESSAGE_NAME: "recallSettingsReturn",
         fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
-    # print(msg)
+    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+async def nodeSelectIP(component: object, dashboard_node_index):
+    """
+    Recall default settings from a local yaml file and send to HIPRFISR.
+    """
+    # Recall Default Settings Saved Locally
+    component.logger.info("nodeSelectIP/Recall Settings")
+    filename = os.path.join(fissure.utils.SENSOR_NODE_DIR, "Sensor_Node_Config", "default.yaml")
+    with open(filename) as yaml_library_file:
+        settings_dict = yaml.load(yaml_library_file, yaml.FullLoader)
+
+    # Send the Message
+    PARAMETERS = {
+        "dashboard_node_index": dashboard_node_index,
+        "settings_dict": settings_dict
+    }
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+        fissure.comms.MessageFields.MESSAGE_NAME: "recallSettingsReturn",
+        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    }
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
@@ -908,7 +940,7 @@ async def probeHardware(component: object, tab_index=0, table_row_text=[]):
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def scanHardware(component: object, tab_index=0, hardware_list=[]):
+async def scanHardware(component: object, hardware_list=[]):
     """
     Scans all types of hardware included in the hardware_list and returns the information.
     """
@@ -956,7 +988,9 @@ async def scanHardware(component: object, tab_index=0, hardware_list=[]):
             all_scan_results.append(fissure.utils.hardware.findCaribouLite())            
 
     # Return Scan Results
-    PARAMETERS = {"tab_index": tab_index, "hardware_scan_results": all_scan_results}
+    PARAMETERS = {
+        "hardware_scan_results": all_scan_results
+    }
     msg = {
         fissure.comms.MessageFields.IDENTIFIER: component.identifier,
         fissure.comms.MessageFields.MESSAGE_NAME: "hardwareScanResults",
@@ -1287,7 +1321,7 @@ async def uninstallPlugins(component: object, sensor_node_id: int, plugin_names:
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def removePlugin(component: object, sensor_node_id: int, plugin_name: str):
+async def removePlugin(component: object, node_uid: str, plugin_name: str):
     """Remove Plugin
 
     **WARNING**: This will remove the plugin from the sensor node file system
@@ -1296,14 +1330,90 @@ async def removePlugin(component: object, sensor_node_id: int, plugin_name: str)
     ----------
     component : object
         Component
-    sensor_node_id : int
-        Sensor node ID
+    node_uid : str
+        Sensor node UID
     plugin_name : str
         Plugin name with file extension
     """
-    if sensor_node_id > -1:
-        # remove plugin
-        plugin.remove(plugin_name)
+    # Remove plugin
+    plugin.remove(plugin_name)
+
+
+async def sendPluginNamesTak(component: object, requester_uid: str, node_uid: str, tak_context: str):
+    """Send Plugin Names for TAK
+
+    Parameters
+    ----------
+    component : object
+        Component
+    requester_uid : str
+        TAK UID
+    node_uid : str
+        Sensor node UID
+    tak_context : str
+        node or ecosystem
+    """
+    try:
+        plugin_names = plugin.get_local_plugin_names()
+
+        # send plugin names
+        PARAMETERS = {
+            "requester_uid": requester_uid,
+            "node_uid": node_uid,
+            "plugin_names": plugin_names,
+            "tak_context": tak_context
+        }
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+            fissure.comms.MessageFields.MESSAGE_NAME: "sendPluginNamesTakResults",
+            fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+        }
+        component.logger.debug(f"Sending plugin names for TAK UID {requester_uid}: {plugin_names}")
+        await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+    except Exception as e:
+        component.logger.error(f"Error sending plugin names for TAK UID {requester_uid}: {e}")
+        tb = traceback.format_exc()
+        component.logger.debug(tb)
+
+
+async def sendPluginActionNamesTak(component: object, requester_uid: str, plugin_name: str, node_uid: str, tak_context: str):
+    """Send Plugin Action Names for TAK
+
+    Parameters
+    ----------
+    component : object
+        Component
+    requester_uid : str
+        TAK UID
+    plugin_name : str
+        Plugin name
+    node_uid : str
+        Sensor node UID
+    tak_context : str
+        node or ecosystem
+    """
+    try:
+        action_names = plugin.get_plugin_actions(plugin_name, component.settings_dict, component.logger)
+
+        # send action names
+        PARAMETERS = {
+            "requester_uid": requester_uid,
+            "node_uid": node_uid,
+            "plugin_name": plugin_name,
+            "action_names": action_names,
+            "tak_context": tak_context
+        }
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+            fissure.comms.MessageFields.MESSAGE_NAME: "sendPluginActionNamesTakResults",
+            fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+        }
+        component.logger.debug(f"Sending action names for plugin {plugin_name} and TAK UID {requester_uid}: {action_names}")
+        await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+    except Exception as e:
+        component.logger.error(f"Error sending action names for plugin {plugin_name} and TAK UID {requester_uid}: {e}")
+        tb = traceback.format_exc()
+        component.logger.debug(tb)
 
 
 async def findGPS_Coordinates(component: object, tab_index=0, gps_source="", format=""):
@@ -1315,21 +1425,30 @@ async def findGPS_Coordinates(component: object, tab_index=0, gps_source="", for
         get_coordinates = fissure.utils.hardware.probe_gpsd(component.logger, format, component.gpsd_serial_port, False)
     elif gps_source == "Meshtastic":
         # Use Existing Serial Connection
-        if component.local_remote == "remote":
+        if component.network_type == "Meshtastic":
             gps_data = await component.hiprfisr_socket.get_gps_position()
-            get_coordinates = fissure.utils.format_coordinates(
-                gps_data['latitude'], 
-                gps_data['longitude'],
-                format
-            )
+            if gps_data is None:
+                get_coordinates = "No GPS data returned"
+            else:
+                get_coordinates = fissure.utils.format_coordinates(
+                    gps_data['latitude'], 
+                    gps_data['longitude'],
+                    format
+                )
+
         # Establish Serial Connection
         else:
-            gps_data = await fissure.utils.hardware.probeMeshtasticGPS(component.meshtastic_serial_port, 10)
-            get_coordinates = fissure.utils.format_coordinates(
-                gps_data['latitude'], 
-                gps_data['longitude'],
-                format
-            )
+            async with component.meshtastic_lock:  # Prevent multiple calls to serial port with beacon
+                gps_data = await fissure.utils.hardware.probeMeshtasticGPS(component.meshtastic_serial_port, 10)
+
+            if gps_data is None:
+                get_coordinates = "No GPS data returned"
+            else:
+                get_coordinates = fissure.utils.format_coordinates(
+                    gps_data['latitude'], 
+                    gps_data['longitude'],
+                    format
+                )
 
     elif gps_source == "Saved":
         get_coordinates = fissure.utils.format_coordinates(
@@ -1337,6 +1456,16 @@ async def findGPS_Coordinates(component: object, tab_index=0, gps_source="", for
             component.gps_position['longitude'], 
             format
         )
+    elif gps_source == "Internet":
+        get_coordinates = await fissure.utils.hardware.probeInternetGPS(component.logger)
+        if get_coordinates is None:
+            get_coordinates = "No GPS data returned"
+        else:
+            get_coordinates = fissure.utils.format_coordinates(
+                component.gps_position['latitude'], 
+                component.gps_position['longitude'], 
+                format
+            )
     else:
         get_coordinates = "Invalid GPS Source"
 
@@ -1482,6 +1611,7 @@ async def cpuIP(component: object, sensor_node_id: str):
     """
     # Get CPU Percentage
     cpu_result = subprocess.check_output("top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}'", shell=True, text=True).strip()
+    cpu_result = f"{cpu_result}%"
 
     # Send Status
     PARAMETERS = {
@@ -1554,3 +1684,189 @@ async def iwconfigIP(component: object, sensor_node_id: str):
         fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+async def transferArtifactRequest(component: object, artifact_id: str, destination: str, data: Optional[bytes]) -> None:
+    """
+    Transfer Artifact Request
+
+    Parameters
+    ----------
+    component : object
+        Component
+    artifact_id : str
+        Artifact ID
+    destination : str
+        Transfer destination ('tak' or 'hiprfisr')
+    data : Optional[bytes]
+        Artifact data, currently unused
+    """
+    logger: logging.Logger = component.logger # type: ignore
+    artifact_manager: ArtifactManager = component.artifact_manager # type: ignore
+
+    data = artifact_manager.get_data(artifact_id, compress=True)
+    if data is None:
+        logger.error(f"Artifact data not found or could not be read: {artifact_id}")
+        return
+
+    PARAMETERS = {
+        "artifact_id": artifact_id,
+        "destination": destination,
+        "data": data,
+    }
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+        fissure.comms.MessageFields.MESSAGE_NAME: "transferArtifactRequest",
+        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    }
+    await component.hiprfisr_socket.send_msg(
+        fissure.comms.MessageTypes.COMMANDS, msg
+    )
+
+
+async def refresh_status(component: object, node_uid: str) -> None:
+    """
+    Immediately sends a GPS update to the HIPRFISR.
+
+    Parameters
+    ----------
+    node_uid : str
+        Sensor node UID.
+    """
+    component.logger.info("Refreshing status and sending a GPS update to the HIPRFISR")
+
+    gps_manager = getattr(component, "gps_manager", None)
+    if not gps_manager:
+        component.logger.warning("No gps_manager available; cannot refresh status.")
+        return
+
+    gps_source = component.gps_source
+
+    # Determine the correct meshtastic argument
+    meshtastic_arg = None
+
+    if gps_source == "Meshtastic":
+        if component.network_type == "Meshtastic":
+            meshtastic_arg = component.hiprfisr_socket
+        else:
+            meshtastic_arg = component.meshtastic_serial_port
+
+    await gps_manager.send_gps_update_now(gps_source, meshtastic_arg)
+
+
+async def sendPluginActionParametersTak(
+    component: object,
+    plugin_name: str,
+    action_name: str,
+    node_uid: str,
+    tak_context: str
+) -> None:
+    """
+    Node handler for hub->node request: "sendPluginActionParameters"
+
+    Returns the action schema back to HIPRFISR.
+    """
+
+    try:
+        component.logger.info(
+            f"Fetching schema for {plugin_name}.{action_name} (node_uid={node_uid})"
+        )
+
+        # Validate plugin directory exists
+        plugin_path = os.path.join(fissure.utils.PLUGIN_DIR, plugin_name)
+        if not os.path.exists(plugin_path):
+            component.logger.error(f"Plugin path does not exist: {plugin_path}")
+            return
+
+        # Use existing utility function (importlib.util based)
+        schema = plugin.get_action_schema(plugin_name, action_name, component.logger)
+
+        # Normalize schema shape
+        if not isinstance(schema, dict):
+            schema = {"params": []}
+        if "params" not in schema or not isinstance(schema.get("params"), list):
+            schema["params"] = []
+
+        PARAMETERS = {
+            "plugin_name": plugin_name,
+            "action_name": action_name,
+            "node_uid": node_uid,
+            "schema": schema,
+            "tak_context": tak_context
+        }
+
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+            fissure.comms.MessageFields.MESSAGE_NAME: "sendPluginActionParametersResultsTak",
+            fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+        }
+
+        component.logger.debug(
+            f"Sending schema for {plugin_name}.{action_name} "
+            f"with {len(schema.get('params', []))} params"
+        )
+
+        # Node -> Hub
+        await component.hiprfisr_socket.send_msg(
+            fissure.comms.MessageTypes.COMMANDS,
+            msg
+        )
+
+    except Exception as e:
+        component.logger.error(
+            f"Error sending schema for {plugin_name}.{action_name}: {e}"
+        )
+        component.logger.debug(traceback.format_exc())
+
+
+async def sendPluginTargetActionsTak(
+    component: object,
+    requester_uid: str,
+    plugin_name: str,
+    node_uid: str,
+    target_id: str,
+    classification_candidates: List[str],
+) -> None:
+    """
+    Node handler for hub->node request: get plugin action names filtered by target classification.
+    """
+    try:
+        component.logger.info(
+            f"Fetching target actions for plugin={plugin_name}, "
+            f"target_id={target_id}, classifications={classification_candidates}"
+        )
+
+        plugin_path = os.path.join(fissure.utils.PLUGIN_DIR, plugin_name)
+        if not os.path.exists(plugin_path):
+            component.logger.error(f"Plugin path does not exist: {plugin_path}")
+            return
+
+        action_names = plugin.get_actions_for_classifications(
+            plugin_name,
+            classification_candidates,
+            component.logger
+        )
+
+        PARAMETERS = {
+            "requester_uid": requester_uid,
+            "node_uid": node_uid,
+            "plugin_name": plugin_name,
+            "action_names": action_names,
+        }
+
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+            fissure.comms.MessageFields.MESSAGE_NAME: "sendPluginActionNamesTakResults",
+            fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+        }
+        component.logger.debug(f"Sending action names for plugin {plugin_name} and TAK UID {requester_uid}: {action_names}")
+        await component.hiprfisr_socket.send_msg(
+            fissure.comms.MessageTypes.COMMANDS,
+            msg
+        )
+
+    except Exception as e:
+        component.logger.error(
+            f"Error sending target actions for plugin={plugin_name}, target_id={target_id}: {e}"
+        )
+        component.logger.debug(traceback.format_exc())

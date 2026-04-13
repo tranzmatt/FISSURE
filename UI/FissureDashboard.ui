@@ -369,6 +369,7 @@
     <addaction name="actionNoise_source"/>
     <addaction name="separator"/>
     <addaction name="actionfrequency_translating"/>
+    <addaction name="actionlfm_beacon_transmit"/>
    </widget>
    <widget class="QMenu" name="menuSDR_Tools">
     <property name="title">
@@ -742,18 +743,9 @@
      <property name="title">
       <string>Mapping</string>
      </property>
-     <widget class="QMenu" name="menuTAK">
-      <property name="title">
-       <string>TAK</string>
-      </property>
-      <addaction name="actionWebTAK"/>
-      <addaction name="actionTAK_Start_Docker_Containers"/>
-      <addaction name="actionTAK_Stop_Docker_Containers"/>
-     </widget>
      <addaction name="actionGoogle_Earth_Pro"/>
      <addaction name="actionViking"/>
      <addaction name="actionUS_County_Overlays"/>
-     <addaction name="menuTAK"/>
     </widget>
     <widget class="QMenu" name="menuGPS">
      <property name="title">
@@ -1102,9 +1094,19 @@
     <addaction name="menuDemo_Library_Tab"/>
     <addaction name="menuDemo_Log_Tab"/>
    </widget>
+   <widget class="QMenu" name="menuTAK_2">
+    <property name="title">
+     <string>T&amp;AK</string>
+    </property>
+    <addaction name="actionWebTAK"/>
+    <addaction name="actionTAK_Start_Docker_Containers"/>
+    <addaction name="actionTAK_Stop_Docker_Containers"/>
+    <addaction name="actionConnect_to_TAK_Server"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
    <addaction name="menuOptions"/>
+   <addaction name="menuTAK_2"/>
    <addaction name="menuFlow_Graphs"/>
    <addaction name="menuSDR_Tools"/>
    <addaction name="menuLessons"/>
@@ -3569,6 +3571,22 @@
   <action name="actionJohn_the_Ripper">
    <property name="text">
     <string>John the Ripper</string>
+   </property>
+  </action>
+  <action name="actionConnect_to_TAK_Server">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Connect to TAK Server</string>
+   </property>
+  </action>
+  <action name="actionlfm_beacon_transmit">
+   <property name="text">
+    <string>lfm_beacon_transmit</string>
    </property>
   </action>
  </widget>

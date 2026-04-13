@@ -84,6 +84,8 @@ class FissureMeshtasticNode:
 
         self.last_gps_fix = None
         self.last_gps_fix_time = 0
+
+        self.assigned_id = None
         
         # Cache for recently sent message IDs
         self.recent_message_ids = deque()
@@ -148,11 +150,51 @@ class FissureMeshtasticNode:
 
 
     async def send_msg(self, msg_type: str, msg: Dict):
-        msg_id = self.generate_short_uuid(4)  # Generate a 4-character short UUID
-
         # print("In the SEND!!")
         # print("Message Type:", msg_type)
         # print("Message Payload:", msg)
+
+        source = msg.get(MessageFields.SOURCE, "U")  # Default source to 'U' for unknown
+
+        # Meshtastic node with incomplete handshake
+        # print(source)
+        if source == 0:
+            return
+        
+        destination = msg.get(MessageFields.DESTINATION, "0")  # Default destination to '0'
+        msg_name = msg.get(MessageFields.MESSAGE_NAME, "")
+        parameters = msg.get(MessageFields.PARAMETERS, {})
+
+        msg_code = fissure.utils.MESSAGE_NAME_TO_CODE.get(msg_name, None)
+        # print("Message Code:", msg_code)
+
+        msg_id = self.generate_short_uuid(4)  # Generate a 4-character short UUID
+
+        if not msg_code:
+            self.logger.error(f"No message code mapping found for {msg_name}")
+            return
+
+        # Convert parameters to a binary format using msgpack
+        if isinstance(parameters, dict):
+            parameters_bytes = msgpack.packb(parameters, use_bin_type=True)
+            parameters_str = binascii.hexlify(parameters_bytes).decode('utf-8')
+        else:
+            parameters_str = str(parameters) if parameters else ""
+
+        # Format the message according to the new structure
+        message = f"{source},{destination},{msg_code},{msg_id},{parameters_str}"
+        
+        self.add_message_id(msg_id)  # Store the ID to avoid processing if it bounces back
+        await asyncio.get_running_loop().run_in_executor(None, self.interface.sendText, message)  # hopLimit set in Meshtastic app, testing with 0
+
+        self.logger.info(f"Raw message sent: {message}")
+
+        await asyncio.sleep(0.5)
+
+
+    async def send_heartbeat(self, msg: Dict):
+        # print("Send Heartbeat")
+        msg_id = self.generate_short_uuid(4)  # Generate a 4-character short UUID
 
         source = msg.get(MessageFields.SOURCE, "U")  # Default source to 'U' for unknown
         destination = msg.get(MessageFields.DESTINATION, "0")  # Default destination to '0'
@@ -180,6 +222,7 @@ class FissureMeshtasticNode:
         await asyncio.get_running_loop().run_in_executor(None, self.interface.sendText, message)  # hopLimit set in Meshtastic app, testing with 0
 
         self.logger.info(f"Raw message sent: {message}")
+        print(len(message))
 
         await asyncio.sleep(0.5)
         
@@ -229,11 +272,16 @@ class FissureMeshtasticNode:
 
                 # Normal message processing here
                 parsed_data = {
-                    "Identifier": source,
+                    "Source": source,
+                    "Destination": destination,
                     "MessageName": msg_name,
                     "Parameters": parsed_parameters,
                     "callback": msg_name
                 }
+
+                # Ignore messages for other nodes
+                if (destination != str(self.assigned_id)) and (msg_name != "completeMeshtasticHandshakeLT"):
+                    return
 
                 asyncio.run_coroutine_threadsafe(self._enqueue_message(parsed_data), self.loop)
 
@@ -256,6 +304,12 @@ class FissureMeshtasticNode:
         # print("In the run_callback of fissuremeshtasticnode!")
         # print("Context:", context)
         # print("Parsed Command:", parsed_command)
+        # parsed_command = {
+        #     'Identifier': 'fe241d26-c5e0-44d0-8bdd-48f7106fc4e2', 
+        #     'MessageName': 'recvMeshtasticHeartbeatsLT', 
+        #     'Parameters': {'msg': ['0', 5, 'Remote1', 1764910633.699858]}, 
+        #     'callback': 'recvMeshtasticHeartbeatsLT'
+        # }
 
         cb_name = parsed_command.get("callback")
         try:
@@ -267,6 +321,13 @@ class FissureMeshtasticNode:
             raise Exception(f"method {cb_name} not implemented in context {context}")
 
         params = parsed_command.get("Parameters")
+
+        # AUTO-INJECT UUID so all callbacks can access it
+        if isinstance(params, dict):
+            source_id = parsed_command.get("Source")
+            destination_id = parsed_command.get("Destination")
+            params.setdefault("source_id", source_id)
+            params.setdefault("destination_id", destination_id)
 
         # Ignore Message Parameters in Logging
         if cb_name in fissure.utils.BANNED_MESSAGE_NAMES:
@@ -283,7 +344,17 @@ class FissureMeshtasticNode:
             return await cb(context, *params)
         else:
             if isinstance(params, dict):  # Dictionary Params
-                return await cb(context, **params)
+                # return await cb(context, **params)
+
+                if type(params) is dict:  # Dictionary Params
+                    import inspect
+                    sig = inspect.signature(cb)
+
+                    filtered_params = {
+                        k: v for k, v in params.items()
+                        if k in sig.parameters
+                    }
+                    return await cb(context, **filtered_params)
             elif isinstance(params, list):  # List Params
                 return await cb(context, *params)
             elif isinstance(params, str):  # Space Separated String Params

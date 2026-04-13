@@ -1,0 +1,160 @@
+Bootstrap: docker
+From: __BASE_IMAGE__
+
+%labels
+    Author Chris Poore
+    OS __OS_LABEL__
+
+
+%help
+    FISSURE Minimal Dashboard Container
+    -----------------------------------
+    This image installs the minimal dependencies required to run
+    the FISSURE Dashboard GUI in headless or desktop environments.
+
+    Usage:
+        apptainer run fissure_min.sif         # Launch Dashboard
+        apptainer shell fissure_min.sif       # Enter container shell
+        apptainer exec fissure_min.sif bash   # Run arbitrary commands
+
+    Notes:
+        - Requires an X11 or VNC environment for GUI.
+        - FISSURE files are installed to /opt/FISSURE.
+        - PYTHONPATH is automatically set at runtime.
+
+
+%setup
+    # Optional: runs on the host before %files (rarely used)
+
+
+%files
+    __HOST_FISSURE_DIR__/ /opt/FISSURE
+
+
+%environment
+    #export PYTHONPATH=/opt/FISSURE:$PYTHONPATH  # environment already handled by FISSURE installer?
+    
+    # Default to X11 rendering
+    export XDG_SESSION_TYPE=${XDG_SESSION_TYPE:-x11}
+    export DISPLAY=${DISPLAY:-:0}
+    export QT_QPA_PLATFORM=${QT_QPA_PLATFORM:-xcb}
+    export GDK_BACKEND=${GDK_BACKEND:-x11}
+
+    # Suppress matplotlib font warnings
+    export MPLCONFIGDIR=/etc/matplotlib
+
+    # Google Chrome
+    export LANG=en_US.UTF-8
+    export LC_CTYPE=en_US.UTF-8
+
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    mkdir -p /usr/local/bin
+    cat > /usr/local/bin/sudo <<'EOF'
+#!/bin/sh
+exec "$@"
+EOF
+    chmod +x /usr/local/bin/sudo
+    sudo mkdir -p /run/udev
+
+    apt-get update
+    apt-get install -y lsb-release
+    apt-get install -y python3 python3-pip git
+    apt-get install -y x11-apps libx11-6 libxext6 xauth
+    apt-get install -y wireless-tools iw
+    apt-get install -y libreoffice
+
+    # Suppress matplotlib font warnings
+    apt-get install -y fonts-dejavu-core fonts-liberation fonts-ubuntu
+    fc-cache -fv
+    mkdir -p /etc/matplotlib
+    cat <<'EOF' > /etc/matplotlib/matplotlibrc
+font.family : sans-serif
+font.sans-serif : DejaVu Sans, Liberation Sans, Arial, sans-serif
+EOF
+
+    #  Google Chrome Installation & Sandbox Fix
+    echo "[*] Setting up locales..."
+    apt-get update
+    apt-get install -y locales wget gnupg ca-certificates xdg-utils desktop-file-utils
+    locale-gen en_US.UTF-8
+    update-locale LANG=en_US.UTF-8 LC_CTYPE=en_US.UTF-8
+    export LANG=en_US.UTF-8
+    export LC_CTYPE=en_US.UTF-8
+
+    echo "[*] Installing Google Chrome (deb package, not snap)..."
+    mkdir -p /etc/apt/keyrings
+    wget -qO- https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /etc/apt/keyrings/google-chrome.gpg
+    echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
+    apt-get update
+    apt-get install -y google-chrome-stable
+
+    #  Chrome Sandbox / XDG Wrapper
+    echo "[*] Creating Chrome-safe wrapper for Apptainer..."
+    cat <<'EOF' > /usr/local/bin/chrome-safe
+#!/bin/bash
+# Wrapper to launch Chrome safely inside writable Apptainer containers
+if command -v /usr/bin/google-chrome-stable >/dev/null 2>&1; then
+    exec /usr/bin/google-chrome-stable --no-sandbox --disable-gpu --test-type "$@"
+elif command -v /usr/bin/google-chrome >/dev/null 2>&1; then
+    exec /usr/bin/google-chrome --no-sandbox --disable-gpu --test-type "$@"
+elif command -v /usr/bin/chromium-browser >/dev/null 2>&1; then
+    exec /usr/bin/chromium-browser --no-sandbox --disable-gpu --test-type "$@"
+else
+    echo "[!] No Chrome/Chromium binary found."
+    exit 1
+fi
+EOF
+    chmod +x /usr/local/bin/chrome-safe
+
+    #  Desktop Integration (xdg-open support)
+    echo "[*] Registering Chrome-safe as default browser for xdg-open..."
+    cat <<'EOF' > /usr/share/applications/google-chrome-safe.desktop
+[Desktop Entry]
+Version=1.0
+Name=Google Chrome (Safe)
+Exec=/usr/local/bin/chrome-safe %U
+Terminal=false
+Icon=google-chrome
+Type=Application
+Categories=Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
+EOF
+
+    update-desktop-database /usr/share/applications
+    xdg-settings set default-web-browser google-chrome-safe.desktop || true
+    echo "[✓] Chrome installation and sandbox fix complete."
+    
+    echo "[*] Overriding xdg-open to use Chrome-safe..."
+    if [ -f /usr/bin/xdg-open ]; then
+        mv /usr/bin/xdg-open /usr/bin/xdg-open.real
+    fi
+    cat <<'EOF' > /usr/bin/xdg-open
+#!/bin/bash
+exec /usr/local/bin/chrome-safe "$@"
+EOF
+    chmod +x /usr/bin/xdg-open
+    echo "[✓] xdg-open now uses Chrome-safe."
+
+    # FISSURE installer
+    cd /opt/FISSURE
+    set +e  # Allow failures
+    ./install --os "__OS_LABEL__" --mode full
+    INSTALL_CODE=$?
+    set -e  # Reset
+
+    if [ $INSTALL_CODE -ne 0 ]; then
+        echo "[!] FISSURE install produced error code $INSTALL_CODE"
+    else
+        echo "[✓] FISSURE install completed successfully."
+    fi
+    
+
+%runscript
+    echo "Starting FISSURE Dashboard..."
+    #fissure
+
+
+%test
+    #python3 -c "import fissure; print('FISSURE imports successfully.')"

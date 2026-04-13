@@ -18,7 +18,7 @@ from fissure.comms import MessageFields, MessageTypes, Identifiers
 import re
 
 
-async def recallInfoMeshtasticLT(component: object, tab_index=""):
+async def recallInfoMeshtasticLT(component: object, tab_index="", source_id=None):
     """
     Recall default settings from a local yaml file and send only essential fields to HIPRFISR.
     Handles low-throughput mode by sending 'nickname', 'location', and 'notes' together if under a certain size.
@@ -61,8 +61,8 @@ async def recallInfoMeshtasticLT(component: object, tab_index=""):
 
     # Send the payload directly as a dictionary
     response_message = {
-        MessageFields.SOURCE: component.identifier,
-        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.SOURCE: component.assigned_id,
+        MessageFields.DESTINATION: source_id,
         MessageFields.MESSAGE_NAME: "recallInfoMeshtasticReturnLT",
         MessageFields.PARAMETERS: PARAMETERS,
     }
@@ -71,7 +71,7 @@ async def recallInfoMeshtasticLT(component: object, tab_index=""):
     # component.logger.info(f"Sent recallInfoMeshtasticReturnLT with payload: {payload}")
 
 
-async def recallHardwareMeshtasticLT(component: object, sensor_node_id=""):
+async def recallHardwareMeshtasticLT(component: object, sensor_node_id="", source_id=None):
     """
     Recall default settings from a local yaml file and send only essential fields to HIPRFISR.
     Handles low-throughput mode by sending 'nickname', 'location', and 'notes' together if under a certain size.
@@ -106,8 +106,8 @@ async def recallHardwareMeshtasticLT(component: object, sensor_node_id=""):
 
     # Send the payload directly as a dictionary
     response_message = {
-        MessageFields.SOURCE: component.identifier,
-        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.SOURCE: component.assigned_id,
+        MessageFields.DESTINATION: source_id,
         MessageFields.MESSAGE_NAME: "recallHardwareMeshtasticReturnLT",
         MessageFields.PARAMETERS: PARAMETERS,
     }
@@ -116,7 +116,7 @@ async def recallHardwareMeshtasticLT(component: object, sensor_node_id=""):
     component.logger.info(f"Sent recallHardwareMeshtasticReturnLT with payload: {PARAMETERS}")
 
 
-async def recallStatusMeshtasticLT(component: object, tab_index=""):
+async def recallStatusMeshtasticLT(component: object, tab_index="", source_id=None):
     """
     Recalls sensor node status.
     """
@@ -131,8 +131,8 @@ async def recallStatusMeshtasticLT(component: object, tab_index=""):
 
     # Send the payload directly as a dictionary
     response_message = {
-        MessageFields.SOURCE: component.identifier,
-        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.SOURCE: component.assigned_id,
+        MessageFields.DESTINATION: source_id,
         MessageFields.MESSAGE_NAME: "recallStatusMeshtasticReturnLT",
         MessageFields.PARAMETERS: PARAMETERS,
     }
@@ -141,7 +141,7 @@ async def recallStatusMeshtasticLT(component: object, tab_index=""):
     component.logger.info(f"Sent recallStatusMeshtasticReturnLT with payload: {PARAMETERS}")
 
 
-async def findGPS_CoordinatesLT(component: object, tab_index=0, gps_source="", format=""):
+async def findGPS_CoordinatesLT(component: object, tab_index=0, gps_source="", format="", source_id=None):
     """
     Find the sensor node GPS coordinates using gpsd and return the information.
     """
@@ -181,8 +181,8 @@ async def findGPS_CoordinatesLT(component: object, tab_index=0, gps_source="", f
     if get_coordinates:
         PARAMETERS = {"tab_index": tab_index, "coordinates": get_coordinates}
         response_message = {
-            MessageFields.SOURCE: component.identifier,
-            MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+            MessageFields.SOURCE: component.assigned_id,
+            MessageFields.DESTINATION: source_id,
             MessageFields.MESSAGE_NAME: "findGPS_CoordinatesResultsLT",
             MessageFields.PARAMETERS: PARAMETERS,
         }
@@ -190,7 +190,7 @@ async def findGPS_CoordinatesLT(component: object, tab_index=0, gps_source="", f
         await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
 
 
-async def probeHardwareLT(component: object, tab_index=0, table_row_text=[]):
+async def probeHardwareLT(component: object, tab_index=0, table_row_text=[], source_id=None):
     """
     Probe the selected hardware from the table and return the information.
     """
@@ -277,15 +277,15 @@ async def probeHardwareLT(component: object, tab_index=0, table_row_text=[]):
     # Return the Text
     PARAMETERS = {"tab_index": tab_index, "output": output, "height_width": height_width}
     msg = {
-        MessageFields.SOURCE: component.identifier,
-        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.SOURCE: component.assigned_id,
+        MessageFields.DESTINATION: source_id,
         MessageFields.MESSAGE_NAME: "hardwareProbeResultsLT",
         MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def scanHardwareLT(component: object, tab_index=0, hardware_list=[]):
+async def scanHardwareLT(component: object, tab_index=0, hardware_list=[], source_id=None):
     """
     Scans all types of hardware included in the hardware_list and returns the information.
     """
@@ -335,15 +335,15 @@ async def scanHardwareLT(component: object, tab_index=0, hardware_list=[]):
     # Return Scan Results
     PARAMETERS = {"tab_index": tab_index, "hardware_scan_results": all_scan_results}
     msg = {
-        MessageFields.SOURCE: component.identifier,
-        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.SOURCE: component.assigned_id,
+        MessageFields.DESTINATION: source_id,
         MessageFields.MESSAGE_NAME: "hardwareScanResultsLT",
         MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def guessHardwareLT(component: object, tab_index=0, table_row=[], table_row_text=[], guess_index=0):
+async def guessHardwareLT(component: object, tab_index=0, table_row=[], table_row_text=[], guess_index=0, source_id=None):
     """
     Probe the selected hardware from the table and return the information.
     """
@@ -422,8 +422,8 @@ async def guessHardwareLT(component: object, tab_index=0, table_row=[], table_ro
     # Return Guess Results
     PARAMETERS = {"results": [tab_index, table_row, get_hardware, scan_results, new_guess_index]}
     msg = {
-        MessageFields.SOURCE: component.identifier,
-        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.SOURCE: component.assigned_id,
+        MessageFields.DESTINATION: source_id,
         MessageFields.MESSAGE_NAME: "hardwareGuessResultsLT",
         MessageFields.PARAMETERS: PARAMETERS,
     }
@@ -486,7 +486,7 @@ async def rebootMeshtasticLT(component: object, sensor_node_id=0):
     os.system("sudo reboot")
 
 
-async def uptimeMeshtasticLT(component: object, sensor_node_id: str):
+async def uptimeMeshtasticLT(component: object, sensor_node_id: str, source_id=None):
     """
     Retrieves the uptime of the sensor node computer.
     """
@@ -508,8 +508,8 @@ async def uptimeMeshtasticLT(component: object, sensor_node_id: str):
     # Return the Text
     PARAMETERS = {"sensor_node_id": sensor_node_id, "uptime": uptime_string}
     response_message = {
-        MessageFields.SOURCE: component.identifier,
-        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.SOURCE: component.assigned_id,
+        MessageFields.DESTINATION: source_id,
         MessageFields.MESSAGE_NAME: "uptimeMeshtasticReturnLT",
         MessageFields.PARAMETERS: PARAMETERS,
     }
@@ -517,7 +517,7 @@ async def uptimeMeshtasticLT(component: object, sensor_node_id: str):
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
 
 
-async def memoryMeshtasticLT(component: object, sensor_node_id: str):
+async def memoryMeshtasticLT(component: object, sensor_node_id: str, source_id=None):
     """
     Retrieves the memory usage of the sensor node computer.
     """
@@ -531,8 +531,8 @@ async def memoryMeshtasticLT(component: object, sensor_node_id: str):
     # Return the Text
     PARAMETERS = {"sensor_node_id": sensor_node_id, "memory": memory_list}
     response_message = {
-        MessageFields.SOURCE: component.identifier,
-        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.SOURCE: component.assigned_id,
+        MessageFields.DESTINATION: source_id,
         MessageFields.MESSAGE_NAME: "memoryMeshtasticReturnLT",
         MessageFields.PARAMETERS: PARAMETERS,
     }
@@ -540,7 +540,7 @@ async def memoryMeshtasticLT(component: object, sensor_node_id: str):
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
 
 
-async def diskMeshtasticLT(component: object, sensor_node_id: str):
+async def diskMeshtasticLT(component: object, sensor_node_id: str, source_id=None):
     """
     Retrieves the disk usage of the sensor node computer.
     """
@@ -560,8 +560,8 @@ async def diskMeshtasticLT(component: object, sensor_node_id: str):
     # Return the Text
     PARAMETERS = {"sensor_node_id": sensor_node_id, "disk": disk_dict}
     response_message = {
-        MessageFields.SOURCE: component.identifier,
-        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.SOURCE: component.assigned_id,
+        MessageFields.DESTINATION: source_id,
         MessageFields.MESSAGE_NAME: "diskMeshtasticReturnLT",
         MessageFields.PARAMETERS: PARAMETERS,
     }
@@ -569,18 +569,19 @@ async def diskMeshtasticLT(component: object, sensor_node_id: str):
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
 
 
-async def cpuMeshtasticLT(component: object, sensor_node_id: str):
+async def cpuMeshtasticLT(component: object, sensor_node_id: str, source_id=None):
     """
     Retrieves the CPU percentage of the sensor node computer.
     """
     # Get CPU Percentage
     cpu_result = subprocess.check_output("top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}'", shell=True, text=True).strip()
+    cpu_result = f"{cpu_result}%"
 
     # Return the Text
     PARAMETERS = {"sensor_node_id": sensor_node_id, "cpu": cpu_result}
     response_message = {
-        MessageFields.SOURCE: component.identifier,
-        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.SOURCE: component.assigned_id,
+        MessageFields.DESTINATION: source_id,
         MessageFields.MESSAGE_NAME: "cpuMeshtasticReturnLT",
         MessageFields.PARAMETERS: PARAMETERS,
     }
@@ -588,7 +589,7 @@ async def cpuMeshtasticLT(component: object, sensor_node_id: str):
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
 
 
-async def processesMeshtasticLT(component: object, sensor_node_id: str):
+async def processesMeshtasticLT(component: object, sensor_node_id: str, source_id=None):
     """
     Retrieves the processes on the sensor node computer.
     """
@@ -602,8 +603,8 @@ async def processesMeshtasticLT(component: object, sensor_node_id: str):
     # Return the Text
     PARAMETERS = {"sensor_node_id": sensor_node_id, "processes": processes_result}
     response_message = {
-        MessageFields.SOURCE: component.identifier,
-        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.SOURCE: component.assigned_id,
+        MessageFields.DESTINATION: source_id,
         MessageFields.MESSAGE_NAME: "processesMeshtasticReturnLT",
         MessageFields.PARAMETERS: PARAMETERS,
     }
@@ -611,7 +612,7 @@ async def processesMeshtasticLT(component: object, sensor_node_id: str):
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
 
 
-async def ifconfigMeshtasticLT(component: object, sensor_node_id: str):
+async def ifconfigMeshtasticLT(component: object, sensor_node_id: str, source_id=None):
     """
     Retrieves an abbreviated ifconfig output: only physical Ethernet/Wi-Fi interfaces with their IPv4 address or '-'.
     """
@@ -646,8 +647,8 @@ async def ifconfigMeshtasticLT(component: object, sensor_node_id: str):
     # Return the Text
     PARAMETERS = {"sensor_node_id": sensor_node_id, "ifconfig": ifconfig_result}
     response_message = {
-        MessageFields.SOURCE: component.identifier,
-        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.SOURCE: component.assigned_id,
+        MessageFields.DESTINATION: source_id,
         MessageFields.MESSAGE_NAME: "ifconfigMeshtasticReturnLT",
         MessageFields.PARAMETERS: PARAMETERS,
     }
@@ -655,7 +656,7 @@ async def ifconfigMeshtasticLT(component: object, sensor_node_id: str):
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
 
 
-async def iwconfigMeshtasticLT(component: object, sensor_node_id: str):
+async def iwconfigMeshtasticLT(component: object, sensor_node_id: str, source_id=None):
     """
     Retrieves the wireless interface name and mode (Managed or Monitor) on the sensor node computer.
     """
@@ -680,10 +681,93 @@ async def iwconfigMeshtasticLT(component: object, sensor_node_id: str):
     # Return the Text
     PARAMETERS = {"sensor_node_id": sensor_node_id, "iwconfig": iwconfig_result}
     response_message = {
-        MessageFields.SOURCE: component.identifier,
-        MessageFields.DESTINATION: Identifiers.HIPRFISR_LT,
+        MessageFields.SOURCE: component.assigned_id,
+        MessageFields.DESTINATION: source_id,
         MessageFields.MESSAGE_NAME: "iwconfigMeshtasticReturnLT",
         MessageFields.PARAMETERS: PARAMETERS,
     }
 
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
+
+
+async def completeMeshtasticHandshakeLT(component: object, assigned_id:int, source_id=None, destination_id=None):
+    """
+    
+    """
+    # Get Processes
+    if destination_id and destination_id == component.uuid:
+        component.assigned_id = assigned_id
+        component.hiprfisr_socket.assigned_id = assigned_id
+
+        # Increase the heartbeat interval
+        component.heartbeat_interval = component.heartbeat_interval_connected
+
+
+async def nodeSelectLT(component: object, dashboard_node_index, source_id=None):
+    """
+    Recall default settings from a local yaml file and send to HIPRFISR.
+    """
+    # # Recall Default Settings Saved Locally
+    # component.logger.info("nodeSelectIP/Recall Settings")
+    # filename = os.path.join(fissure.utils.SENSOR_NODE_DIR, "Sensor_Node_Config", "default.yaml")
+    # with open(filename) as yaml_library_file:
+    #     settings_dict = yaml.load(yaml_library_file, yaml.FullLoader)
+
+    # # Send the Message
+    # PARAMETERS = {
+    #     "dashboard_node_index": dashboard_node_index,
+    #     "settings_dict": settings_dict
+    # }
+    # msg = {
+    #     fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+    #     fissure.comms.MessageFields.MESSAGE_NAME: "recallSettingsReturnLT",
+    #     fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    # }
+    # await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+        # Recall Default Settings Saved Locally
+    # component.logger.info("Recall Info LT")
+
+    print("AT node select")
+    filename = os.path.join(fissure.utils.SENSOR_NODE_DIR, "Sensor_Node_Config", "default.yaml")
+    with open(filename) as yaml_library_file:
+        settings_dict = yaml.load(yaml_library_file, yaml.FullLoader)
+
+    # print(settings_dict)
+    
+    # Extract only the essential fields for low-throughput messaging
+    essential_fields = {
+        'tab_index': dashboard_node_index,
+        'nickname': settings_dict.get('Sensor Node', {}).get('nickname', ''),
+        'location': settings_dict.get('Sensor Node', {}).get('location', ''),
+        'notes': settings_dict.get('Sensor Node', {}).get('notes', '')
+    }
+
+    # Prepare the payload including the 'notes' field initially
+    PARAMETERS = {
+        'tab_index': essential_fields['tab_index'],
+        'nickname': essential_fields['nickname'],
+        'location': essential_fields['location'],
+        'notes': essential_fields['notes']
+    }
+
+    # Estimate the size of the payload with 'notes' and avoid pre-encoding
+    payload_size = len(str(PARAMETERS).encode('utf-8'))
+
+    if payload_size > 200:
+        component.logger.warning(f"Payload size exceeds 200 bytes ({payload_size} bytes). Excluding 'notes' field.")
+        PARAMETERS.pop('notes', None)
+    else:
+        pass
+        # component.logger.info(f"Payload size within limits: {payload_size} bytes.")
+
+    # Send the payload directly as a dictionary
+    response_message = {
+        MessageFields.SOURCE: component.assigned_id,
+        MessageFields.DESTINATION: source_id,
+        MessageFields.MESSAGE_NAME: "recallInfoMeshtasticReturnLT",
+        MessageFields.PARAMETERS: PARAMETERS,
+    }
+
+    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
+    # component.logger.info(f"Sent recallInfoMeshtasticReturnLT with payload: {payload}")

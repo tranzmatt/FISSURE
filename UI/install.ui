@@ -81,7 +81,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>155</y>
+      <y>180</y>
       <width>150</width>
       <height>25</height>
      </rect>
@@ -97,13 +97,13 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>80</y>
+      <y>105</y>
       <width>180</width>
       <height>25</height>
      </rect>
     </property>
     <property name="text">
-     <string>KDE neon 5.25 (20.04)</string>
+     <string>KDE neon</string>
     </property>
    </widget>
    <widget class="QRadioButton" name="radioButton_parrot_os_6_1">
@@ -113,13 +113,13 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>105</y>
+      <y>130</y>
       <width>180</width>
       <height>25</height>
      </rect>
     </property>
     <property name="text">
-     <string>Parrot OS 6.1</string>
+     <string>Parrot OS</string>
     </property>
    </widget>
    <widget class="QRadioButton" name="radioButton_kali">
@@ -129,80 +129,16 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>55</y>
+      <y>80</y>
       <width>185</width>
       <height>25</height>
      </rect>
     </property>
     <property name="text">
-     <string>Kali 2024.3</string>
+     <string>Kali</string>
     </property>
    </widget>
    <widget class="QRadioButton" name="radioButton_backbox_linux_8">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>5</y>
-      <width>185</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>BackBox Linux 8</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="radioButton_ubuntu22_04">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>180</y>
-      <width>180</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Ubuntu 22.04</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="radioButton_ubuntu22_04_arm">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>205</y>
-      <width>250</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Ubuntu 22.04 ARM</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="radioButton_raspberry_pi_os">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>130</y>
-      <width>265</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Raspberry Pi OS (bookworm)</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="radioButton_dragonos_noble">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -215,7 +151,55 @@
      </rect>
     </property>
     <property name="text">
-     <string>DragonOS Noble (beta)</string>
+     <string>BackBox Linux</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radioButton_ubuntu22_04">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>205</y>
+      <width>180</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Ubuntu 22.04</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radioButton_raspberry_pi_os">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>155</y>
+      <width>265</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Raspberry Pi OS</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radioButton_dragonos_noble">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>55</y>
+      <width>185</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>DragonOS Noble</string>
     </property>
    </widget>
    <widget class="QRadioButton" name="radioButton_ubuntu24_04">
@@ -226,12 +210,12 @@
      <rect>
       <x>10</x>
       <y>230</y>
-      <width>180</width>
+      <width>270</width>
       <height>25</height>
      </rect>
     </property>
     <property name="text">
-     <string>Ubuntu 24.04</string>
+     <string>Ubuntu 24.04 (ARM &amp;&amp; Pi supported)</string>
     </property>
    </widget>
    <widget class="QRadioButton" name="radioButton_arch_linux">
@@ -241,13 +225,13 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>255</y>
+      <y>5</y>
       <width>180</width>
       <height>25</height>
      </rect>
     </property>
     <property name="text">
-     <string>Arch Linux 2024.10.01</string>
+     <string>Arch Linux</string>
     </property>
    </widget>
   </widget>

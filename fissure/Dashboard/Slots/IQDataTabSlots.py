@@ -15,6 +15,8 @@ import time
 from scipy.signal import hilbert, lfilter, butter, filtfilt, sosfilt
 import datetime
 import qasync
+from ..UI_Components import DemodDialog
+from typing import List
 
 
 @QtCore.pyqtSlot(QtCore.QObject)
@@ -6856,9 +6858,29 @@ def _slotIQ_ConvertChooseClicked(dashboard: QtCore.QObject):
 
 
 @QtCore.pyqtSlot(QtCore.QObject)
-def _slotIQ_ConvertClicked(dashboard: QtCore.QObject):
+def _slotIQ_ConvertOutputSelectClicked(dashboard: QtCore.QObject):
     """ 
-    Convert from one data type to another with the option to normalize to target data range.
+    Selects the current IQ Viewer directory for the Convert output directory.
+    """
+    try:
+        # Get Highlighted File from Listbox
+        get_folder = str(dashboard.ui.label_iq_folder.text())
+        dashboard.ui.textEdit_iq_convert_output.setPlainText(get_folder)
+    except:
+        pass
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotIQ_ConvertClicked(dashboard: QtCore.QObject):
+    """
+    Convert between scalar and complex IQ formats.
+
+    Assumptions:
+    - Complex integer types are stored on disk as interleaved IQ:
+        I0, Q0, I1, Q1, ...
+    - Complex unsigned integer types are treated as centered/offset-binary IQ.
+    - Complex float types are stored as native NumPy complex dtypes.
+    - Scalar targets receiving complex input will keep only the real part.
     """
     # Get Inputs
     get_overwrite = dashboard.ui.checkBox_iq_convert_overwrite.isChecked()
@@ -6875,42 +6897,96 @@ def _slotIQ_ConvertClicked(dashboard: QtCore.QObject):
         fissure.Dashboard.UI_Components.Qt5.errorMessage("Select IQ files to convert")
         return
 
-    # Define a mapping for data type sizes
-    data_type_map = {
-        "Complex Float 64": (">d", 8),
-        "Complex Float 32": (">f", 4),
-        "Float/Float 32": (">f", 4),
-        "Complex Int 16": (">h", 2),
-        "Short/Int 16": (">h", 2),
-        "Complex Int 64": (">q", 8),
-        "Int/Int 32": (">i", 4),
-        "Complex Int 8": (">b", 1),
-        "Byte/Int 8": (">b", 1),
-        "Unsigned Int 8": (">B", 1),
-        "Unsigned Int 16": (">H", 2),
-        "Unsigned Int 32": (">I", 4),
-        "Complex Unsigned Int 64": (">Q", 8),
-        "Complex Unsigned Int 16": (">H", 2),
-        "Complex Unsigned Int 8": (">B", 1),
+    type_specs = {
+        "Complex Float 64": {
+            "is_complex": True,
+            "storage": "native_complex",
+            "disk_dtype": np.complex128,
+        },
+        "Complex Float 32": {
+            "is_complex": True,
+            "storage": "native_complex",
+            "disk_dtype": np.complex64,
+        },
+        "Float/Float 32": {
+            "is_complex": False,
+            "storage": "scalar",
+            "disk_dtype": np.float32,
+        },
+        "Complex Int 64": {
+            "is_complex": True,
+            "storage": "interleaved_signed",
+            "disk_dtype": np.int64,
+            "bits": 64,
+        },
+        "Complex Int 16": {
+            "is_complex": True,
+            "storage": "interleaved_signed",
+            "disk_dtype": np.int16,
+            "bits": 16,
+        },
+        "Complex Int 8": {
+            "is_complex": True,
+            "storage": "interleaved_signed",
+            "disk_dtype": np.int8,
+            "bits": 8,
+        },
+        "Int/Int 32": {
+            "is_complex": False,
+            "storage": "scalar",
+            "disk_dtype": np.int32,
+        },
+        "Short/Int 16": {
+            "is_complex": False,
+            "storage": "scalar",
+            "disk_dtype": np.int16,
+        },
+        "Byte/Int 8": {
+            "is_complex": False,
+            "storage": "scalar",
+            "disk_dtype": np.int8,
+        },
+        "Unsigned Int 8": {
+            "is_complex": False,
+            "storage": "scalar",
+            "disk_dtype": np.uint8,
+        },
+        "Unsigned Int 16": {
+            "is_complex": False,
+            "storage": "scalar",
+            "disk_dtype": np.uint16,
+        },
+        "Unsigned Int 32": {
+            "is_complex": False,
+            "storage": "scalar",
+            "disk_dtype": np.uint32,
+        },
+        "Complex Unsigned Int 64": {
+            "is_complex": True,
+            "storage": "interleaved_unsigned_centered",
+            "disk_dtype": np.uint64,
+            "bits": 64,
+        },
+        "Complex Unsigned Int 16": {
+            "is_complex": True,
+            "storage": "interleaved_unsigned_centered",
+            "disk_dtype": np.uint16,
+            "bits": 16,
+        },
+        "Complex Unsigned Int 8": {
+            "is_complex": True,
+            "storage": "interleaved_unsigned_centered",
+            "disk_dtype": np.uint8,
+            "bits": 8,
+        },
     }
 
-    dtype_mappings = {
-        "Complex Float 64": np.complex128,
-        "Complex Float 32": np.complex64,
-        "Float/Float 32": np.float32,
-        "Complex Int 64": np.complex128,
-        "Int/Int 32": np.int32,
-        "Complex Int 16": np.int16,
-        "Short/Int 16": np.int16,
-        "Complex Int 8": np.complex64,
-        "Byte/Int 8": np.int8,
-        "Unsigned Int 8": np.uint8,
-        "Unsigned Int 16": np.uint16,
-        "Unsigned Int 32": np.uint32,
-        "Complex Unsigned Int 64": np.complex128,
-        "Complex Unsigned Int 16": np.complex64,
-        "Complex Unsigned Int 8": np.complex64,
-    }
+    if get_original_data_type not in type_specs or get_new_data_type not in type_specs:
+        dashboard.logger.error("Unknown Data Type")
+        return
+
+    original_spec = type_specs[get_original_data_type]
+    new_spec = type_specs[get_new_data_type]
 
     for n in range(dashboard.ui.listWidget_iq_convert_input.count()):
         fname = str(dashboard.ui.listWidget_iq_convert_input.item(n).text())
@@ -6919,60 +6995,309 @@ def _slotIQ_ConvertClicked(dashboard: QtCore.QObject):
             new_file = fname
         else:
             base_name = os.path.basename(fname)
-            new_file = os.path.join(get_output_directory, f"{os.path.splitext(base_name)[0]}_converted{os.path.splitext(base_name)[1]}")
+            stem, ext = os.path.splitext(base_name)
+            new_file = os.path.join(get_output_directory, f"{stem}_converted{ext}")
 
         if not os.path.isfile(fname):
             dashboard.logger.error(f"File not found: {fname}")
             continue
 
-        if (get_original_data_type not in data_type_map) or (get_new_data_type not in data_type_map):
-            dashboard.logger.error("Unknown Data Type")
-            return
-
-        # Convert Logic
-        original_dtype = dtype_mappings[get_original_data_type]
-        new_dtype = dtype_mappings[get_new_data_type]
-
         try:
-            # Read input data
-            data = np.fromfile(fname, dtype=original_dtype)
+            # Read file into internal representation:
+            #   complex -> np.complex128
+            #   scalar  -> np.float64
+            raw = np.fromfile(fname, dtype=original_spec["disk_dtype"])
 
-            if get_normalize:
-                # Normalize data to fit new data type range
-                if np.issubdtype(original_dtype, np.complexfloating):
-                    real_max = max(np.abs(data.real))
-                    imag_max = max(np.abs(data.imag))
-                    scale = max(real_max, imag_max)
-                    if scale > 0:
-                        data = data / scale
+            if original_spec["storage"] == "native_complex":
+                data = raw.astype(np.complex128, copy=False)
+
+            elif original_spec["storage"] == "scalar":
+                data = raw.astype(np.float64, copy=False)
+
+            elif original_spec["storage"] in ("interleaved_signed", "interleaved_unsigned_centered"):
+                if raw.size < 2:
+                    data = np.array([], dtype=np.complex128)
                 else:
-                    data_max = max(np.abs(data))
-                    if data_max > 0:
-                        data = data / data_max
+                    if raw.size % 2 != 0:
+                        dashboard.logger.warning(
+                            f"{fname}: odd number of scalar values for complex IQ; dropping last value"
+                        )
+                        raw = raw[:-1]
 
-                # Scale to target type range
-                if np.issubdtype(new_dtype, np.integer):
-                    new_dtype_max = np.iinfo(new_dtype).max
-                elif np.issubdtype(new_dtype, np.floating):
-                    new_dtype_max = 1.0
+                    iq = raw.reshape(-1, 2)
+
+                    if original_spec["storage"] == "interleaved_signed":
+                        i = iq[:, 0].astype(np.float64)
+                        q = iq[:, 1].astype(np.float64)
+                        data = i + 1j * q
+                    else:
+                        center = 1 << (original_spec["bits"] - 1)
+                        i = iq[:, 0].astype(np.float64) - center
+                        q = iq[:, 1].astype(np.float64) - center
+                        data = i + 1j * q
+            else:
+                raise ValueError(f"Unsupported source storage type: {original_spec['storage']}")
+
+            # Optional normalization to target range
+            if get_normalize and data.size > 0:
+                if new_spec["is_complex"]:
+                    cdata = np.asarray(data, dtype=np.complex128)
+                    peak = max(
+                        np.max(np.abs(cdata.real)) if cdata.size else 0.0,
+                        np.max(np.abs(cdata.imag)) if cdata.size else 0.0,
+                    )
+                    if peak > 0:
+                        if new_spec["storage"] == "native_complex":
+                            target_peak = 1.0
+                        else:
+                            target_peak = (1 << (new_spec["bits"] - 1)) - 1
+                        data = (cdata / peak) * target_peak
                 else:
-                    new_dtype_max = 1.0  # Default fallback for unsupported cases
-                
-                data = data * new_dtype_max
+                    sdata = np.real(data) if np.iscomplexobj(data) else np.asarray(data, dtype=np.float64)
 
-            # Convert to new data type
-            converted_data = data.astype(new_dtype)
+                    if np.issubdtype(new_spec["disk_dtype"], np.floating):
+                        peak = np.max(np.abs(sdata)) if sdata.size else 0.0
+                        if peak > 0:
+                            data = sdata / peak
+                        else:
+                            data = sdata
 
-            # Write output data
-            converted_data.tofile(new_file)
+                    elif np.issubdtype(new_spec["disk_dtype"], np.signedinteger):
+                        peak = np.max(np.abs(sdata)) if sdata.size else 0.0
+                        if peak > 0:
+                            data = (sdata / peak) * np.iinfo(new_spec["disk_dtype"]).max
+                        else:
+                            data = sdata
+
+                    elif np.issubdtype(new_spec["disk_dtype"], np.unsignedinteger):
+                        dmin = np.min(sdata) if sdata.size else 0.0
+                        dmax = np.max(sdata) if sdata.size else 0.0
+                        if dmax != dmin:
+                            data = ((sdata - dmin) / (dmax - dmin)) * np.iinfo(new_spec["disk_dtype"]).max
+                        else:
+                            data = np.zeros_like(sdata, dtype=np.float64)
+
+            # Write output in requested target format
+            if new_spec["is_complex"]:
+                cdata = np.asarray(data, dtype=np.complex128)
+
+                if new_spec["storage"] == "native_complex":
+                    out = cdata.astype(new_spec["disk_dtype"])
+                    out.tofile(new_file)
+
+                elif new_spec["storage"] == "interleaved_signed":
+                    scalar_dtype = new_spec["disk_dtype"]
+                    info = np.iinfo(scalar_dtype)
+
+                    i = np.clip(np.rint(cdata.real), info.min, info.max).astype(scalar_dtype)
+                    q = np.clip(np.rint(cdata.imag), info.min, info.max).astype(scalar_dtype)
+
+                    out = np.empty(i.size * 2, dtype=scalar_dtype)
+                    out[0::2] = i
+                    out[1::2] = q
+                    out.tofile(new_file)
+
+                elif new_spec["storage"] == "interleaved_unsigned_centered":
+                    scalar_dtype = new_spec["disk_dtype"]
+                    info = np.iinfo(scalar_dtype)
+                    center = 1 << (new_spec["bits"] - 1)
+
+                    i = np.clip(np.rint(cdata.real + center), info.min, info.max).astype(scalar_dtype)
+                    q = np.clip(np.rint(cdata.imag + center), info.min, info.max).astype(scalar_dtype)
+
+                    out = np.empty(i.size * 2, dtype=scalar_dtype)
+                    out[0::2] = i
+                    out[1::2] = q
+                    out.tofile(new_file)
+
+                else:
+                    raise ValueError(f"Unsupported target storage type: {new_spec['storage']}")
+
+            else:
+                if np.iscomplexobj(data):
+                    if np.any(np.abs(np.asarray(data).imag) > 0):
+                        dashboard.logger.warning(
+                            f"{new_file}: converting complex to scalar; imaginary component discarded"
+                        )
+                    sdata = np.asarray(data.real, dtype=np.float64)
+                else:
+                    sdata = np.asarray(data, dtype=np.float64)
+
+                scalar_dtype = new_spec["disk_dtype"]
+
+                if np.issubdtype(scalar_dtype, np.floating):
+                    out = sdata.astype(scalar_dtype)
+                else:
+                    info = np.iinfo(scalar_dtype)
+                    out = np.clip(np.rint(sdata), info.min, info.max).astype(scalar_dtype)
+
+                out.tofile(new_file)
+
             dashboard.logger.info(f"File converted successfully: {new_file}")
 
         except Exception as e:
             dashboard.logger.error(f"Error processing file {fname}: {str(e)}")
 
-    # Refresh
     _slotIQ_RefreshClicked(dashboard)
     dashboard.logger.info("Convert Complete")
 
+    # """ 
+    # Convert from one data type to another with the option to normalize to target data range.
+    # """
+    # # Get Inputs
+    # get_overwrite = dashboard.ui.checkBox_iq_convert_overwrite.isChecked()
+    # get_normalize = dashboard.ui.checkBox_iq_convert_normalize.isChecked()
+    # get_original_data_type = str(dashboard.ui.comboBox_iq_convert_original_data_type.currentText())
+    # get_new_data_type = str(dashboard.ui.comboBox_iq_convert_new_data_type.currentText())
+    # get_output_directory = str(dashboard.ui.textEdit_iq_convert_output.toPlainText())
+
+    # if not get_output_directory:
+    #     fissure.Dashboard.UI_Components.Qt5.errorMessage("Select output directory")
+    #     return
+
+    # if dashboard.ui.listWidget_iq_convert_input.count() == 0:
+    #     fissure.Dashboard.UI_Components.Qt5.errorMessage("Select IQ files to convert")
+    #     return
+
+    # # Define a mapping for data type sizes
+    # data_type_map = {
+    #     "Complex Float 64": (">d", 8),
+    #     "Complex Float 32": (">f", 4),
+    #     "Float/Float 32": (">f", 4),
+    #     "Complex Int 16": (">h", 2),
+    #     "Short/Int 16": (">h", 2),
+    #     "Complex Int 64": (">q", 8),
+    #     "Int/Int 32": (">i", 4),
+    #     "Complex Int 8": (">b", 1),
+    #     "Byte/Int 8": (">b", 1),
+    #     "Unsigned Int 8": (">B", 1),
+    #     "Unsigned Int 16": (">H", 2),
+    #     "Unsigned Int 32": (">I", 4),
+    #     "Complex Unsigned Int 64": (">Q", 8),
+    #     "Complex Unsigned Int 16": (">H", 2),
+    #     "Complex Unsigned Int 8": (">B", 1),
+    # }
+
+    # dtype_mappings = {
+    #     "Complex Float 64": np.complex128,
+    #     "Complex Float 32": np.complex64,
+    #     "Float/Float 32": np.float32,
+    #     "Complex Int 64": np.complex128,
+    #     "Int/Int 32": np.int32,
+    #     "Complex Int 16": np.int16,
+    #     "Short/Int 16": np.int16,
+    #     "Complex Int 8": np.complex64,
+    #     "Byte/Int 8": np.int8,
+    #     "Unsigned Int 8": np.uint8,
+    #     "Unsigned Int 16": np.uint16,
+    #     "Unsigned Int 32": np.uint32,
+    #     "Complex Unsigned Int 64": np.complex128,
+    #     "Complex Unsigned Int 16": np.complex64,
+    #     "Complex Unsigned Int 8": np.complex64,
+    # }
+
+    # for n in range(dashboard.ui.listWidget_iq_convert_input.count()):
+    #     fname = str(dashboard.ui.listWidget_iq_convert_input.item(n).text())
+
+    #     if get_overwrite:
+    #         new_file = fname
+    #     else:
+    #         base_name = os.path.basename(fname)
+    #         new_file = os.path.join(get_output_directory, f"{os.path.splitext(base_name)[0]}_converted{os.path.splitext(base_name)[1]}")
+
+    #     if not os.path.isfile(fname):
+    #         dashboard.logger.error(f"File not found: {fname}")
+    #         continue
+
+    #     if (get_original_data_type not in data_type_map) or (get_new_data_type not in data_type_map):
+    #         dashboard.logger.error("Unknown Data Type")
+    #         return
+
+    #     # Convert Logic
+    #     original_dtype = dtype_mappings[get_original_data_type]
+    #     new_dtype = dtype_mappings[get_new_data_type]
+
+    #     try:
+    #         # Read input data
+    #         data = np.fromfile(fname, dtype=original_dtype)
+
+    #         if get_normalize:
+    #             # Normalize data to fit new data type range
+    #             if np.issubdtype(original_dtype, np.complexfloating):
+    #                 real_max = max(np.abs(data.real))
+    #                 imag_max = max(np.abs(data.imag))
+    #                 scale = max(real_max, imag_max)
+    #                 if scale > 0:
+    #                     data = data / scale
+    #             else:
+    #                 data_max = max(np.abs(data))
+    #                 if data_max > 0:
+    #                     data = data / data_max
+
+    #             # Scale to target type range
+    #             if np.issubdtype(new_dtype, np.integer):
+    #                 new_dtype_max = np.iinfo(new_dtype).max
+    #             elif np.issubdtype(new_dtype, np.floating):
+    #                 new_dtype_max = 1.0
+    #             else:
+    #                 new_dtype_max = 1.0  # Default fallback for unsupported cases
+                
+    #             data = data * new_dtype_max
+
+    #         # Convert to new data type
+    #         converted_data = data.astype(new_dtype)
+
+    #         # Write output data
+    #         converted_data.tofile(new_file)
+    #         dashboard.logger.info(f"File converted successfully: {new_file}")
+
+    #     except Exception as e:
+    #         dashboard.logger.error(f"Error processing file {fname}: {str(e)}")
+
+    # # Refresh
+    # _slotIQ_RefreshClicked(dashboard)
+    # dashboard.logger.info("Convert Complete")
 
 
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotIQ_DemodClicked(dashboard: QtCore.QObject):
+    """ 
+    Opens a window with the currently loaded signal for applying simple demodulation techniques for viewing bits.
+    """
+    # File Loaded
+    if len(dashboard.ui.label2_iq_file_name.text().split('File:')[-1]) == 0:
+        fissure.Dashboard.UI_Components.Qt5.errorMessage("Load an IQ file before plotting by double-clicking the filename or clicking the Load File button.")
+        return
+    
+    # Obtain Signal Information
+    get_filepath = dashboard.ui.label_iq_folder.text() + "/" + dashboard.ui.label2_iq_file_name.text().replace("File: ","")
+    try:
+        get_sample_rate = float(dashboard.ui.textEdit_iq_sample_rate.toPlainText())
+    except:
+        dashboard.logger.error("Invalid sample rate. Provide float value under File Information.")
+        get_sample_rate = 1
+    
+    num_lines = dashboard.iq_matplotlib_widget.axes.lines
+    signal_data = []
+    if len(num_lines) == 1:
+        signal_data = dashboard.iq_matplotlib_widget.axes.lines[0].get_ydata()
+    elif len(num_lines) == 2:
+        I = dashboard.iq_matplotlib_widget.axes.lines[0].get_ydata()
+        Q = dashboard.iq_matplotlib_widget.axes.lines[1].get_ydata()
+        signal_data = [complex(I[x],Q[x]) for x in range(len(I))]
+
+    # Open the Dialog
+    get_value = dashboard.openPopUp("DemodDialog", DemodDialog, get_filepath, get_sample_rate, signal_data)
+
+    # Cancel Clicked
+    if get_value == None:
+        pass
+        
+    # OK Clicked
+    elif len(get_value) > 0:
+        dashboard.ui.plainTextEdit_pd_bit_viewer_bits.setPlainText(get_value)
+        dashboard.ui.tabWidget.setCurrentIndex(2)
+        dashboard.ui.tabWidget_protocol.setCurrentIndex(3)
+        
+    else:
+        pass

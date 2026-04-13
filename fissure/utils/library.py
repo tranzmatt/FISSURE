@@ -244,6 +244,158 @@ def getPacketTypesDirect(conn, protocol):
             cur.close()
 
     
+def classifyFrequencyFromTextDirect(text, protocol_only=False):
+    """
+    Extracts a frequency from the given text (supports HackRF sweep formats
+    and generic MHz/kHz/Hz formats), performs a direct database lookup on
+    frequency_lookup, and returns a clean formatted summary string.
+
+    Returns:
+        ""  → if no frequency found
+        "[...]" → classification result
+    """
+    # ---------------------------------------------------------------------------
+    # PRIORITY SCALE FOR FREQUENCY CLASSIFICATION (MANUAL SYSTEM)
+    #
+    # The `priority` field is a **manually assigned value** used to rank
+    # overlapping frequency ranges in the frequency_lookup table.
+    #
+    # There is **no automatic scoring or inference**. The classifier simply
+    # returns all matching rows sorted by:
+    #
+    #       ORDER BY priority DESC
+    #
+    # The first result in the list becomes `best_match`.
+    #
+    # Recommended manual scale:
+    #
+    #   10 – Most important / most likely protocol in this band.
+    #        e.g., WiFi channels in 2.4 GHz and 5 GHz.
+    #
+    #    7 – Very common narrowband protocols.
+    #        e.g., BLE advertising, BT Classic.
+    #
+    #    5 – Typical IoT / home automation.
+    #        e.g., Z-Wave, TPMS.
+    #
+    #    3 – Rare or low-duty-cycle signals.
+    #        e.g., X10, specialized ISM devices.
+    #
+    #    1 – Weak, ambiguous, or uncertain match.
+    #
+    #    0 – Default / unassigned.
+    #        Valid entry but NOT considered a primary match.
+    #
+    # Notes:
+    #   - Changing priority values must be done manually in the database.
+    #   - This system is intentionally simple because priority is subjective
+    #     and operationally dependent.
+    #   - Future ML scoring or heuristic logic can layer on top of this if needed.
+    # ---------------------------------------------------------------------------
+
+    # ------------------------------------------------------------------
+    # 1. HackRF sweep format: f:310,310,310,...
+    # ------------------------------------------------------------------
+    freq_hz = None
+    m_hackrf = re.search(r"f:([\d\.,]+)", text)
+    if m_hackrf:
+        freq_list = m_hackrf.group(1).split(',')
+        try:
+            first_val_mhz = float(freq_list[0])
+            freq_hz = first_val_mhz * 1e6  # HackRF sweep is always MHz
+        except Exception:
+            freq_hz = None
+
+    # ------------------------------------------------------------------
+    # 2. Generic frequency format (only if HackRF pattern didn't work)
+    # ------------------------------------------------------------------
+    if freq_hz is None:
+        m = re.search(r"(\d+(\.\d+)?)\s*(MHz|mhz|kHz|khz|Hz|hz)?", text)
+        if not m:
+            return ""  # No frequency found
+
+        value = float(m.group(1))
+        unit = (m.group(3) or "").lower()
+
+        # Normalize to Hz
+        if unit == "mhz":
+            freq_hz = value * 1e6
+        elif unit == "khz":
+            freq_hz = value * 1e3
+        elif unit == "hz":
+            freq_hz = value
+        else:
+            # No unit — assume MHz for small values (2412 → 2412 MHz)
+            # but assume Hz if value is very large
+            freq_hz = value * 1e6 if value < 1e4 else value
+
+    # At this point, freq_hz is a clean float in Hz ---------------------
+
+    # ------------------------------------------------------------------
+    # 3. DIRECT DB LOOKUP (fully inlined version of classifyFrequencyDirect)
+    # ------------------------------------------------------------------
+    conn = None
+    cur = None
+
+    try:
+        # Open short-lived connection (safe for concurrent TAK + alerts)
+        conn = openDatabaseConnection()
+        cur = conn.cursor()
+
+        query = """
+            SELECT freq_low, freq_high, protocol_name, region, priority, notes
+            FROM frequency_lookup
+            WHERE freq_low <= %s AND freq_high >= %s
+            ORDER BY priority DESC;
+        """
+
+        cur.execute(query, (freq_hz, freq_hz))
+        rows = cur.fetchall()
+
+        # No matches? Return a readable message
+        if not rows:
+            return f"[No known protocols for {freq_hz/1e6:.3f} MHz]"
+
+        # Best match is the first (highest priority)
+        best = {
+            "freq_low":      rows[0][0],
+            "freq_high":     rows[0][1],
+            "protocol_name": rows[0][2],
+            "region":        rows[0][3],
+            "priority":      rows[0][4],
+            "notes":         rows[0][5],
+        }
+
+        proto  = best["protocol_name"]
+        region = best["region"] or "Any"
+        notes  = best["notes"] or ""
+        prio   = best["priority"]
+
+        if protocol_only:
+            return proto
+
+        summary = (
+            f"[Protocol={proto} | Region={region} | "
+            f"Priority={prio} | Notes={notes.strip()}]"
+        )
+
+        return summary
+
+    except Exception as e:
+        return f"[Frequency classification error: {e}]"
+
+    finally:
+        if cur is not None:
+            try:
+                cur.close()
+            except Exception:
+                pass
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
 
 
 # =============================================================

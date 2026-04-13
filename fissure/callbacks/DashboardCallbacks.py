@@ -1,3 +1,4 @@
+import binascii
 import fissure.comms
 import time
 from PyQt5 import QtCore, QtWidgets, QtGui
@@ -12,7 +13,10 @@ from typing import List
 import json
 import qasync
 import datetime
+import zipfile
+import numpy as np
 
+from fissure.utils.plugin import get_fissure_plugin_editor_plugins_path
 from fissure.Dashboard.UI_Components.Qt5 import MyMessageBox
 # from ..Dashboard.Slots import StatusBarSlots  # how do you go from callbacks to slots?
 from fissure.Dashboard.Slots import (
@@ -309,38 +313,49 @@ async def componentConnected(component: object, component_name=""):
         component.frontend.popups["HardwareSelectDialog"].sensorNodeConnected(tab_index=sensor_node_id, serial=False)
 
 
-async def componentConnectedSerial(component: object, component_name=""):
+
+async def hiprfisrDisconnectedSerial(component: object):
     """
-    Update the Sensor Node Configuration window on connection to serial port but not the status bar until heartbeats arrive.
+    Keeps track if the Meshtastic serial port at the HIPRFISR is disconnected.
     """
-    if component_name == fissure.comms.Identifiers.PD:
-        pass
-    elif component_name == fissure.comms.Identifiers.TSI:
-        pass
-    elif component_name == fissure.comms.Identifiers.DASHBOARD:
-        pass
-    else:
-        # Modify the Button/Stacked Widget
-        try:
-            sensor_node_id = int(component_name)
-        except:
-            return
-        if sensor_node_id == 0:
-            component.frontend.signals.ComponentStatus.emit("Sensor Node 0", True, component.frontend.statusBar())
-            component.sensor_node_connected[0] = True
-        elif sensor_node_id == 1:
-            component.frontend.signals.ComponentStatus.emit("Sensor Node 1", True, component.frontend.statusBar())
-            component.sensor_node_connected[1] = True
-        elif sensor_node_id == 2:
-            component.frontend.signals.ComponentStatus.emit("Sensor Node 2", True, component.frontend.statusBar())
-            component.sensor_node_connected[2] = True
-        elif sensor_node_id == 3:
-            component.frontend.signals.ComponentStatus.emit("Sensor Node 3", True, component.frontend.statusBar())
-            component.sensor_node_connected[3] = True
-        elif sensor_node_id == 4:
-            component.frontend.signals.ComponentStatus.emit("Sensor Node 4", True, component.frontend.statusBar())
-            component.sensor_node_connected[4] = True
-        component.frontend.popups["HardwareSelectDialog"].sensorNodeConnected(tab_index=sensor_node_id, serial=True)
+    component.hiprfisr_serial_connected = False
+
+
+async def hiprfisrConnectedSerial(component: object):
+    """
+    Keeps track if the Meshtastic serial port at the HIPRFISR is connected.
+    """
+    component.hiprfisr_serial_connected = True
+
+    # Use the other componentConnected function instead!
+    # if component_name == fissure.comms.Identifiers.PD:
+    #     pass
+    # elif component_name == fissure.comms.Identifiers.TSI:
+    #     pass
+    # elif component_name == fissure.comms.Identifiers.DASHBOARD:
+    #     pass
+    # else:
+    #     # Modify the Button/Stacked Widget
+    #     try:
+    #         sensor_node_id = int(component_name)
+    #     except:
+    #         return
+    #     if sensor_node_id == 0:
+    #         component.frontend.signals.ComponentStatus.emit("Sensor Node 0", True, component.frontend.statusBar())
+    #         component.sensor_node_connected[0] = True
+    #     elif sensor_node_id == 1:
+    #         component.frontend.signals.ComponentStatus.emit("Sensor Node 1", True, component.frontend.statusBar())
+    #         component.sensor_node_connected[1] = True
+    #     elif sensor_node_id == 2:
+    #         component.frontend.signals.ComponentStatus.emit("Sensor Node 2", True, component.frontend.statusBar())
+    #         component.sensor_node_connected[2] = True
+    #     elif sensor_node_id == 3:
+    #         component.frontend.signals.ComponentStatus.emit("Sensor Node 3", True, component.frontend.statusBar())
+    #         component.sensor_node_connected[3] = True
+    #     elif sensor_node_id == 4:
+    #         component.frontend.signals.ComponentStatus.emit("Sensor Node 4", True, component.frontend.statusBar())
+    #         component.sensor_node_connected[4] = True
+    #     component.frontend.popups["HardwareSelectDialog"].sensorNodeConnected(tab_index=sensor_node_id, serial=True)
 
 
 async def bandID_Return(component: object, sensor_node_id=0, band_id=0, frequency=0):
@@ -1323,10 +1338,285 @@ async def responsePluginNamesHiprfisr(component: object, plugin_names: List[str]
         Component
     """
     plugin_names.sort()
-    comboBox_library_plugin_selection: QtWidgets.QComboBox = component.frontend.ui.comboBox_library_plugin_selection
-    comboBox_library_plugin_selection.clear()
+    plugin_manager_table: QtWidgets.QTableWidget = component.frontend.ui.tableWidget_plugin_pkgs_hiprfisr
+    plugin_manager_table.clearContents()
+    plugin_manager_table.setColumnCount(1)
+    plugin_manager_table.setRowCount(0)
     for plugin_name in plugin_names:
-        comboBox_library_plugin_selection.addItem(plugin_name)
+        plugin_manager_table.insertRow(plugin_manager_table.rowCount())
+        plugin_manager_table.setItem(plugin_manager_table.rowCount() - 1, 0, QtWidgets.QTableWidgetItem(plugin_name))
+    plugin_manager_table.setHorizontalHeaderLabels(["Plugin Name"])
+    plugin_manager_table.resizeColumnsToContents()
+    plugin_manager_table.horizontalHeader().setVisible(True)
+    plugin_manager_table.verticalHeader().setVisible(False)
+
+    # Also update the combobox in the Plugin Operations tab
+    combobox: QtWidgets.QComboBox = component.frontend.ui.comboBox_select_plugin
+    combobox.clear()
+    combobox.addItems(plugin_names)
+
+
+async def responsePluginOperations(component: object, plugin: str, operations: List[str]) -> None:
+    """Handle Request for Plugin Operations
+
+    Parameters
+    ----------
+    component : object
+        Component
+    plugin : str
+        Plugin name
+    operations : List[str]
+        List of operations for the plugin
+    """
+    operations.sort()
+    combobox: QtWidgets.QComboBox = component.frontend.ui.comboBox_select_plugin_op
+    combobox.clear()
+    combobox.addItems(operations)
+
+
+async def responsePluginOperationParameters(component: object, plugin: str, operation: str, parameters: dict, resources: dict, interfaces: dict) -> None:
+    """Handle Request for Plugin Operation Parameters
+
+    Parameters
+    ----------
+    component : object
+        Component
+    plugin : str
+        Plugin name
+    operation : str
+        Operation name
+    parameters : dict
+        Parameters for the operation
+    """
+    params_table: QtWidgets.QTableWidget = component.frontend.ui.tableWidget_plugin_op_params
+
+    keys = []
+    for key, value in parameters.items():
+        keys = np.union1d(keys, [str(k) for k in value.keys()])
+
+    if "required" in keys:
+        # Move required to first position if present (second position later)
+        keys = ["required"] + [k for k in keys if k != "required"]
+    else:
+        keys = ["required"] + list(keys)
+
+    if "default" in keys:
+        # Move default to first position if present
+        keys = ["default"] + [k for k in keys if k != "default"]
+    else:
+        keys = ["default"] + list(keys)
+
+    # Move "description" to the end of the keys list if present
+    if "description" in keys:
+        keys = [k for k in keys if k != "description"] + ["description"]
+
+    # Record position for each key
+    key_positions = {key: (i+1) for i, key in enumerate(keys)}
+
+    # Make the first letter for each key uppercase
+    keys = [key.capitalize() for key in keys]
+
+    # Prepare the column names for the table
+    columns = ["Value"] + keys
+
+    # configure table
+    params_table.clearContents()
+    params_table.setColumnCount(len(columns))
+    params_table.setHorizontalHeaderLabels(columns)
+    params_table.horizontalHeader().setVisible(True)
+    params_table.verticalHeader().setVisible(True)
+    params_table.setSortingEnabled(True)
+
+    # Populate the table with parameters
+    params_table.setRowCount(0)  # Clear existing rows
+    for row_index, (key, value) in enumerate(parameters.items()):
+        row_index = params_table.rowCount()
+        params_table.insertRow(row_index)
+        params_table.setVerticalHeaderItem(row_index, QtWidgets.QTableWidgetItem(key))
+        for subkey, subvalue in value.items():
+            col_index = key_positions.get(subkey, 0)
+            item = QtWidgets.QTableWidgetItem(str(subvalue))
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEditable)  # Make item non-editable
+            params_table.setItem(row_index, col_index, item)
+   
+    # Resize the table to fit contents
+    params_table.resizeColumnsToContents()
+    params_table.resizeRowsToContents()
+    
+    # Get keys for resources
+    keys = []
+    for key, value in resources.items():
+        keys = np.union1d(keys, [str(k) for k in value.keys()])
+
+    # Move "description" to the end of the keys list if present
+    if "description" in keys:
+        keys = [k for k in keys if k != "description"] + ["description"]
+
+    # Record position for each key
+    key_positions = {key: i for i, key in enumerate(keys)}
+
+    # Make the first letter for each key uppercase
+    keys = [key.capitalize() for key in keys]
+
+    # Configure resources table
+    res_table: QtWidgets.QTableWidget = component.frontend.ui.tableWidget_plugin_op_resources
+    res_table.clearContents()
+    res_table.setColumnCount(len(keys))
+    res_table.setHorizontalHeaderLabels(keys)
+    res_table.horizontalHeader().setVisible(True)
+    res_table.verticalHeader().setVisible(True)
+    res_table.setSortingEnabled(True)
+
+    # Populate the resources table
+    res_table.setRowCount(0)  # Clear existing rows
+    for row_index, (key, value) in enumerate(resources.items()):
+        row_index = res_table.rowCount()
+        res_table.insertRow(row_index)
+        res_table.setVerticalHeaderItem(row_index, QtWidgets.QTableWidgetItem(key))
+        for subkey, subvalue in value.items():
+            col_index = key_positions.get(subkey, 0)
+            item = QtWidgets.QTableWidgetItem(str(subvalue))
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEditable)  # Make item non-editable
+            res_table.setItem(row_index, col_index, item)
+    
+    # Resize the resources table to fit contents
+    res_table.resizeColumnsToContents()
+    res_table.resizeRowsToContents()
+
+    # Get keys for interfaces
+    keys = []
+    for key, value in interfaces.items():
+        keys = np.union1d(keys, [str(k) for k in value.keys()])
+
+    # Move "description" to the end of the keys list if present
+    if "description" in keys:
+        keys = [k for k in keys if k != "description"] + ["description"]
+
+    # Record position for each key
+    key_positions = {key: i for i, key in enumerate(keys)}
+
+    # Make the first letter for each key uppercase
+    keys = [key.capitalize() for key in keys]
+
+    # Configure interfaces table
+    iface_table: QtWidgets.QTableWidget = component.frontend.ui.tableWidget_plugin_op_interfaces
+    iface_table.clearContents()
+    iface_table.setColumnCount(len(keys))
+    iface_table.setHorizontalHeaderLabels(keys)
+    iface_table.horizontalHeader().setVisible(True)
+    iface_table.verticalHeader().setVisible(True)
+    iface_table.setSortingEnabled(True)
+
+    # Populate the interfaces table
+    iface_table.setRowCount(0)  # Clear existing rows
+    for row_index, (key, value) in enumerate(interfaces.items()):
+        row_index = iface_table.rowCount()
+        iface_table.insertRow(row_index)
+        iface_table.setVerticalHeaderItem(row_index, QtWidgets.QTableWidgetItem(key))
+        for subkey, subvalue in value.items():
+            col_index = key_positions.get(subkey, 0)
+            item = QtWidgets.QTableWidgetItem(str(subvalue))
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEditable)  # Make item non-editable
+            iface_table.setItem(row_index, col_index, item)
+
+    # Resize the resources table to fit contents
+    res_table.resizeColumnsToContents()
+    res_table.resizeRowsToContents()
+
+
+async def responsePluginOperationStarted(component: object, node_uid: str, operation_id: str, plugin: str, operation: str, parameters: dict) -> None:
+    """Handle Request for Plugin Operation Started
+
+    Parameters
+    ----------
+    component : object
+        Component
+    node_uid : str
+        Sensor node UID
+    operation_id : str
+        Operation ID
+    plugin : str
+        Plugin name
+    operation : str
+        Operation name
+    parameters : dict
+        Parameters for the operation
+    """
+    # Add the operation to the operations list view
+    operations_list: QtWidgets.QListWidget = component.frontend.ui.listWidget_operations
+    operations_list.addItem(f"{plugin} - {operation} (ID: {operation_id})")
+    operations_list.setWrapping(True)
+    operations_list.scrollToBottom()
+
+
+async def responsePluginOperationStopped(component: object, node_uid: str, operation_id: str, plugin: str, operation: str) -> None:
+    """Handle Request for Plugin Operation Stopped
+
+    Parameters
+    ----------
+    component : object
+        Component
+    sensor_node_id : str
+        Sensor node UID
+    operation_id : str
+        Operation ID
+    plugin : str
+        Plugin name
+    operation : str
+        Operation name
+    """
+    # Remove the operation from the operations list view
+    operations_list: QtWidgets.QListWidget = component.frontend.ui.listWidget_operations
+    items = operations_list.findItems(f"{plugin} - {operation} (ID: {operation_id})", QtCore.Qt.MatchExactly)
+    if items:
+        for item in items:
+            operations_list.takeItem(operations_list.row(item))
+
+
+async def savePlugin(component: object, plugin_name: str, plugin_data: str) -> None:
+    """Save Plugin Data to File
+
+    Parameters
+    ----------
+    component : object
+        Component
+    plugin_name : str
+        Name of the plugin
+    plugin_data : str
+        Plugin data to save
+    """
+    # get the local plugin path from the UI or default to Downloads
+    local_plugin_path = await get_fissure_plugin_editor_plugins_path()
+    if not local_plugin_path:
+        local_plugin_path = os.path.join(os.path.expanduser("~"), "Downloads")
+
+    # Decode hex data
+    plugin_data = binascii.a2b_hex(plugin_data)
+
+    # Save file
+    pathname = os.path.join(local_plugin_path, plugin_name + '.zip')
+    with open(pathname, "wb") as f:
+        f.write(plugin_data)
+
+    # Create a path for the plugin to be extracted to
+    extract_path = os.path.join(local_plugin_path, plugin_name)
+    if os.path.exists(extract_path):
+        copy_num = 1
+        base_name = plugin_name
+        while os.path.exists(extract_path):
+            extract_path = os.path.join(local_plugin_path, f"{base_name} (Copy {copy_num})")
+            copy_num += 1
+    os.makedirs(extract_path, exist_ok=True)
+
+    # Extract the zip file to the plugin directory
+    with zipfile.ZipFile(pathname, "r") as zip_ref:
+        zip_ref.extractall(extract_path)
+
+    # Remove the zip file
+    os.remove(pathname)
+
+    # Refresh the local plugin list in the UI
+    component.frontend.ui.toolButton_plugin_pkg_path_refresh.clicked.emit()
 
 
 async def responsePluginTableData(component: object, plugin_name: str, table_data_json: dict, install_files: List[str]):
@@ -1394,7 +1684,6 @@ async def responsePluginTableData(component: object, plugin_name: str, table_dat
                     target_table.setItem(target_row, col_index, item)
 
     # Populate Support Files Tables
-    # print(install_files) 
     page_mapping = {
         "Single-Stage Flow Graphs": component.frontend.ui.tableWidget_library_plugin_attacks_support,
         "Fuzzing Flow Graphs": component.frontend.ui.tableWidget_library_plugin_attacks_support,
@@ -1501,8 +1790,6 @@ async def responsePluginProtocolParameters(component: object, plugin_name: str, 
     checkBox_protocol_median_packet_lengths: QtWidgets.QCheckBox = component.frontend.ui.checkBox_protocol_median_packet_lengths
     listWidget_plugin_protocol_mod_type_list: QtWidgets.QListWidget = component.frontend.ui.listWidget_plugin_protocol_mod_type_list
     tableWidget_protocol_packet_type: QtWidgets.QTableWidget = component.frontend.ui.tableWidget_protocol_packet_type
-
-    print('PARAMETERS: ' + str(parameters))
 
     # Update Values
     data_rates = parameters.get('data_rates')
@@ -1788,6 +2075,22 @@ async def uptimeIP_Return(component: object, sensor_node_id:str, uptime: str):
     ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], uptime)
 
 
+async def memoryIP_Return(component: object, sensor_node_id:str, memory: str):
+    """
+    Returns the memory results to the HardwareSelectDialog.
+    """
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], memory)
+
+
+async def diskIP_Return(component: object, sensor_node_id:str, disk: str):
+    """
+    Returns the disk results to the HardwareSelectDialog.
+    """
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], disk)
+
+
 async def cpuIP_Return(component: object, sensor_node_id:str, cpu: str):
     """
     Returns the CPU percentage results to the HardwareSelectDialog.
@@ -1818,3 +2121,18 @@ async def iwconfigIP_Return(component: object, sensor_node_id:str, iwconfig: str
     """
     # Open a Text Dialog
     ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], iwconfig)
+
+
+async def pingIP_Return(component: object, sensor_node_id:str, ping: str):
+    """
+    Returns the iwconfig results to the HardwareSelectDialog.
+    """
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], ping)
+
+
+async def nodeRefreshReturn(component: object, dashboard_node_index:str, nodes):
+    """
+    .
+    """
+    component.frontend.popups["HardwareSelectDialog"].refreshNodes(dashboard_node_index=dashboard_node_index, nodes=nodes)

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1280</width>
-    <height>980</height>
+    <height>981</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>../../../../../../../../../../../.designer/backup/fissure_icon.png</normaloff>../../../../../../../../../../../.designer/backup/fissure_icon.png</iconset>
+    <normaloff>../../../../../../../../../../../../../../.designer/backup/fissure_icon.png</normaloff>../../../../../../../../../../../../../../.designer/backup/fissure_icon.png</iconset>
   </property>
   <widget class="QFrame" name="frame4_top">
    <property name="geometry">
@@ -6608,7 +6608,7 @@ p, li { white-space: pre-wrap; }
          <bool>true</bool>
         </attribute>
         <attribute name="verticalHeaderDefaultSectionSize">
-         <number>22</number>
+         <number>23</number>
         </attribute>
         <row>
          <property name="text">
@@ -8052,7 +8052,7 @@ p, li { white-space: pre-wrap; }
            <bool>true</bool>
           </attribute>
           <attribute name="verticalHeaderDefaultSectionSize">
-           <number>22</number>
+           <number>23</number>
           </attribute>
           <column>
            <property name="text">
@@ -8691,7 +8691,7 @@ p, li { white-space: pre-wrap; }
              <bool>true</bool>
             </attribute>
             <attribute name="verticalHeaderDefaultSectionSize">
-             <number>22</number>
+             <number>23</number>
             </attribute>
             <column>
              <property name="text">
@@ -8783,7 +8783,7 @@ p, li { white-space: pre-wrap; }
              <bool>true</bool>
             </attribute>
             <attribute name="verticalHeaderDefaultSectionSize">
-             <number>22</number>
+             <number>23</number>
             </attribute>
             <column>
              <property name="text">
@@ -9456,7 +9456,7 @@ p, li { white-space: pre-wrap; }
            <bool>true</bool>
           </attribute>
           <attribute name="verticalHeaderDefaultSectionSize">
-           <number>22</number>
+           <number>23</number>
           </attribute>
           <row>
            <property name="text">
@@ -10117,7 +10117,7 @@ p, li { white-space: pre-wrap; }
             <bool>true</bool>
            </attribute>
            <attribute name="verticalHeaderDefaultSectionSize">
-            <number>22</number>
+            <number>23</number>
            </attribute>
            <row>
             <property name="text">
@@ -10200,7 +10200,7 @@ p, li { white-space: pre-wrap; }
             <bool>true</bool>
            </attribute>
            <attribute name="verticalHeaderDefaultSectionSize">
-            <number>22</number>
+            <number>23</number>
            </attribute>
            <row>
             <property name="text">
@@ -10279,7 +10279,7 @@ p, li { white-space: pre-wrap; }
         <bool>true</bool>
        </attribute>
        <attribute name="verticalHeaderDefaultSectionSize">
-        <number>22</number>
+        <number>23</number>
        </attribute>
        <column>
         <property name="text">
@@ -23466,7 +23466,7 @@ p, li { white-space: pre-wrap; }
        <number>0</number>
       </property>
       <widget class="QWidget" name="page_14">
-       <widget class="QPushButton" name="pushButton_iq_custom">
+       <widget class="QPushButton" name="pushButton_iq_demod">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -23476,7 +23476,7 @@ p, li { white-space: pre-wrap; }
          </rect>
         </property>
         <property name="text">
-         <string>Custom</string>
+         <string>Demod</string>
         </property>
        </widget>
        <widget class="QPushButton" name="pushButton_iq_magnitude">
@@ -23611,6 +23611,19 @@ p, li { white-space: pre-wrap; }
         </property>
         <property name="text">
          <string>IQEngine</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pushButton_iq_custom">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>35</y>
+          <width>112</width>
+          <height>27</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Custom</string>
         </property>
        </widget>
       </widget>
@@ -25696,7 +25709,7 @@ p, li { white-space: pre-wrap; }
         <property name="geometry">
          <rect>
           <x>810</x>
-          <y>105</y>
+          <y>135</y>
           <width>65</width>
           <height>27</height>
          </rect>
@@ -26131,6 +26144,25 @@ p, li { white-space: pre-wrap; }
         </property>
         <property name="text">
          <string>Normalize to Target Data Range</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pushButton_iq_convert_output_select">
+        <property name="geometry">
+         <rect>
+          <x>810</x>
+          <y>105</y>
+          <width>65</width>
+          <height>27</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <strikeout>false</strikeout>
+         </font>
+        </property>
+        <property name="text">
+         <string>Select</string>
         </property>
        </widget>
       </widget>
@@ -37387,6 +37419,135 @@ p, li { white-space: pre-wrap; }
        </widget>
       </widget>
      </widget>
+     <widget class="QWidget" name="tab_24">
+      <attribute name="title">
+       <string>Operations</string>
+      </attribute>
+      <widget class="QWidget" name="horizontalLayoutWidget_2">
+       <property name="geometry">
+        <rect>
+         <x>9</x>
+         <y>9</y>
+         <width>1191</width>
+         <height>791</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="2,1">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QToolButton" name="toolButton_plugin_pkgs_hiprfisr_refresh_2">
+              <property name="toolTip">
+               <string>Refresh List</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboBox_select_plugin"/>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboBox_select_plugin_op"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_9">
+              <property name="toolTip">
+               <string>Dummy button to simulate selecting and opening a plugin script</string>
+              </property>
+              <property name="text">
+               <string>Open</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_7">
+              <property name="text">
+               <string>Run</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QLabel" name="label1_operations_2">
+            <property name="text">
+             <string>Parameters</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTableWidget" name="tableWidget_plugin_op_params"/>
+          </item>
+          <item>
+           <widget class="QLabel" name="label1_operations_3">
+            <property name="text">
+             <string>Resources</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTableWidget" name="tableWidget_plugin_op_resources"/>
+          </item>
+          <item>
+           <widget class="QLabel" name="label1_operations_4">
+            <property name="text">
+             <string>Interfaces</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTableWidget" name="tableWidget_plugin_op_interfaces"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <item>
+           <widget class="QLabel" name="label1_operations">
+            <property name="text">
+             <string>Operations</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_8">
+            <property name="text">
+             <string>Stop</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QListWidget" name="listWidget_operations">
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <property name="isWrapping" stdset="0">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </widget>
     </widget>
    </widget>
    <widget class="QWidget" name="tab_library">
@@ -40582,2958 +40743,224 @@ p, li { white-space: pre-wrap; }
        </widget>
       </widget>
      </widget>
-     <widget class="QWidget" name="tab_plugin_editor">
+     <widget class="QWidget" name="tab_plugin_manager">
       <attribute name="title">
-       <string>Plugin Editor</string>
+       <string>Plugin Manager</string>
       </attribute>
-      <widget class="QLabel" name="label1_141">
+      <widget class="QWidget" name="verticalLayoutWidget_4">
        <property name="geometry">
         <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>1200</width>
-         <height>20</height>
+         <x>-1</x>
+         <y>-1</y>
+         <width>1221</width>
+         <height>821</height>
         </rect>
        </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <family>Ubuntu</family>
-         <pointsize>10</pointsize>
-         <weight>75</weight>
-         <italic>false</italic>
-         <bold>true</bold>
-         <strikeout>false</strikeout>
-        </font>
-       </property>
-       <property name="text">
-        <string>Select Plugin</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label1_library_plugin_edit_plugin">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>100</y>
-         <width>1200</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <family>Ubuntu</family>
-         <pointsize>10</pointsize>
-         <weight>75</weight>
-         <italic>false</italic>
-         <bold>true</bold>
-         <strikeout>false</strikeout>
-        </font>
-       </property>
-       <property name="text">
-        <string>Edit Plugin</string>
-       </property>
-      </widget>
-      <widget class="QFrame" name="frame1_28">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>30</y>
-         <width>1200</width>
-         <height>60</height>
-        </rect>
-       </property>
-       <property name="frameShape">
-        <enum>QFrame::StyledPanel</enum>
-       </property>
-       <property name="frameShadow">
-        <enum>QFrame::Raised</enum>
-       </property>
-       <widget class="QStackedWidget" name="stackedWidget_library_plugin_selection">
-        <property name="geometry">
-         <rect>
-          <x>370</x>
-          <y>10</y>
-          <width>651</width>
-          <height>41</height>
-         </rect>
-        </property>
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
-        <widget class="QWidget" name="page_plugin_selection_existing">
-         <widget class="QPushButton" name="pushButton_library_plugin_selection_open_close">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>285</x>
-            <y>5</y>
-            <width>100</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>11</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Open Plugin</string>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="pushButton_library_plugin_refresh">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>395</x>
-            <y>5</y>
-            <width>100</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>11</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Refresh List</string>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="pushButton_library_plugin_delete">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>505</x>
-            <y>5</y>
-            <width>100</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>11</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Delete Plugin</string>
-          </property>
-         </widget>
-         <widget class="QComboBox" name="comboBox_library_plugin_selection">
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>5</y>
-            <width>250</width>
-            <height>25</height>
-           </rect>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_plugin_selection_new">
-         <widget class="QPushButton" name="pushButton_library_plugin_create">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>285</x>
-            <y>5</y>
-            <width>100</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>11</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Create Plugin</string>
-          </property>
-         </widget>
-         <widget class="QTextEdit" name="textEdit_library_plugin_plugin_name">
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>5</y>
-            <width>250</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>11</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="tabChangesFocus">
-           <bool>true</bool>
-          </property>
-          <property name="readOnly">
-           <bool>false</bool>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="pushButton_library_plugin_import">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>395</x>
-            <y>5</y>
-            <width>100</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>11</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Import</string>
-          </property>
-         </widget>
-        </widget>
-       </widget>
-       <widget class="QLabel" name="label2_106">
-        <property name="geometry">
-         <rect>
-          <x>270</x>
-          <y>15</y>
-          <width>100</width>
-          <height>25</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>10</pointsize>
-          <strikeout>false</strikeout>
-         </font>
-        </property>
-        <property name="text">
-         <string>Plugin Name:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-       <widget class="QComboBox" name="comboBox_library_plugin_new_existing">
-        <property name="geometry">
-         <rect>
-          <x>15</x>
-          <y>15</y>
-          <width>250</width>
-          <height>25</height>
-         </rect>
-        </property>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <property name="text">
-          <string>Existing</string>
-         </property>
+         <widget class="QTabWidget" name="tab_plugin_local_hiprfisr">
+          <property name="currentIndex">
+           <number>1</number>
+          </property>
+          <widget class="QWidget" name="tab_22">
+           <attribute name="title">
+            <string>Local</string>
+           </attribute>
+           <widget class="QWidget" name="verticalLayoutWidget_3">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>1211</width>
+              <height>781</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_3">
+               <item>
+                <widget class="QToolButton" name="toolButton_plugin_pkg_path_refresh">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="toolTip">
+                  <string>Refresh List</string>
+                 </property>
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="textEdit_plugin_pkg_path">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="placeholderText">
+                  <string>&lt;Local Plugin Packages Path&gt;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QToolButton" name="toolButton_plugin_pkg_path_auto">
+                 <property name="toolTip">
+                  <string>Auto-load FISSURE Plugin Editor Directory</string>
+                 </property>
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QToolButton" name="toolButton_plugin_pkg_path_manual">
+                 <property name="toolTip">
+                  <string>Manually Choose a Directory</string>
+                 </property>
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QTableWidget" name="tableWidget_plugin_pkgs_local">
+               <property name="editTriggers">
+                <set>QAbstractItemView::NoEditTriggers</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_6">
+               <item>
+                <widget class="QToolButton" name="toolButton_plugin_editor">
+                 <property name="toolTip">
+                  <string>Launch the fissure-plugin-editor GUI</string>
+                 </property>
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QToolButton" name="toolButton_plugins_upload">
+                 <property name="toolTip">
+                  <string>Upload Plugin(s) to Central Hub</string>
+                 </property>
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+          <widget class="QWidget" name="tab_23">
+           <attribute name="title">
+            <string>Central Hub</string>
+           </attribute>
+           <widget class="QWidget" name="verticalLayoutWidget_5">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>1211</width>
+              <height>771</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_5" stretch="0,0">
+             <item>
+              <widget class="QTableWidget" name="tableWidget_plugin_pkgs_hiprfisr"/>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_5">
+               <item>
+                <widget class="QToolButton" name="toolButton_plugin_download_dir_auto">
+                 <property name="toolTip">
+                  <string>Auto-load FISSURE Plugin Editor Directory</string>
+                 </property>
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QToolButton" name="toolButton_plugin_download_dir_manual">
+                 <property name="toolTip">
+                  <string>Manually Choose a Directory</string>
+                 </property>
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="lineEdit_plugin_download_dir">
+                 <property name="placeholderText">
+                  <string>&lt;Download Save Path&gt;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QToolButton" name="toolButton_plugin_pkgs_hiprfisr_download">
+                 <property name="toolTip">
+                  <string>Download Plugin(s) to Local</string>
+                 </property>
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="Line" name="line">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QToolButton" name="toolButton_plugin_pkgs_hiprfisr_refresh">
+                 <property name="toolTip">
+                  <string>Refresh List</string>
+                 </property>
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QToolButton" name="toolButton_plugin_pkgs_hiprfisr_delete">
+                 <property name="toolTip">
+                  <string>Delete Plugin</string>
+                 </property>
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </widget>
         </item>
-        <item>
-         <property name="text">
-          <string>New</string>
-         </property>
-        </item>
-       </widget>
-      </widget>
-      <widget class="QFrame" name="frame1_library_plugin_edit_plugin">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>120</y>
-         <width>1200</width>
-         <height>685</height>
-        </rect>
-       </property>
-       <property name="frameShape">
-        <enum>QFrame::StyledPanel</enum>
-       </property>
-       <property name="frameShadow">
-        <enum>QFrame::Raised</enum>
-       </property>
-       <widget class="QComboBox" name="comboBox_library_plugin_edit">
-        <property name="geometry">
-         <rect>
-          <x>190</x>
-          <y>10</y>
-          <width>250</width>
-          <height>25</height>
-         </rect>
-        </property>
-        <item>
-         <property name="text">
-          <string>archive_collection</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>archive_favorites</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>attack_categories</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>attacks</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>conditioner_flow_graphs</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>demodulation_flow_graphs</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>detector_flow_graphs</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>inspection_flow_graphs</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>modulation_types</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>packet_types</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>protocols</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>soi_data</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>triggers</string>
-         </property>
-        </item>
-       </widget>
-       <widget class="QLabel" name="label2_105">
-        <property name="geometry">
-         <rect>
-          <x>5</x>
-          <y>10</y>
-          <width>180</width>
-          <height>25</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>10</pointsize>
-          <strikeout>false</strikeout>
-         </font>
-        </property>
-        <property name="text">
-         <string>PostgreSQL Database Tables:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-       <widget class="QStackedWidget" name="stackedWidget_library_plugin_tables">
-        <property name="geometry">
-         <rect>
-          <x>5</x>
-          <y>275</y>
-          <width>1190</width>
-          <height>372</height>
-         </rect>
-        </property>
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
-        <widget class="QWidget" name="page_archive_collection">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_archive_collection">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>350</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_tables_archive_collection">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Tables</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_archive_favorites">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_archive_favorites">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>350</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_tables_archive_favorites">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Tables</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_attack_categories">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_attack_categories">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>350</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_tables_attack_categories">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Tables</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_attacks">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_attacks">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>350</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_tables_attacks">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Tables</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_conditioner_flow_graphs">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_conditioner_flow_graphs">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>350</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_tables_conditioner_flow_graphs">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Tables</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_demodulation_flow_graphs">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_demodulation_flow_graphs">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>350</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_tables_demodulation_flow_graphs">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Tables</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_detector_flow_graphs">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_detector_flow_graphs">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>350</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_tables_detector_flow_graphs">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Tables</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_inspection_flow_graphs">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_inspection_flow_graphs">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>350</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_tables_inspection_flow_graphs">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Tables</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_modulation_types">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_modulation_types">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>350</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_tables_modulation_types">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Tables</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_packet_types">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_packet_types">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>350</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_tables_packet_types">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Tables</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_protocols">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_protocols">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>350</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_tables_protocols">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Tables</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_soi_data">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_soi_data">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>350</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_tables_soi_data">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Tables</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_triggers">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_triggers">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>350</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_tables_triggers">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Tables</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-       </widget>
-       <widget class="QPushButton" name="pushButton_library_plugin_apply_changes">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>1080</x>
-          <y>650</y>
-          <width>110</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <strikeout>false</strikeout>
-         </font>
-        </property>
-        <property name="text">
-         <string>Apply Changes</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_library_plugin_export_tables">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>575</x>
-          <y>650</y>
-          <width>100</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <strikeout>false</strikeout>
-         </font>
-        </property>
-        <property name="text">
-         <string>Export Tables</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_library_plugin_delete_row">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>115</x>
-          <y>650</y>
-          <width>100</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <strikeout>false</strikeout>
-         </font>
-        </property>
-        <property name="text">
-         <string>Delete Row</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_library_plugin_clear_all_tables">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>325</x>
-          <y>650</y>
-          <width>110</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <strikeout>false</strikeout>
-         </font>
-        </property>
-        <property name="text">
-         <string>Clear All Tables</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_library_plugin_add_row">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>650</y>
-          <width>100</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <strikeout>false</strikeout>
-         </font>
-        </property>
-        <property name="text">
-         <string>Add Row</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_library_plugin_clear_table">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>220</x>
-          <y>650</y>
-          <width>100</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <strikeout>false</strikeout>
-         </font>
-        </property>
-        <property name="text">
-         <string>Clear Table</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_library_plugin_append">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>440</x>
-          <y>650</y>
-          <width>130</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <strikeout>false</strikeout>
-         </font>
-        </property>
-        <property name="text">
-         <string>Append to Plugin</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_library_plugin_export_zip">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>970</x>
-          <y>650</y>
-          <width>100</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <strikeout>false</strikeout>
-         </font>
-        </property>
-        <property name="text">
-         <string>Export Zip</string>
-        </property>
-       </widget>
-       <widget class="QStackedWidget" name="stackedWidget_library_plugin_support">
-        <property name="geometry">
-         <rect>
-          <x>5</x>
-          <y>50</y>
-          <width>1190</width>
-          <height>185</height>
-         </rect>
-        </property>
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
-        <widget class="QWidget" name="page_archive_collection_2">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_archive_collection_support">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>160</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderMinimumSectionSize">
-           <number>5</number>
-          </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-          <column>
-           <property name="text">
-            <string>Existing</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>New</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_support_archive_collection">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Supporting Files</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_archive_favorites_2">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_archive_favorites_support">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>160</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderMinimumSectionSize">
-           <number>5</number>
-          </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-          <column>
-           <property name="text">
-            <string>Existing</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>New</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_support_archive_favorites">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Supporting Files</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_attack_categories_2">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_attack_categories_support">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>160</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderMinimumSectionSize">
-           <number>5</number>
-          </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-          <column>
-           <property name="text">
-            <string>Existing</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>New</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_support_attack_categories">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Supporting Files</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_attacks_2">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_attacks_support">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>160</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderMinimumSectionSize">
-           <number>5</number>
-          </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-          <column>
-           <property name="text">
-            <string>Existing</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>New</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_support_attacks">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Supporting Files</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_conditioner_flow_graphs_2">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_conditioner_flow_graphs_support">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>160</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderMinimumSectionSize">
-           <number>5</number>
-          </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-          <column>
-           <property name="text">
-            <string>Existing</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>New</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_support_conditioner_flow_graphs">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Supporting Files</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_demodulation_flow_graphs_2">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_demodulation_flow_graphs_support">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>160</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderMinimumSectionSize">
-           <number>5</number>
-          </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-          <column>
-           <property name="text">
-            <string>Existing</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>New</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_support_demodulation_flow_graphs">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Supporting Files</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_detector_flow_graphs_2">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_detector_flow_graphs_support">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>160</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderMinimumSectionSize">
-           <number>5</number>
-          </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-          <column>
-           <property name="text">
-            <string>Existing</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>New</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_support_detector_flow_graphs">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Supporting Files</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_inspection_flow_graphs_2">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_inspection_flow_graphs_support">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>160</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderMinimumSectionSize">
-           <number>5</number>
-          </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-          <column>
-           <property name="text">
-            <string>Existing</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>New</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_support_inspection_flow_graphs">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Supporting Files</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_modulation_types_2">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_modulation_types_support">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>160</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderMinimumSectionSize">
-           <number>5</number>
-          </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-          <column>
-           <property name="text">
-            <string>Existing</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>New</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_support_modulation_types">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Supporting Files</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_packet_types_2">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_packet_types_support">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>160</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderMinimumSectionSize">
-           <number>5</number>
-          </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-          <column>
-           <property name="text">
-            <string>Existing</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>New</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_support_packet_types">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Supporting Files</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_protocols_2">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_protocols_support">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>160</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderMinimumSectionSize">
-           <number>5</number>
-          </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-          <column>
-           <property name="text">
-            <string>Existing</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>New</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_support_protocols">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Supporting Files</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_soi_data_2">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_soi_data_support">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>160</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderMinimumSectionSize">
-           <number>5</number>
-          </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-          <column>
-           <property name="text">
-            <string>Existing</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>New</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_support_soi_data">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Supporting Files</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="page_triggers_2">
-         <widget class="QTableWidget" name="tableWidget_library_plugin_triggers_support">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>20</y>
-            <width>1180</width>
-            <height>160</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>true</bool>
-          </property>
-          <attribute name="horizontalHeaderMinimumSectionSize">
-           <number>5</number>
-          </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>155</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-          <column>
-           <property name="text">
-            <string>Existing</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>New</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string/>
-           </property>
-          </column>
-         </widget>
-         <widget class="QLabel" name="label4_library_plugin_edit_plugin_support_triggers">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>5</x>
-            <y>0</y>
-            <width>1180</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="text">
-           <string>Supporting Files</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </widget>
-       </widget>
-       <widget class="QPushButton" name="pushButton_library_plugin_support_reset">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>220</x>
-          <y>235</y>
-          <width>100</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <strikeout>false</strikeout>
-         </font>
-        </property>
-        <property name="text">
-         <string>Reset</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_library_plugin_support_add_row">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>235</y>
-          <width>100</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <strikeout>false</strikeout>
-         </font>
-        </property>
-        <property name="text">
-         <string>Add Row</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_library_plugin_support_delete_row">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>115</x>
-          <y>235</y>
-          <width>100</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <strikeout>false</strikeout>
-         </font>
-        </property>
-        <property name="text">
-         <string>Delete Row</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_library_plugin_support_reset_all">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>325</x>
-          <y>235</y>
-          <width>100</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <strikeout>false</strikeout>
-         </font>
-        </property>
-        <property name="text">
-         <string>Reset All</string>
-        </property>
-       </widget>
+       </layout>
       </widget>
      </widget>
     </widget>

@@ -4,6 +4,7 @@ SOI_trigger_time: 0
 SOI_trigger_timeout: 10
 auto_connect_hiprfisr: true
 buffer_size_interval: 2
+callsign_prefix: FTN
 clear_log_file_on_startup: true
 color1: '#F4F4F4'
 color10: '#FEFEFE'
@@ -20,6 +21,11 @@ color8: '#FEFEFE'
 color9: '#EFEFEF'
 color_mode: Light Mode
 console_logging_level: INFO
+cot_logging:
+  cot_log_enabled: false
+  cot_log_directory: ./Logs/CoT_Logs
+  max_file_size_mb: 10
+  max_file_count: 20
 dashboard_hiprfisr_dealer_port: 5051
 dashboard_pub_port: 5057
 dataset_freq_shift_max: 0
@@ -42,16 +48,28 @@ fft_size: 8192
 file_logging_level: DEBUG
 heartbeat_interval: 5
 hiprfisr:
+  # NOTE:
+  # These communication settings define how external components
+  # (like the Dashboard or Sensor Nodes) locate and connect to HIPRFISR.
+  #
+  # HIPRFISR itself may override these values when launched (e.g. via --remote),
+  # but other components use this file to discover its address and ports.
+  #
+  # - 'frontend': External connection used by Dashboard and Sensor Nodes
+  # - 'backend' : Internal connection for local PD/TSI processes (always IPC)
   backend:
     address: fissure-backend
     protocol: ipc
   frontend:
-    address: 0.0.0.0
-    heartbeat_channel: 5051
-    message_channel: 5052
+    address: 0.0.0.0  # User enters an IP address in the status bar for remote connections
+    heartbeat_channel: 5051  # User enters the hb port in the status bar for remote connections
+    message_channel: 5052  # User enters the msg port in the status bar for remote connections
     protocol: tcp
 hiprfisr_pub_port: 5055
 icon_style: Light
+meshtastic:
+  auto_connect_meshtastic: false
+  meshtastic_serial_port: /dev/ttyACM0
 morse_code_amplitude_threshold: 0.5
 morse_code_between_letter_spacing: 3
 morse_code_between_word_spacing: 7
@@ -161,17 +179,18 @@ sensor_node5:
   tsi: ''
 sensor_node_hiprfisr_dealer_port: 5053
 sensor_node_pub_port: 5061
-server:
-  address: fissure
-  protocol: ipc
 startup_automation_mode: Manual
 tak:
   cert: /home/user/Installed_by_FISSURE/takserver-docker-5.3-RELEASE-24/tak/certs/files/takserver.pem
-  ip_addr: localhost
+  connect_mode: disabled  # auto/manual/disabled
+  ip_addr: localhost # tak server IP for local communication
+  external_ip: 192.168.1.128  # tak server external IP for clients to connect
   key: /home/user/Installed_by_FISSURE/takserver-docker-5.3-RELEASE-24/tak/certs/files/takserver.key
   port: 8089
-  tak_on_startup: 'False'
+  tak_on_startup: False
   webadmin_cert: /home/user/Installed_by_FISSURE/takserver-docker-5.3-RELEASE-24/tak/certs/files/webadmin.p12
+  node_idle_icon: 'a-f-G-E'
+  node_busy_icon: 'a-f-G-E-X-M-C'
 target_SOI: 0
 tsi_hiprfisr_dealer_port: 5052
 tsi_pub_port: 5059

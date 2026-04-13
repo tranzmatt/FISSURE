@@ -154,7 +154,7 @@ class FissureStatusBar(QtWidgets.QStatusBar):
         self.addr_label = QtWidgets.QLabel(objectName="label4_status1")
 
         # Set Default Values
-        self.addr_box.setText("127.0.0.1")
+        self.addr_box.setText("192.168.1.xxx")
         self.hb_port_box.setText("5051")
         self.msg_port_box.setText("5052")
         self.ports_prompt.show()

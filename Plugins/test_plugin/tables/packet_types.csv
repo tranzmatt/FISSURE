@@ -1,2 +1,0 @@
-id,protocol,packet_name,dissector,fields,sort_order
-,testhhhh,testpacket8,"{'Port': None, 'Filename': None}","{'bb': {'Is CRC': True, 'Length': 8, 'CRC Range': '1-1', 'Sort Order': 2, 'Default Value': '00000000'}, 'aaa': {'Is CRC': False, 'Length': 8, 'Sort Order': 1, 'Default Value': '11111111'}}",1

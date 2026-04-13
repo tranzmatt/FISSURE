@@ -7,6 +7,7 @@ from fissure.Dashboard.Slots import (
     DashboardSlots,
     IQDataTabSlots,
     LibraryTabSlots,
+    LibraryTabPluginManagerTabSlots,
     LogTabSlots,
     MenuBarSlots,
     PDTabSlots,
@@ -107,10 +108,6 @@ class Dashboard(QtWidgets.QMainWindow):
             ["", "", "", "", "", "", ""],
         ]
 
-        # Temporarily Disable Plugin Tabs until Developed Further
-        self.ui.tabWidget_sensor_nodes.setTabEnabled(2, False)
-        # self.ui.tabWidget_library.setTabEnabled(4, False)
-
         # Disable Buttons for Disconnected HIPRFISR
         self.ui.pushButton_top_node2.setVisible(False)
         self.ui.pushButton_top_node3.setVisible(False)
@@ -152,7 +149,19 @@ class Dashboard(QtWidgets.QMainWindow):
         self.ui.pushButton_demo.setVisible(False)
         self.stop_demo_flag = False
 
+        # Set Initial Tab Positions
+        self.ui.tabWidget.setCurrentIndex(0)
+        self.ui.tabWidget_tsi.setCurrentIndex(1)
+        self.ui.tabWidget_tsi_configuration.setCurrentIndex(0)
+        self.ui.tabWidget_protocol.setCurrentIndex(0)
+        self.ui.tabWidget_attack_attack.setCurrentIndex(0)
+        self.ui.tabWidget_archive.setCurrentIndex(0)
+        self.ui.tabWidget_archive_download.setCurrentIndex(0)
+        self.ui.tabWidget_sensor_nodes.setCurrentIndex(0)
+        self.ui.tabWidget_library.setCurrentIndex(0)
+
         # Auto Connect HIPRFISR
+        self.hiprfisr_serial_connected = False
         self.active_sensor_node = -1  # Needed for Plugin Loading
         if self.backend.settings["auto_connect_hiprfisr"] == True:
             self.window.actionAuto_Connect_HIPRFISR.setChecked(True)
@@ -161,7 +170,8 @@ class Dashboard(QtWidgets.QMainWindow):
         else:
             self.splash.progressBar.setValue(50)
             self.window.actionAuto_Connect_HIPRFISR.setChecked(False)
-            self.__init2__()
+            StatusBarSlots.remote_connect_prompt(self.statusBar())
+            self.__init2__()            
 
         self.logger.info("=== READY ===")
         
@@ -181,9 +191,14 @@ class Dashboard(QtWidgets.QMainWindow):
             self.__init_Library__()
 
         # Hide the Splash Screen
-        self.splash.progressBar.setValue(100)
-        time.sleep(0.1)
-        self.splash.close()        
+        if self.backend.settings["auto_connect_hiprfisr"] == False:
+            self.splash.progressBar.setValue(100)
+            QtWidgets.QApplication.processEvents()  # new
+            QtCore.QTimer.singleShot(100, self.splash.close)  # new
+            QtWidgets.QApplication.processEvents()  # new
+        else:
+            time.sleep(0.1)
+            self.splash.close()
 
         # Show the Dialog
         self.show()
@@ -829,67 +844,10 @@ class Dashboard(QtWidgets.QMainWindow):
         # Refresh Browse Table
         LibraryTabSlots._slotLibraryBrowseChanged(self)
 
-        # Plugins Edit Tables Headers
-        get_table_names = list(fissure.utils.DATABASE_TABLE_HEADERS.keys())
-        get_tables = [
-            self.ui.tableWidget_library_plugin_archive_collection,
-            self.ui.tableWidget_library_plugin_archive_favorites,
-            self.ui.tableWidget_library_plugin_attack_categories,
-            self.ui.tableWidget_library_plugin_attacks,
-            self.ui.tableWidget_library_plugin_conditioner_flow_graphs,
-            self.ui.tableWidget_library_plugin_demodulation_flow_graphs,
-            self.ui.tableWidget_library_plugin_detector_flow_graphs,
-            self.ui.tableWidget_library_plugin_inspection_flow_graphs,
-            self.ui.tableWidget_library_plugin_modulation_types,
-            self.ui.tableWidget_library_plugin_packet_types,
-            self.ui.tableWidget_library_plugin_protocols,
-            self.ui.tableWidget_library_plugin_soi_data,
-            self.ui.tableWidget_library_plugin_triggers,
-        ]
-        for idx, table in enumerate(get_tables):
-            table.setColumnCount(len(fissure.utils.DATABASE_TABLE_HEADERS[get_table_names[idx]]))
-            for index, header in enumerate(fissure.utils.DATABASE_TABLE_HEADERS[get_table_names[idx]]):
-                header_item = QtWidgets.QTableWidgetItem(header)
-                header_item.setTextAlignment(QtCore.Qt.AlignCenter)
-                table.setHorizontalHeaderItem(index, header_item)
-            table.resizeColumnsToContents()
-            table.horizontalHeader().setStretchLastSection(False)
-            table.horizontalHeader().setStretchLastSection(True)
-
-        # Plugin Editor Supporting Files Tables
-        get_support_tables = [
-            self.ui.tableWidget_library_plugin_archive_collection_support,
-            self.ui.tableWidget_library_plugin_archive_favorites_support,
-            self.ui.tableWidget_library_plugin_attack_categories_support,
-            self.ui.tableWidget_library_plugin_attacks_support,
-            self.ui.tableWidget_library_plugin_conditioner_flow_graphs_support,
-            self.ui.tableWidget_library_plugin_demodulation_flow_graphs_support,
-            self.ui.tableWidget_library_plugin_detector_flow_graphs_support,
-            self.ui.tableWidget_library_plugin_inspection_flow_graphs_support,
-            self.ui.tableWidget_library_plugin_modulation_types_support,
-            self.ui.tableWidget_library_plugin_packet_types_support,
-            self.ui.tableWidget_library_plugin_protocols_support,
-            self.ui.tableWidget_library_plugin_soi_data_support,
-            self.ui.tableWidget_library_plugin_triggers_support,
-        ]
-        for idx, table in enumerate(get_support_tables):
-            table.setColumnWidth(0, 534)  #535
-            table.setColumnWidth(1, 74)
-            table.setColumnWidth(2, 534)
-            table.setColumnWidth(3, 36)  #36
-            # table.resizeColumnsToContents()
-            # table.horizontalHeader().setStretchLastSection(False)
-            # table.horizontalHeader().setStretchLastSection(True)
-
-            # component.frontend.ui.tableWidget1_tsi_wideband.resizeColumnsToContents()
-            # component.frontend.ui.tableWidget1_tsi_wideband.resizeRowsToContents()
-            # component.frontend.ui.tableWidget1_tsi_wideband.horizontalHeader().setStretchLastSection(False)
-            # component.frontend.ui.tableWidget1_tsi_wideband.horizontalHeader().setStretchLastSection(True)
-
-        # Plugin Widgets
-        self.ui.comboBox_library_plugin_new_existing.setCurrentText("Existing")
-        self.ui.stackedWidget_library_plugin_selection.setCurrentIndex(0)
-        LibraryTabSlots._slotLibraryPluginNewExistingChanged(self)
+        # Plugin Manager Tab
+        # TODO: Implement this async functionality without errors in Frontend.py
+        # LibraryTabPluginManagerTabSlots._slot_local_plugin_pkg_path_auto(self, False)
+        # LibraryTabPluginManagerTabSlots._slot_plugin_download_dir_auto(self, False)
 
 
     def __init_signals__(self):
@@ -1165,8 +1123,12 @@ class Dashboard(QtWidgets.QMainWindow):
                 await self.backend.disconnect_local_sensor_node(n-1)
                 break
         
-        # Shut Down Local HIPRFISR
-        await StatusBarSlots.shutdown_hiprfisr(self)
+        # Shut Down Local HIPRFISR, Disconnect from Remote HIPRFISR
+        if self.backend.settings["auto_connect_hiprfisr"] == True:
+            await StatusBarSlots.shutdown_hiprfisr(self)
+        else:
+            await StatusBarSlots.disconnect_hiprfisr(self)
+            self.backend.shutdown_complete = True
 
         while self.backend.stop() == False:
             await qasync.asyncio.sleep(0.1)
@@ -1294,16 +1256,8 @@ class Dashboard(QtWidgets.QMainWindow):
         node_number : int
             Sensor node index
         """
-        deploy_button: QtWidgets.QPushButton = self.ui.pluginsPushButtonDeploy
-        deploy_button.setEnabled(False)
-        remove_button: QtWidgets.QPushButton = self.ui.pluginsPushButtonRemove
-        remove_button.setEnabled(False)
-        get_sensor_node = ['sensor_node1','sensor_node2','sensor_node3','sensor_node4','sensor_node5']
-        if node_number > -1 and self.backend.settings[get_sensor_node[node_number]]['local_remote'] == 'remote':
-            deploy_button.setEnabled(True)
-            remove_button.setEnabled(True)
-        
         # Do not retrieve plugins for Meshtastic
+        get_sensor_node = ['sensor_node1','sensor_node2','sensor_node3','sensor_node4','sensor_node5']
         if self.backend.settings[get_sensor_node[node_number]]["network_type"] == "IP":
             pass
             # LibraryTabSlots._slotLibraryPluginPluginRefresh(self)  # async, make user press refresh for now
@@ -1790,6 +1744,7 @@ def connect_menuBar_slots(dashboard: Dashboard):
     dashboard.window.actionAiS_TX.triggered.connect(lambda: MenuBarSlots._slotMenuStandaloneAiS_TX_Clicked(dashboard))
     dashboard.window.actionais_rx_demod.triggered.connect(lambda: MenuBarSlots._slotMenuStandalone_ais_rx_demodClicked(dashboard))
     dashboard.window.actiontesla_charge_port.triggered.connect(lambda: MenuBarSlots._slotMenuStandaloneTeslaChargePortClicked(dashboard))
+    dashboard.window.actionlfm_beacon_transmit.triggered.connect(lambda: MenuBarSlots._slotMenuStandaloneLFM_BeaconTransmitClicked(dashboard))
 
     # Tools Menu
     dashboard.window.actionUhd_find_devices.triggered.connect(lambda: MenuBarSlots._slotMenuUHD_FindDevicesClicked(dashboard))
@@ -3494,7 +3449,6 @@ def connect_iq_slots(dashboard: Dashboard):
         lambda: IQDataTabSlots._slotIQ_EndiannessChooseClicked(dashboard)
     )
     dashboard.ui.pushButton_iq_endianness.clicked.connect(lambda: IQDataTabSlots._slotIQ_EndiannessClicked(dashboard))
-    ###########################
     dashboard.ui.pushButton_iq_convert_clear.clicked.connect(lambda: IQDataTabSlots._slotIQ_ConvertClearClicked(dashboard))
     dashboard.ui.pushButton_iq_convert_select.clicked.connect(
         lambda: IQDataTabSlots._slotIQ_ConvertSelectClicked(dashboard)
@@ -3507,6 +3461,8 @@ def connect_iq_slots(dashboard: Dashboard):
         lambda: IQDataTabSlots._slotIQ_ConvertChooseClicked(dashboard)
     )
     dashboard.ui.pushButton_iq_convert.clicked.connect(lambda: IQDataTabSlots._slotIQ_ConvertClicked(dashboard))
+    dashboard.ui.pushButton_iq_demod.clicked.connect(lambda: IQDataTabSlots._slotIQ_DemodClicked(dashboard))
+    dashboard.ui.pushButton_iq_convert_output_select.clicked.connect(lambda: IQDataTabSlots._slotIQ_ConvertOutputSelectClicked(dashboard))
 
     # Table Widget
     dashboard.ui.tableWidget_iq_append.horizontalHeader().sectionClicked.connect(
@@ -3937,6 +3893,27 @@ def connect_sensor_nodes_slots(dashboard: Dashboard):
     # create connections for sensor nodes pluginsList tab
     SensorNodesPluginsTabSlots.connect_plugins_slots(dashboard)
 
+    style = dashboard.style()
+    if style is not None:
+        dashboard.ui.toolButton_plugin_pkgs_hiprfisr_refresh_2.setIcon(style.standardIcon(QtWidgets.QStyle.StandardPixmap.SP_BrowserReload))
+
+    # Connect buttons for sensor nodes plugin operations
+    dashboard.ui.pushButton_7.clicked.connect(
+        lambda: SensorNodesTabSlots._slotSensorNodesOperationRun(dashboard)
+    )
+    dashboard.ui.pushButton_8.clicked.connect(
+        lambda: SensorNodesTabSlots._slotSensorNodesOperationStop(dashboard)
+    )
+    dashboard.ui.pushButton_9.clicked.connect(
+        lambda: SensorNodesTabSlots._slotSensorNodesPluginOperationOpen(dashboard)
+    )
+    dashboard.ui.toolButton_plugin_pkgs_hiprfisr_refresh_2.clicked.connect(
+        lambda: LibraryTabPluginManagerTabSlots._slot_request_hiprfisr_plugin_list(dashboard)
+    )
+    dashboard.ui.comboBox_select_plugin.currentIndexChanged.connect(
+        lambda: SensorNodesTabSlots._slotSensorNodesPluginSelected(dashboard)
+    )
+
 
 def connect_library_slots(dashboard: Dashboard):
     # Combo Box
@@ -3957,12 +3934,6 @@ def connect_library_slots(dashboard: Dashboard):
     )
     dashboard.ui.comboBox_library_browse.currentIndexChanged.connect(
         lambda: LibraryTabSlots._slotLibraryBrowseChanged(dashboard)
-    )
-    dashboard.ui.comboBox_library_plugin_edit.currentIndexChanged.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginEditChanged(dashboard)
-    )
-    dashboard.ui.comboBox_library_plugin_new_existing.currentIndexChanged.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginNewExistingChanged(dashboard)
     )
     
     # List Widget
@@ -4016,59 +3987,8 @@ def connect_library_slots(dashboard: Dashboard):
     dashboard.ui.pushButton_library_browse_delete_row.clicked.connect(
         lambda: LibraryTabSlots._slotLibraryBrowseDeleteRowClicked(dashboard)
     )
-    dashboard.ui.pushButton_library_plugin_add_row.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginAddRowClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_plugin_delete_row.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginDeleteRowClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_plugin_clear_table.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginClearTableClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_plugin_clear_all_tables.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginClearAllTablesClicked(dashboard)
-    )
     dashboard.ui.pushButton_library_browse_copy_row.clicked.connect(
         lambda: LibraryTabSlots._slotLibraryBrowseCopyClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_plugin_import.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginImportClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_plugin_export_tables.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginExportTablesClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_plugin_export_zip.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginExportZipClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_plugin_apply_changes.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginApplyChangesClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_plugin_append.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginAppendClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_plugin_create.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginCreate(dashboard)
-    )
-    dashboard.ui.pushButton_library_plugin_selection_open_close.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginOpenClose(dashboard)
-    )
-    dashboard.ui.pushButton_library_plugin_refresh.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginPluginRefresh(dashboard)
-    )
-    dashboard.ui.pushButton_library_plugin_delete.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginPluginDelete(dashboard)
-    )
-    dashboard.ui.pushButton_library_plugin_support_add_row.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginSupportAddClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_plugin_support_delete_row.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginSupportDeleteClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_plugin_support_reset.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginSupportResetClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_plugin_support_reset_all.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryPluginSupportResetAllClicked(dashboard)
     )
     dashboard.ui.pushButton_library_browse_refresh.clicked.connect(
         lambda: LibraryTabSlots._slotLibraryBrowseRefreshClicked(dashboard)
@@ -4081,6 +4001,9 @@ def connect_library_slots(dashboard: Dashboard):
     dashboard.ui.radioButton_library_search_hex.clicked.connect(
         lambda: LibraryTabSlots._slotLibrarySearchHexClicked(dashboard)
     )
+
+    # Connect library tab plugin manager slots
+    LibraryTabPluginManagerTabSlots.connect_slots(dashboard)
 
 
 def connect_log_slots(dashboard: Dashboard):

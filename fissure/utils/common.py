@@ -14,6 +14,7 @@ import zmq.auth.asyncio
 import subprocess
 import re
 import mgrs
+import math
 
 FISSURE_ROOT: os.PathLike = os.path.abspath(os.path.join(__file__, "..", "..", ".."))
 LOG_DIR: os.PathLike = os.path.join(FISSURE_ROOT, "Logs")
@@ -247,23 +248,89 @@ def get_authenticator(allowed_keys: str = None) -> zmq.auth.asyncio.AsyncioAuthe
     return __vars.zmq_authenticator
 
 
-def zmq_cleanup():  # pragma: no cover
+def authenticator_cleanup():
     """
-    Clean up ZMQ Context and stop the Authenticator
     """
-    logger: logging.Logger = logging.getLogger("fissure")
-    logger.debug("Cleaning Up ZMQ Context")
-    if __vars.zmq_authenticator is not None:
-        __vars.zmq_authenticator.stop()
+    auth = get_authenticator()
+    if auth is not None:
+        try:
+            auth.stop()
+        except:
+            pass
 
-        del __vars.zmq_authenticator
-        __vars.zmq_authenticator = None
 
-    if __vars.zmq_ctx is not None:
-        # __vars.zmq_ctx.destroy(linger=0)
+def zmq_cleanup():
+    # Stop the authenticator if it exists
+    try:
+        if __vars.zmq_authenticator is not None:
+            __vars.zmq_authenticator.stop()
+            __vars.zmq_authenticator = None
+    except Exception:
+        pass
 
-        del __vars.zmq_ctx
-        __vars.zmq_ctx = None
+    # Destroy ZMQ context if it exists
+    try:
+        if __vars.zmq_ctx is not None:
+            __vars.zmq_ctx.destroy(linger=0)
+            __vars.zmq_ctx = None
+    except Exception:
+        pass
+
+
+    # For Brute Forcing Socket Close:
+    # import gc
+    # print("ZMQ cleanup starting")
+
+    # raw_sockets = set()
+    # async_sockets = set()
+
+    # # Collect sockets
+    # for obj in gc.get_objects():
+    #     try:
+    #         if isinstance(obj, zmq.asyncio.Socket):
+    #             async_sockets.add(obj)
+    #         elif isinstance(obj, zmq.Socket):
+    #             raw_sockets.add(obj)
+    #     except:
+    #         pass
+
+    # print("\n=== SOCKETS BEFORE CLOSE ===")
+    # for s in async_sockets:
+    #     print("ASYNC SOCKET:", s, "closed=", s.closed)
+    # for s in raw_sockets:
+    #     print("RAW SOCKET:", s, "closed=", s.closed)
+
+    # # 1) Close asyncio wrappers AND their underlying raw sockets
+    # print("\nClosing async sockets:")
+    # for s in async_sockets:
+    #     try:
+    #         if hasattr(s, "socket"):
+    #             try:
+    #                 print("  closing underlying raw:", s.socket)
+    #                 s.socket.close(linger=0)
+    #             except Exception as e:
+    #                 print("    raw close error:", e)
+    #         print("  closing async:", s)
+    #         s.close(linger=0)
+    #     except Exception as e:
+    #         print("  async close error:", e)
+
+    # # 2) Close any raw sockets not already closed
+    # print("\nClosing raw sockets:")
+    # for s in raw_sockets:
+    #     if not s.closed:
+    #         try:
+    #             print("  closing:", s)
+    #             s.close(linger=0)
+    #         except Exception as e:
+    #             print("  raw close error:", e)
+
+    # # 3) Now destroy context
+    # try:
+    #     __vars.zmq_ctx.destroy(linger=0)
+    #     print("Context destroyed.")
+    # except Exception as e:
+    #     print("Destroy error:", e)
 
 
 def load_yaml(filename: str) -> Optional[Dict]:
@@ -479,6 +546,51 @@ def get_library_version():
         return "maint-3.10"
 
 
+def extractFrequencyFromUID(uid: str):
+    """
+    Extracts a frequency from a UID such as:
+        FTN-ALERT-311MHz
+        HACKRF-433_MHz
+        SENSOR-908mhz
+        ANYTHING-2412
+
+    Returns a frequency string suitable for classifyFrequencyFromTextDirect(),
+    such as "311 MHz" or "908.4 MHz", or None if not found.
+    """
+
+    import re
+
+    # Normalize UID for easier parsing
+    text = uid.replace("_", " ").replace("-", " ")
+
+    # Look for number + optional decimal + optional unit
+    m = re.search(r"(\d+(\.\d+)?)\s*(MHz|mhz|kHz|khz|Hz|hz)?", text)
+    if not m:
+        return None
+
+    value_str = m.group(1)
+    unit = (m.group(3) or "").lower()
+
+    # If no explicit unit was found, assume MHz for values < 10,000
+    if not unit:
+        if float(value_str) < 10000:
+            unit = "mhz"
+        else:
+            unit = "hz"
+
+    # Normalize unit capitalization and spacing
+    unit_map = {
+        "mhz": "MHz",
+        "khz": "kHz",
+        "hz": "Hz",
+    }
+
+    unit_str = unit_map.get(unit, "MHz")  # default to MHz if unknown
+
+    # Build a frequency string consumable by classifyFrequencyFromTextDirect
+    return f"{value_str} {unit_str}"
+
+
 ############################################# GPS Functions ####################################################
 
 def format_coordinates(lat, lon, format_type):
@@ -626,6 +738,105 @@ def decimal_to_ddm(lat:float, lon:float) -> Tuple[str]:
 
     # Format output
     return f"{abs(lat_d)}{lat_m:07.4f}{lat_dir}", f"{abs(lon_d)}{lon_m:07.4f}{lon_dir}"
+
+
+def is_valid_lat_lon(lat, lon):
+    """Return True if lat/lon look usable."""
+    try:
+        lat = float(lat)
+        lon = float(lon)
+    except (TypeError, ValueError):
+        return False
+
+    return -90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0
+
+
+def haversine_m(lat1, lon1, lat2, lon2):
+    """
+    Great-circle distance between two points in meters.
+    """
+    r_earth_m = 6371000.0
+
+    lat1_rad = math.radians(float(lat1))
+    lon1_rad = math.radians(float(lon1))
+    lat2_rad = math.radians(float(lat2))
+    lon2_rad = math.radians(float(lon2))
+
+    dlat = lat2_rad - lat1_rad
+    dlon = lon2_rad - lon1_rad
+
+    a = (
+        math.sin(dlat / 2.0) ** 2
+        + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2.0) ** 2
+    )
+    c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
+
+    return r_earth_m * c
+
+
+def get_nearest_nodes_to_target(component, target, max_nodes=3):
+    """
+    Find up to max_nodes closest registered nodes to a target location.
+
+    Returns
+    -------
+    list[dict]
+        Each item contains:
+            {
+                "uid": <node uid>,
+                "distance_m": <float>,
+                "lat": <float>,
+                "lon": <float>,
+                "alt": <float|None>,
+                "status": <str>,
+                "connected": <bool>,
+                "identity": <any>,
+                "nickname": <str|None>,
+                "callsign": <str|None>,
+            }
+    """
+    location = target.get("location") or {}
+    target_lat = location.get("lat")
+    target_lon = location.get("lon")
+
+    if not is_valid_lat_lon(target_lat, target_lon):
+        return []
+
+    candidates = []
+
+    for node_uid, node in component.nodes.items():
+        node_lat = node.get("lat")
+        node_lon = node.get("lon")
+
+        if not is_valid_lat_lon(node_lat, node_lon):
+            continue
+
+        # Optional: skip disconnected nodes if that fits your use case
+        # If you want "registered nodes" regardless of current link state,
+        # remove this block.
+        if not node.get("connected", False):
+            continue
+
+        try:
+            distance_m = haversine_m(target_lat, target_lon, node_lat, node_lon)
+        except Exception:
+            continue
+
+        candidates.append({
+            "uid": node_uid,
+            "distance_m": distance_m,
+            "lat": float(node_lat),
+            "lon": float(node_lon),
+            "alt": node.get("alt"),
+            "status": node.get("status", "unknown"),
+            "connected": node.get("connected", False),
+            "identity": node.get("identity"),
+            "nickname": node.get("nickname"),
+            "callsign": node.get("callsign"),
+        })
+
+    candidates.sort(key=lambda x: x["distance_m"])
+    return candidates[:max_nodes]
 
 
 ##################################################################################################

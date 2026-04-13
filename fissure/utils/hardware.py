@@ -12,6 +12,7 @@ import os
 import select
 import json
 import re
+import aiohttp
 
 
 SUPPORTED_HARDWARE = [
@@ -1237,94 +1238,52 @@ def findCaribouLite():
 
 
 def probe_gpsd(logger: logging.Logger, format="", serial_port="/dev/ttyACM1", return_altitude=False):
+    from gps import gps, WATCH_ENABLE, WATCH_JSON
+
     """ 
-    Probes GPS devices using gpsd and returns the coordinates.
+    Probes GPS devices using gpsd and returns the coordinates without restarting gpsd.
+    Assumes gpsd is already running and managing the serial device.
     """
     session = None
-    gpsd_socket = None
     try:
-        # **Check if the GPS device exists before proceeding**
+        
         if not os.path.exists(serial_port):
             logger.error(f"❌ GPS device not found at {serial_port}. Ensure the device is connected.")
             return None
-
-        logger.info(f"Configuring gpsd for GPS device at {serial_port}")
-
-        # **Kill any existing gpsd processes**
-        subprocess.run(["sudo", "killall", "gpsd"], check=False)
-        time.sleep(0.2)
-
-        # **Clear any processes using the serial port**
-        subprocess.run(["sudo", "fuser", "-k", serial_port], check=False)
-        time.sleep(0.1)
-   
-        # ** Stop the gpsd service and socket**
-        subprocess.run(["sudo", "systemctl", "stop", "gpsd.socket", "gpsd.service"], check=False)
-        time.sleep(0.1)
-        subprocess.run(["sudo", "systemctl", "disable", "gpsd.socket", "gpsd.service"], check=False)
-        time.sleep(0.1)
-        
-        # **Start gpsd only if the device exists**
-        gpsd_command = [
-            "sudo", "gpsd", "-n", "-D", "4", "-F", "/var/run/gpsd.sock", serial_port
-        ]
-        logger.info(f"Starting gpsd with command: {' '.join(gpsd_command)}")
-        subprocess.run(gpsd_command, check=True)
-        time.sleep(0.5)  # Allow gpsd time to start
-
-        # **Verify gpsd socket availability**
         try:
             with socket.create_connection(("localhost", 2947), timeout=2):
-                logger.info("Successfully connected to gpsd socket on port 2947.")
+                logger.debug("Connected to gpsd socket on port 2947.")
         except Exception as e:
-            logger.error(f"❌ Could not reach gpsd. Ensure gpsd is running and configured correctly: {e}")
+            logger.error(f"❌ Could not connect to gpsd: {e}")
             return None
 
-        # **Initialize GPS session**
+       
         session = gps(mode=WATCH_ENABLE | WATCH_JSON)
         logger.info("GPS session initialized. Waiting for data...")
 
         start_time = time.time()
-        timeout = 3  # Set timeout for GPS fix
-
-        # **Manually open a socket to gpsd**
-        gpsd_socket = socket.create_connection(("localhost", 2947))
-        gpsd_socket.sendall(b'?WATCH={"enable":true,"json":true}\n')
+        timeout = 3  # seconds
 
         while time.time() - start_time < timeout:
             try:
-                logger.info("Attempting to retrieve GPS data...")
+                report = session.next()  # blocking read with timeout
+                if report.get('class') == 'TPV':
+                    lat = getattr(report, 'lat', None)
+                    lon = getattr(report, 'lon', None)
 
-                # **Use select() on the raw socket**
-                ready, _, _ = select.select([gpsd_socket], [], [], 1.0)
-                if not ready:
-                    logger.debug("No GPS data available yet, retrying...")
-                    continue  # Skip this iteration to avoid blocking
-
-                # **Read and parse the JSON response from gpsd**
-                data = gpsd_socket.recv(4096)
-                reports = data.decode("utf-8").splitlines()
-                for report in reports:
-                    try:
-                        report_json = json.loads(report)
-                    except json.JSONDecodeError:
-                        continue
-
-                    logger.debug(f"GPS Report: {report_json}")
-
-                    if report_json.get('class') == 'TPV':
-                        lat = report_json.get('lat')
-                        lon = report_json.get('lon')
-
-                        if lat is not None and lon is not None:
-                            if return_altitude:
-                                alt = report_json.get('alt')
-                                return {"latitude": lat, "longitude": lon, "altitude": alt}
-                            else:
-                                get_coordinates = format_coordinates(lat, lon, format)
-                                logger.debug(f"✅ GPS Data Received: {get_coordinates}")
-                                return get_coordinates
-
+                    if lat is not None and lon is not None:
+                        if return_altitude:
+                            alt = getattr(report, 'alt', None)
+                            return {"latitude": lat, "longitude": lon, "altitude": alt}
+                        else:
+                            coords = format_coordinates(lat, lon, format)
+                            logger.debug(f"✅ GPS Data Received: {coords}")
+                            return coords
+            except KeyError:
+                continue
+            except StopIteration:
+                logger.error("❌ GPSD has terminated")
+                return None
             except Exception as e:
                 logger.error(f"❌ Error while retrieving GPS data: {e}")
                 return None
@@ -1339,14 +1298,10 @@ def probe_gpsd(logger: logging.Logger, format="", serial_port="/dev/ttyACM1", re
     finally:
         if session:
             try:
-                subprocess.run(["sudo", "killall", "gpsd"], check=False)
                 session.close()
                 logger.info("GPS session closed cleanly.")
             except Exception as e:
                 logger.error(f"Error closing GPS session: {e}")
-
-        if gpsd_socket:
-            gpsd_socket.close()
     
 
 async def probeMeshtasticGPS(serial_port: str, timeout: int = 10) -> Optional[Dict[str, float]]:
@@ -1398,6 +1353,33 @@ async def probeMeshtasticGPS(serial_port: str, timeout: int = 10) -> Optional[Di
 
     except Exception as e:
         print(f"Error creating temporary connection to {serial_port}: {e}")
+        return None
+
+
+async def probeInternetGPS(logger):
+    """
+    Fetch approximate GPS data from the internet using IP-based geolocation.
+
+    Returns:
+        dict: {'latitude': float, 'longitude': float, 'altitude': float}
+        or None if the lookup failed.
+    """
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://ipinfo.io/loc", timeout=5) as response:
+                if response.status == 200:
+                    text = (await response.text()).strip()
+                    lat_str, lon_str = text.split(",")
+                    lat = float(lat_str)
+                    lon = float(lon_str)
+                    alt = 0.0  # IP geolocation has no altitude info
+                    logger.info(f"Fetched internet GPS location: {lat}, {lon}")
+                    return {'latitude': lat, 'longitude': lon, 'altitude': alt}
+                else:
+                    logger.warning(f"ipinfo.io returned status {response.status}")
+                    return None
+    except Exception as e:
+        logger.error(f"Error fetching GPS from internet: {e}")
         return None
 
 
@@ -2006,3 +1988,30 @@ async def probeCaribouLite():
         output = f"Error: {str(e)}"
 
     return output
+
+
+def get_default_sdr(settings):
+    """Return the default SDR config dict."""
+    hw = settings.get("Sensor Node", {}).get("hardware", {})
+    defaults = hw.get("defaults", {})
+    sdr_key = defaults.get("sdr")
+
+    sdrs = hw.get("sdrs", {})
+    return sdrs.get(sdr_key)
+
+
+def get_default_wifi(settings):
+    """Return the default Wi-Fi adapter config dict."""
+    hw = settings.get("Sensor Node", {}).get("hardware", {})
+    defaults = hw.get("defaults", {})
+    wifi_key = defaults.get("wifi_adapter")
+
+    wifi = hw.get("wifi_adapters", {})
+    return wifi.get(wifi_key)
+
+
+def get_default_wifi_interface(settings):
+    wifi = get_default_wifi(settings)
+    if not wifi:
+        return None
+    return wifi.get("interface")

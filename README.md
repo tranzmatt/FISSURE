@@ -4,23 +4,143 @@
 
 **Frequency Independent SDR-based Signal Understanding and Reverse Engineering**
 
-FISSURE is an open-source RF and reverse engineering framework designed for all skill levels with hooks for signal detection and classification, protocol discovery, attack execution, IQ manipulation, vulnerability analysis, automation, and AI/ML integration. The framework was built to promote the rapid integration of software modules, radios, protocols, signal data, scripts, flow graphs, reference material, and third-party tools. FISSURE streamlines workflows by centralizing software and enabling teams to quickly get up to speed while sharing a proven baseline configuration for specific Linux distributions.
+## Overview Videos
 
-The framework and tools included with FISSURE are designed to detect the presence of RF energy, understand the characteristics of a signal, collect and analyze samples, develop transmit and/or injection techniques, and craft custom payloads or messages. FISSURE contains a growing library of protocol and signal information to assist in identification, packet crafting, and fuzzing. FISSURE includes online archive capabilities for downloading signal files and building playlists to simulate traffic and test systems. 
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://youtu.be/vUJakWBVnwY">
+        <img src="https://img.youtube.com/vi/vUJakWBVnwY/hqdefault.jpg" width="360">
+      </a>
+      <br>
+      <sub>FISSURE Operational Overview</sub>
+    </td>
+    <td align="center">
+      <a href="https://youtu.be/Xgc8u7hLBfk">
+        <img src="https://img.youtube.com/vi/Xgc8u7hLBfk/hqdefault.jpg" width="360">
+      </a>
+      <br>
+      <sub>FISSURE Overview (Slides)</sub>
+    </td>
+  </tr>
+</table>
 
-The friendly Python codebase and user interface allows beginners to quickly learn about popular tools and techniques involving RF and reverse engineering. Educators in cybersecurity and engineering can take advantage of the built-in material or utilize the framework to demonstrate their own real-world applications. Developers and researchers can use FISSURE for their daily tasks or to expose their cutting-edge solutions to a wider audience. As awareness and usage of FISSURE grows in the community, so will the extent of its capabilities and the breadth of the technology it encompasses.
 
-FISSURE is particularly effective in two key domains: 1) it provides hooks for RF reverse engineering techniques and 2) it supports multiple deployment options to expand its operational relevance by integrating different types of user interfaces, networks, hardware/software processing, and distributed remote sensor nodes. 
+## Introduction
+
+FISSURE is an **open-source RF framework** that supports both **operational deployments** and **research and education**.
+- For **operators**, it provides a rapidly deployable toolkit for signal detection, classification, protocol discovery, fuzzing, vulnerability analysis, and real-time integration with TAK.
+- For **educators and researchers**, it lowers the barrier to entry for SDR and reverse engineering, offering a shared environment for learning, experimentation, and publishing new methods.
+
+FISSURE streamlines complex SDR workflows by centralizing software, libraries, and reference material into one consistent framework that runs on desktops, laptops, single-board computers, and ruggedized systems, or scales to distributed tactical nodes networked in the field.
 
 <p align="center">
-<img src="/docs/Icons/README/rf_re.png" width="400" height="400">
+<img src="/docs/Icons/README/ecosystem.png" width="640" height="325">
 </p>
 
+## Key Capabilities
+
+- Detect, classify, and analyze RF signals
+- Collect, replay, and manipulate IQ data
+- Discover protocols and craft custom packets
+- Execute fuzzing and vulnerability testing
+- Automate workflows with AI and ML integration
+- Archive signals and build playlists for testing
+- Integrate alerts and data into TAK for team awareness
+
 <p align="center">
-<img src="/docs/Icons/README/fissure_deployments.jpg" style="max-width: 858px; width: 100%; height: auto;">
+  <img src="/docs/Icons/README/rf_re.png" height="275">&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="/docs/Icons/README/key_capabilities1.png" height="275">
 </p>
+
+## Deployment Options
+
+- Desktop GUI for visualization and prototyping
+- Headless nodes for remote sensing and autonomous operations
+- Containerized services for scalable and repeatable installs
+- TAK integration for mission relevance and shared situational awareness
+
+---
+
+<p align="center">
+<img src="/docs/Icons/README/fissure_deployments_cropped.jpg" style="max-width: 858px; width: 100%; height: auto;">
+</p>
+
+---
+
+<p align="center">
+<img src="/docs/Icons/README/system_overview.png" style="width: 75%; height: auto;">
+</p>
+
+## Dual-Use Relevance
+
+- **Operators:** Detect, geolocate, and respond to RF activity in the field
+- **Researchers:** Test new algorithms, automation, and AI and ML approaches
+- **Educators:** Teach SDR, DSP, RF security, real-time processing, and reverse engineering in the classroom
+- **Students and Hobbyists:** Explore SDR workflows and learn about technology without steep setup overhead
+
+## Roadmap and Development
+
+FISSURE’s roadmap evolves with customer demand and community feedback.
+
+For the most up-to-date view, explore the interactive roadmap:
+
+- [View Interactive Roadmap](https://ainfosec.github.io/FISSURE/Roadmap/)  
+
+### Current Priorities
+
+- **Plugin Ecosystem:** Redefining plugin boundaries and execution, developing a standalone plugin editor, converting existing flow graph libraries into plugins, and improving how plugins are deployed on sensor nodes and loaded into TAK.
+- **TAK Integration:** Creating a WinTAK application, enhancing the bridge between TAK and FISSURE’s hub, enabling plugin/action selection directly in TAK, and strengthening alerting and coordination features.
+- **Installer & Packaging:** Breaking out installers by operating system, improving error logging, delivering prebuilt ISOs and VM images for popular platforms, and exploring Docker and Apptainer for deployable FISSURE components.
+- **Tactical Node Orchestration:** Expanding plugin support on nodes, integrating new sensor types, laying the foundation for multi-node coordination, and improving artifact recording/synchronization and networking resilience.
+- **Electronic Support / Monitoring:** Extending direction-finding and monitoring capabilities, with emphasis on practical electronic support workflows.
+
+## Videos
+
+- [FISSURE Videos](https://www.youtube.com/playlist?list=PLs4a-ctXntfjpmc_hrvI0ngj4ZOe_5xm_)
+- [AIS YouTube](https://www.youtube.com/@assuredinformationsecurity/featured)
+
+## White Papers
+
+FISSURE is supported by a series of white papers that explore both technical and operational applications across different domains.
+
+1. [FISSURE Overview](/docs/White_Papers/FISSURE_Overview.pdf)
+2. [FISSURE for Counter-UAS](/docs/White_Papers/FISSURE_CUAS.pdf)
+3. [FISSURE for UAS Payloads & Aerial Operations](/docs/White_Papers/FISSURE_UAS_Payload_Aerial_Ops.pdf)
+4. [FISSURE for Maritime](/docs/White_Papers/FISSURE_Maritime.pdf)
+5. [FISSURE for Vehicle & Mobility Systems](/docs/White_Papers/FISSURE_Vehicle_Mobility_Systems.pdf)
+6. [FISSURE for Perimeter & Infrastructure Defense](/docs/White_Papers/FISSURE_Perimeter_Infrastructure_Defense.pdf)
+7. [FISSURE for TAK & Mobile](/docs/White_Papers/FISSURE_TAK_Mobile_Integration.pdf)
+8. [FISSURE for Training & Education](/docs/White_Papers/FISSURE_Training_Education.pdf)
+9. [FISSURE Technical Details & Architecture](/docs/White_Papers/FISSURE_Technical_Details_Architecture.pdf)
+
+## Blog Posts
+
+AIS has published several articles highlighting FISSURE’s applications, updates, and use cases:
+- [Demonstrating FISSURE as a Drone Payload at Northern Strike 2025](https://www.ainfosec.com/fissure-demo-at-northern-strike)
+- [A Recap of My DEF CON 2024 Presentation on FISSURE Updates](https://www.ainfosec.com/a-recap-of-my-def-con-2024-presentation-on-fissure-updates)
+- [FISSURE: Navigating the Open-Source Realm](https://www.ainfosec.com/fissure-navigating-the-open-source-realm)
+- [FISSURE: The RF Framework for Everyone](https://www.ainfosec.com/fissure-the-rf-framework-for-everyone)
+
+[See all AIS blog posts](https://www.ainfosec.com/blog/)
 
 ## News
+
+![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
+
+**Updated Node Networking** Nodes automatically connect to the HIPRFISR/hub over IP or Meshtastic and show up in WinTAK.
+
+![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
+
+**Headless HIPRFISR/Hub** The HIPRFISR can be run without the Dashboard using the `fissure-hiprfisr` command with "auto_connect_hiprfisr=false". A remote Dashboard can then be connected to the HIPRFISR over an IP network from the status bar.
+
+![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
+
+**Apptainer Containerization** Run FISSURE inside a lightweight Apptainer container for consistent, portable deployments with full GUI and hardware access.
+
+![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
+
+**Command Line Installer** Quickly install FISSURE and its dependencies using a streamlined command line interface with mode selection and automation options.
 
 ![NEW](https://img.shields.io/badge/NEW-Documentation-brightgreen) 
 
@@ -36,47 +156,7 @@ FISSURE is particularly effective in two key domains: 1) it provides hooks for R
 
 ![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
 
-**Alert Listeners** for creating backchannels that accept alerts. Includes: folder/file changes, Meshtastic, MQTT, serial, TCP/UDP, website polling, and ZMQ SUB.
-
-![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
-
-**GPS Acquisition and Mapping** in sensor node configuration.
-
-![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
-
-**Plugins** to import and export capabilities into the FISSURE library and share with collaborators. (A work in progress)
-
-![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
-
-**Demo Menu** to aid with future automated testing and to provide examples of Dashboard operation to users.
-
-![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
-
-**Z-Wave and Ceiling Fans Lessons** to highlight FISSURE as a reverse engineering tool. [Lesson13: Z-Wave](/docs/Lessons/Markdown/Lesson13_Z-Wave.md), [Lesson14: Ceiling Fans](/docs/Lessons/Markdown/Lesson14_Ceiling_Fans.md)
-
-![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
-
-**Recall Installer Setups** Export and import checked software items in the FISSURE installer using the Export and Import buttons. Quickly install only the programs you need.
-
-![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
-
-**Local IQEngine Support** in the IQ Data tab and menu for loading in SigMF files with one click for files in the "/IQ Recordings" folder. Stop the IQEngine docker container using the Tools>Data>IQEngine menu.
-
-![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
-
-**Deployable remote sensor nodes** for general-purpose computers (SBCs, mini PCs, laptops, desktops) that support any type of peripheral that can be controlled by a computer. These remote sensor nodes run a small subset of code that can be controlled over a network through the FISSURE Dashboard GUI to perform traditional FISSURE operations and also execute new types of scripted actions that can be run autonomously on startup or semi-autonomously through user interaction (autorun playlists). 
-
-The deployment of multiple sensor nodes on the same network unlocks many geospatial applications for future development of FISSURE. Such applications include direction finding, tracking, intrusion detection, mobile deployment, and perimeter defense. A small form factor and autonomous capabilities grant unique opportunities for stealth deployment and packaging onto existing platforms. These updates can also provide a low-cost mechanism for remote workers to conduct combined RF-cybersecurity testing and access specialized RF environments like international localities of interest, laboratories, and test sites.
-
-![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
-
-**Trigger capabilities** for autorun playlists, single-stage attacks, multi-stage attacks, and archive replay. Includes over 20 examples of acoustic, environmental, filesystem, networking, RF, time, and visual triggers for kicking off electromagnetic effects. Refer to the [Trigger List](https://fissure.readthedocs.io/en/latest/pages/operation.html#trigger-list) section in the user manual for the current list and the [Creating Triggers](https://fissure.readthedocs.io/en/latest/pages/development.html#creating-triggers) section on how to add your own.
-
-![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
-
-**Signal Classifier tab** for training decision tree and DNN models based solely on extracted statistical features from IQ data. This tab is used to assign truth information to features sets (produced from Feature Extractor) gathered from isolated signals files (produced from Signal Conditioner) to develop machine learning models using TensorFlow and scikit-learn. Unknown signals can be run through all available models to compare results and establish confidence. The Signal Conditioner, Feature Extractor, and Signal Classifier tabs act as a testbed for developing new algorithms and eventually the results (isolated IQ signals, statistical features, classification confidence) will be cataloged into the FISSURE library as signals of interest for further analysis or to trigger automated actions.
-
-### Upcoming/Recent Events
+## Upcoming/Recent Events
 
 ![Conference](https://img.shields.io/badge/Event-Conference-darkgray) **Sat. August 10, 2024**: DEF CON 32 - RF Village - 1400-1500 PST. [Prerecorded Video](https://www.youtube.com/watch?v=5nYiVR-PsOc), [Live Recording](https://www.youtube.com/watch?app=desktop&v=mhbJHOGrCik)
 
@@ -180,34 +260,6 @@ The deployment of multiple sensor nodes on the same network unlocks many geospat
   </tr>  
 </table>
 
-## Videos
-
-- [FISSURE Videos](https://www.youtube.com/playlist?list=PLs4a-ctXntfjpmc_hrvI0ngj4ZOe_5xm_)
-- [AIS YouTube](https://www.youtube.com/@assuredinformationsecurity/featured)
-
-<table border="0px">
-  <tr>
-    <td><a href="https://www.youtube.com/watch?v=PGIZHhLswXg&list=PLs4a-ctXntfjpmc_hrvI0ngj4ZOe_5xm_"><img src="/docs/Icons/README/youtube_install.png" align="center" width="250" height="140"><dt align="center"><small><i><b>Install</b></i></small></dt></td>
-    <td><a href="https://www.youtube.com/watch?v=k6JbpNsTazc&list=PLs4a-ctXntfjpmc_hrvI0ngj4ZOe_5xm_"><img src="/docs/Icons/README/youtube_tsi.png" align="center" width="250" height="140"><dt align="center"><small><i><b>Target Signal Identification</b></i></small></dt></td>
-    <td><a href="https://www.youtube.com/watch?v=aGhWxKWe6pI&list=PLs4a-ctXntfjpmc_hrvI0ngj4ZOe_5xm_"><img src="/docs/Icons/README/youtube_pd.png" align="center" width="250" height="140"><dt align="center"><small><i><b>Protocol Discovery</b></i></small></dt></td>
-  </tr>
-  <tr>
-    <td><a href="https://www.youtube.com/watch?v=jeH0HtnMK10&list=PLs4a-ctXntfjpmc_hrvI0ngj4ZOe_5xm_"><img src="/docs/Icons/README/youtube_packet_crafter.png" align="center" width="250" height="140"><dt align="center"><small><i><b>Packet Crafter</b></i></small></dt></td>
-    <td><a href="https://www.youtube.com/watch?v=gKrClyGxLXY&list=PLs4a-ctXntfjpmc_hrvI0ngj4ZOe_5xm_"><img src="/docs/Icons/README/youtube_iq_data.png" align="center" width="250" height="140"><dt align="center"><small><i><b>IQ Data</b></i></small></dt></td>
-    <td><a href="https://www.youtube.com/watch?v=I8TU7boIi_U&list=PLs4a-ctXntfjpmc_hrvI0ngj4ZOe_5xm_"><img src="/docs/Icons/README/youtube_archive.png" align="center" width="250" height="140"><dt align="center"><small><i><b>Archive</b></i></small></dt></td>
-  </tr>
-  <tr>
-    <td><a href="https://www.youtube.com/watch?v=iJuMXupZkPY&list=PLs4a-ctXntfjpmc_hrvI0ngj4ZOe_5xm_"><img src="/docs/Icons/README/youtube_attack.png" align="center" width="250" height="140"><dt align="center"><small><i><b>Attack</b></i></small></dt></td>
-    <td><a href="https://www.youtube.com/watch?v=fK5h9FScwjc&list=PLs4a-ctXntfjpmc_hrvI0ngj4ZOe_5xm_"><img src="/docs/Icons/README/youtube_library.png" align="center" width="250" height="140"><dt align="center"><small><i><b>Library</b></i></small></dt></td>
-    <td><a href="https://www.youtube.com/watch?v=1f2umEKhJvE"><img src="/docs/Icons/README/GRCon22_Video.png" align="center" width="250" height="140"><dt align="center"><small><i><b>GRCon22</b></i></small></dt></td>
-  </tr>
-  <tr>
-    <td><a href="https://www.youtube.com/watch?v=5nYiVR-PsOc"><img src="/docs/Icons/README/youtube_dc32_rf_village_prerecorded.png" align="center" width="250" height="140"><dt align="center"><small><i><b>DC32 RF Village Prerecorded Talk</b></i></small></dt></td>
-    <td><a href="https://youtu.be/5UYhUi8SiK4?t=27282"><img src="/docs/Icons/README/youtube_GRCon24.png" align="center" width="250" height="140"><dt align="center"><small><i><b>GRCon24</b></i></small></dt></td>
-    <td></td>
-  </tr>   
-</table>
-
 ## Hardware
 
 The following is a list of "supported" hardware with varying levels of integration:
@@ -225,7 +277,7 @@ The following is a list of "supported" hardware with varying levels of integrati
 
 **Supported**
 
-There are now two branches within FISSURE: the Python3 branch and the Python2_maint-3.7 branch. The Python3 branch contains the latest code and has support for PyQt5 and GNU Radio versions 3.8 and 3.10. The Python2_maint-3.7 branch has been deprecated and will only be updated if specific third-party tools require GNU Radio version 3.7 or an older operating system. Only the latest minor versions of operating systems will be supported for installs and we will do our best to keep up.
+There are now two branches within FISSURE: the Python3 branch and the Python2_maint-3.7 branch. The Python3 branch contains the latest code and has support for PyQt5 and GNU Radio versions 3.8 and 3.10. The Python2_maint-3.7 branch has been deprecated and will only be updated if specific third-party tools require GNU Radio version 3.7 or an older operating system. Only the latest minor versions of operating systems will be supported for installs and we will do our best to keep up. Operating systems that have been updated and yet to be fully tested will be listed under "In-Progress."
 
 The GitHub releases provided in this repository are periodic snapshots of the project's state, intended primarily for archival purposes. These releases may not include the latest updates, bug fixes, or features currently under development. To access the most up-to-date version of the software, we strongly recommend using the main Python3 branch, which reflects ongoing development and the current state of the project.
 
@@ -233,16 +285,14 @@ FISSURE is most extensively tested on Ubuntu, making it the most validated platf
 
 Operating System | FISSURE Branch | Default GNU Radio Version
 :-------------------------:|:-------------------------:|:-------------------------:
-| BackBox Linux 8 (amd64) | Python3 | maint-3.10 |
-| Kali 23.1 (x64) | Python3 | maint-3.10 |
-| KDE neon 5.25 (x64) (6.0 not tested) | Python3 | maint-3.8 |
-| Parrot Security 6.1 (amd64) | Python3 | maint-3.10 |
-| Raspberry Pi OS (bookworm) | Python3 | maint-3.10 |
-| Ubuntu 18.04 (x64) | Python2_maint-3.7 | maint-3.7 |
-| Ubuntu 20.04 (x64) | Python3 | maint-3.8 |
-| Ubuntu 22.04 (x64) | Python3 | maint-3.10 |
-| Ubuntu 22.04 (ARM/Orange Pi) | Python3 | maint-3.10 |
-| Ubuntu 24.04 (x86) | Python3 | maint-3.10 |
+| DragonOS Noble (24.04) | Python3 | maint-3.10 |
+| Kali | Python3 | maint-3.10 |
+| Raspberry Pi OS | Python3 | maint-3.10 |
+| Ubuntu 18.04 | Python2_maint-3.7 | maint-3.7 |
+| Ubuntu 20.04 | Python3 | maint-3.8 |
+| Ubuntu 22.04 | Python3 | maint-3.10 |
+| Ubuntu 22.04 | Python3 | maint-3.10 |
+| Ubuntu 24.04 / Ubuntu ARM (Orange Pi) / Ubuntu for Raspberry Pi | Python3 | maint-3.10 |
 | Windows 11 WSL2 | See Supported Linux Version | See Supported Linux Version |
 
 **In-Progress (beta)**
@@ -251,9 +301,20 @@ These operating systems are still in beta status. They are under development and
 
 Operating System | FISSURE Branch | Default GNU Radio Version
 :-------------------------:|:-------------------------:|:-------------------------:
-| DragonOS Noble (24.04) | Python3 | maint-3.10 |
+| BackBox Linux | Python3 | maint-3.10 |
+| KDE neon | Python3 | maint-3.10 |
+| Parrot Security 6.1 | Python3 | maint-3.10 |
 
 Note: Certain software tools do not work for every OS. Refer to [Known Conflicts and Third-Party Software](https://fissure.readthedocs.io/en/latest/pages/installation.html#known-conflicts)
+
+
+**Apptainer Installs**
+
+Testing is underway with apptainer to containerize FISSURE installs. Combinations of host OS, container OS, and FISSURE install mode (full, base, Dashboard, HIPRFISR, SensorNode) are still in progress. The following are supported combinations.
+
+Host Operating System | Container Operating System | FISSURE Mode
+:-------------------------:|:-------------------------:|:-------------------------:
+| Ubuntu 24.04 | Ubuntu 24.04 | full |
 
 **Installation** 
 
@@ -336,6 +397,7 @@ If any of the programs freeze or hang on close, the following commands can be us
 sudo ps -aux | grep fissure
 sudo pkill python3
 sudo kill -9 <PID of __main__.py>
+sudo pkill python3 && sudo pkill -9 -f fissure
 ```
 
 **Remote Sensor Node Usage**
@@ -377,6 +439,69 @@ Install FISSURE in Linux Terminal:
 1. `sudo apt-get install git`
 2. Clone FISSURE and install as detailed above
 
+**TAK Setup**
+
+To install and run a local TAK server:
+
+1. Register and download the TAK server docker zip from the website: https://tak.gov/products/tak-server
+2. Create the `~/Installed_by_FISSURE` directory if it does not exist
+3. Place the downloaded .zip file in `~/Installed_by_FISSURE`
+4. Run the TAK Server item in the FISSURE installer
+5. For local WebTAK, load the `~/Installed_by_FISSURE/taskerver-docker-#.#-RELEASE-##/tak/certs/files/webadmin.p12` file into your browser (settings>certificates)
+6. Set "tak_on_startup" field to True in `/FISSURE/YAML/User Configs/default.yaml` or select "Start Docker Containers" from the FISSURE Dashboard TAK menu
+7. Open WebTAK from FISSURE TAK menu and verify map loads with internet connection
+8. Set "connect_mode" (auto/manual/disabled) field in `/FISSURE/YAML/User Configs/default.yaml`. Connect to TAK server in FISSURE Dashboard TAK menu if set to manual.
+9. Run a FISSURE effect that creates a TAK alert (examples coming soon)
+
+To connect to a remote TAK server:
+
+1. Update the certificate filepaths in `/FISSURE/YAML/User Configs/default.yaml`
+2. Set "connect_mode" (auto/manual/disabled) field in `/FISSURE/YAML/User Configs/default.yaml`. Connect to TAK server in FISSURE Dashboard TAK menu if set to manual.
+3. Run a FISSURE effect that creates a TAK alert (examples coming soon)
+
+**Apptainer Setup**
+
+Apptainer is used to containerize most of the FISSURE installation, making deployment and testing simpler across different systems. While the majority of FISSURE runs inside the Apptainer environment, several components still require setup on the **host**:
+
+- **Docker containers** (such as the PostgreSQL database and TAK Server) run on the **host**, not inside Apptainer.  
+- **udev rules, USB drivers, and hardware interfaces** must also be installed on the host for SDRs, Wi-Fi adapters, and other peripherals to function properly.
+
+Pre-built Apptainer containers and ISO images are planned for future releases to simplify setup. These instructions are intended for users who want to **build the Apptainer container from source** or customize their installation.
+
+1. **Clone the FISSURE Repository**
+
+2. **Configure the Installer**
+   - Open `FISSURE/install_apptainer.sh` in a text editor.  
+   - Review and adjust the variables near the top of the script.  
+     Set each option (`true` / `false`) according to what you want to include (e.g., `UHD`, `HackRF`, `Wi-Fi`, etc.).  
+   - Choose the desired FISSURE install mode:
+     - `full` - Includes all SDR software, network tools, and utilities 
+     - `base` - Core FISSURE + GUI dependencies only (for expediting future container building)
+     - `Dashboard` - GUI-only container (no SDR tools)  
+     - `HIPRFISR` - Headless HIPRFISR server build
+     - `SensorNode` - Sensor node build only  
+
+3. **Run the Installer**
+   ```bash
+   cd FISSURE/Installer
+   ./install_apptainer.sh
+   ```
+   This builds a writable **Apptainer sandbox** in your home directory and installs all selected software inside the container and on the host (where applicable).
+
+4. **Launch the Container**
+   ```bash
+   fissure-apptainer
+   ```
+   This command opens a terminal inside the FISSURE container with **USB ports, audio devices, and graphics** automatically bound for hardware and GUI access.
+
+5. **Run FISSURE**
+   Once inside the container, run FISSURE just as you would on a normal system:
+   ```bash
+   fissure
+   fissure-sensor-node
+   ```
+   The environment behaves like a standard install, but more isolated from the host. If you encounter issues while using FISSURE inside Apptainer, please let us know which programs, hardware, or features are not working correctly.
+
 ## Lessons
 
 FISSURE comes with several helpful guides to become familiar with different technologies and techniques. Many include steps for using various tools that are integrated into FISSURE. We aim to improve the quality and add new content over time.
@@ -395,68 +520,7 @@ FISSURE comes with several helpful guides to become familiar with different tech
 - [Lesson13: Z-Wave](/docs/Lessons/Markdown/Lesson13_Z-Wave.md)
 - [Lesson14: Ceiling Fans](/docs/Lessons/Markdown/Lesson14_Ceiling_Fans.md)
 
-## Roadmap
-
-### Phase I
-
-- [x] Provide links to videos in the README and AIS website
-- [x] Create new FISSURE logo
-- [ ] Update documentation to instruct users how to work within the framework
-- [ ] Provide base support for hardware already on the market
-- [ ] Identify the most desirable third-party tools within the community
-- [x] Identify the most desirable operating systems within the community
-- [x] Release a signal conditioner that allows users to select and add techniques for isolating and conditioning signals from large streams of IQ data
-- [x] Release a feature extractor that allows users to select and add techniques for extracting features from isolated signals for use in protocol and emitter classification
-- [x] Release a signal classifier that allows users to select and add AI/ML techniques. In addition, a decision tree with adjustable features and weights.
-- [ ] Implement recursive demodulation mechanisms for producing a bitstream from unknown signals
-- [x] Increase the online signal archive, support download of selectable collections
-- [x] Support the addition of both closed source and user-developed plugins
-- [ ] Improve the look for different resolutions and window sizes, dark mode
-- [x] Group third-party programs in the installer by type
-- [x] Resolve DragonOS conflicts
-
-### Phase II
-
-- [x] Transition the main FISSURE components to a generic sensor node deployment scheme
-- [ ] Increase automation and information exchange between components
-- [x] Transition the FISSURE library into a database
-- [ ] Support alternative FISSURE packaging options
-- [ ] Add automatic modulation classification (AMC) techniques to the feature extractor
-- [ ] Support user selection of binary data and pattern analysis techniques
-- [ ] Improve custom Wireshark dissectors to be protocol-based and not message-based
-- [ ] Produce confidence levels against bit sequences for protocols and messages already in the library
-- [ ] Insert vulnerability analysis and automation to attacks
-- [ ] Improve the mechanism for fuzzing
-- [ ] Improve measurement, analysis, and visualization in IQ Data tab: radar data, frequency deviation, SigMF annotations
-- [ ] Create archive playlists to simulate environments
-- [ ] Develop formal classes around FISSURE (RF Attacks, Wi-Fi, GNU Radio, PyQt, etc.)
-- [ ] Expand on other untouched areas for RF and cyber (tracking, direction finding, war driving, etc.)
-
-### Phase III
-
-- [ ] Improve operational performance
-- [ ] Expand to other platforms
-- [ ] Insert customization for different RF environments and applications
-- [ ] Offer professional training
-
-### Concurrent
-
-- [ ] Clean up code, remove bugs
-- [ ] Add new help material
-- [ ] Improve status messages, system feedback, and visualization for the user
-- [ ] Integrate new hardware types as they are released
-- [ ] Expand RF protocols in list and library
-- [ ] Expand signal parameters in library
-- [ ] Expand third-party analysis tools and reference material
-- [ ] Expand support for specific operating systems
-- [ ] Produce and modify lesson material
-- [ ] Test and distribute attacks across existing hardware types (where applicable)
-- [ ] Improve installer: clean up commands, add more checks, fix broken installations
-- [ ] Provide yearly capture-the-flag contests around FISSURE
-- [ ] Support new GNU Radio releases
-- [ ] Update the project idea list every year
-
-## FISSURE Challenge
+## FISSURE Challenge - Continuous Capture the Flag
 
 <p align="center">
   <a href="https://fissure.ainfosec.com/">
@@ -464,13 +528,13 @@ FISSURE comes with several helpful guides to become familiar with different tech
   </a>
 </p>
 
-The "FISSURE Challenge" capture-the-flag contest has been updated to be an indefinite learning tool instead of an annual event. Challenges will be added over time to showcase new features and RF protocols. Solutions will be posted periodically on YouTube. You are welcome to submit your own challenges for others to try.
+The **FISSURE Challenge** is a continuous capture-the-flag contest built around the FISSURE framework. It is designed as an open learning tool where anyone can practice RF reverse engineering, explore new features, and tackle protocol-focused challenges.  
+
+- New challenges are added over time as FISSURE evolves.  
+- Solutions and walkthroughs are posted periodically on YouTube. [Solutions 1](https://www.youtube.com/watch?v=jYtqWwG_-kI)
+- Community members are encouraged to **submit their own challenges** for others to solve.
 
 Access the challenges at: [FISSURE Challenge](https://fissure.ainfosec.com/)
-
-Can't figure something out? View solutions at:
-- [Solutions 1](https://www.youtube.com/watch?v=jYtqWwG_-kI)
-
 
 ## Contributing
 
@@ -521,6 +585,14 @@ Chris Poore - Assured Information Security, Inc. - poorec@ainfosec.com
 
 Business Development - Assured Information Security, Inc. - bd@ainfosec.com
 
+## Testimonials
+
+> “FISSURE is a powerful and versatile RF software platform suitable for both education and practical applications. It supports a wide range of commonly used hardware and offers intuitive IQ data analysis tools. These features enable us to visualize, interpret, and directly modify RF signal messages in our project.”  
+> – Dylan R.
+
+> “We really enjoyed using FISSURE in our engineering project. This software is an incredibly comprehensive collection of tools to manipulate radio frequencies and was an amazing aid to our studies involving wireless communications.”  
+> – University Senior Project Team
+
 ## Acknowledgments
 
 Special thanks to Dr. Samuel Mantravadi and Joseph Reith for their contributions to this project.
@@ -528,6 +600,9 @@ Special thanks to Dr. Samuel Mantravadi and Joseph Reith for their contributions
 <img src="/docs/Icons/README/logo1.png">
 
 ## Assured Information Security
+
+View our other open source projects at: https://ainfosec.dev/
+
 Like working with signals, reverse engineering, or other realms in cybersecurity? Browse our [current openings](https://recruiting.paylocity.com/recruiting/jobs/All/4cc515ee-a8ad-4e3a-ac7d-c105c5d24074/ASSURED-INFORMATION-SECURITY-INC) or join our [talent community](https://recruiting.paylocity.com/Recruiting/PublicLeads/New/4cc515ee-a8ad-4e3a-ac7d-c105c5d24074) for future consideration. 
 
 If you have an interest in hacking, check out our [Can You Hack It?®](https://www.canyouhackit.com) challenge and test your skills! Submit your score to show us what you’ve got. AIS has a national footprint with offices and remote employees across the U.S. We offer competitive pay and outstanding benefits. Join a team that is not only committed to the future of cyberspace, but to our employee’s success as well.

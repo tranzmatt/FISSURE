@@ -1,0 +1,43 @@
+Sensor Node:
+     archive: ''
+     attack: ''
+     autorun: false
+     autorun_delay_seconds: 3
+     autorun_interval_seconds: 3
+     console_logging_level: 'INFO'     
+     enabled_disabled: enabled
+     file_logging_level: 'DEBUG'
+     gps:
+          gps_autostart: true
+          gps_tak_beacon: true            # Beacons to HIPRFISR, forwards to TAK
+          gps_position:                    # Default starting position
+               latitude: 40.712776
+               longitude: -74.005974
+               altitude: 10.5
+          gps_source: gpsd           # Options: gpsd, Meshtastic, saved, internet
+          gps_update_interval_seconds: 5
+          gpsd_serial_port: '/dev/gps_usb'
+     heartbeat_interval: 10
+     hb_port: '6100'     
+     ip_address: '127.0.0.1'               # '127.0.0.1' for local, anything else for remote
+     iq:
+          0:
+               daughterboard: ''
+               ip_address: ''
+               network_interface: ''
+               radio_name: ''
+               serial: ''
+               type: ''
+               uid: ''
+     local_remote: remote                   # Does not need to be set, updated during init, "remote" or "local"
+     location: small payload
+     msg_port: '6101'
+     network_type: Meshtastic                      # "IP" or "Meshtastic"
+     nickname: Pi Tactical Node           # "Local Sensor Node" for local, anything else for remote
+     notes: Pi with Meshtastic
+     pd: ''
+     meshtastic_serial_port: '/dev/meshtastic'  # Typically /dev/ttyACM0, /dev/tty/USB0 (make sure gpsd service does not grab port)
+     meshtastic_serial_baud_rate: '115200'
+     tsi: ''
+
+

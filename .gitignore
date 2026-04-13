@@ -2,8 +2,20 @@
 routersploit.log
 Logs/event.log
 certificates/
+Installer/fissure_install.log
 
+# CoT message logging
+Logs/CoT_Logs/
 
+# Plugins
+Plugins/*
+!Plugins/plugin_template/
+!Plugins/tpms/
+!Plugins/wifi/
+!Plugins/plugin_template/**
+!Plugins/tpms/**
+!Plugins/wifi/**
+!Plugins/test/
 
 # MacOS Files
 .DS_Store
@@ -21,3 +33,4 @@ certificates/
 .env  # Some currently unused env files, but often contains secrets, so better be safe than sorry
 .venv
 env.py
+artifacts*

@@ -11,6 +11,7 @@ import ast
 from fissure.Dashboard.Slots import AttackTabSlots
 import json
 import csv
+import re
 
 @QtCore.pyqtSlot(QtCore.QObject)
 def _slotSensorNodeAutorunTableDelayChecked(state: int, dashboard: QtCore.QObject):
@@ -1436,3 +1437,122 @@ def _slotSensorNodesReportsSaveClicked(dashboard: QtCore.QObject):
             dashboard.logger.error(f"Error saving file: {e}")
     else:
         dashboard.logger.debug("File save dialog was canceled.")
+
+@qasync.asyncSlot(QtCore.QObject)
+async def _slotSensorNodesPluginSelected(dashboard: QtCore.QObject):
+    """ 
+    Slot to handle the selection of a plugin from the dropdown.
+    This will populate the operations list with the available operations for the selected plugin.
+    """
+    # Get selected plugin
+    selected_plugin = str(dashboard.ui.comboBox_select_plugin.currentText())
+
+    # Clear previous operations
+    combobox_ops: QtWidgets.QComboBox = dashboard.ui.comboBox_select_plugin_op
+    combobox_ops.clear()
+    params_table: QtWidgets.QTableWidget = dashboard.ui.tableWidget_plugin_op_params
+    params_table.setRowCount(0)  # Clear previous parameters
+    res_table: QtWidgets.QTableWidget = dashboard.ui.tableWidget_plugin_op_resources
+    res_table.setRowCount(0)  # Clear previous resources
+    iface_table: QtWidgets.QTableWidget = dashboard.ui.tableWidget_plugin_op_interfaces
+    iface_table.setRowCount(0)  # Clear previous interface
+
+    # If no plugin is selected, return
+    if not selected_plugin:
+        return
+
+    # Send request to get plugin parameters
+    PARAMETERS = {
+        "plugin": selected_plugin,
+    }
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+        fissure.comms.MessageFields.MESSAGE_NAME: "plugin_get_operations",
+        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    }
+    await dashboard.backend.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+@qasync.asyncSlot(QtCore.QObject)
+async def _slotSensorNodesOperationRun(dashboard: QtCore.QObject):
+    """ 
+    Slot to run a plugin operation.
+    """
+    # Get parameters for the plugin operation
+    parameters = {}
+    params_table: QtWidgets.QTableWidget = dashboard.ui.tableWidget_plugin_op_params
+    for row in range(params_table.rowCount()):
+        value_item = params_table.item(row, 0)  # User entered value
+        if value_item is None:
+            required = bool(params_table.item(row, 2)) # get required state
+            if required:
+                value_item = params_table.item(row, 1)  # default value
+                if value_item is None:
+                    fissure.Dashboard.UI_Components.Qt5.errorMessage(f"Parameter '{params_table.verticalHeaderItem(row).text()}' is required but not provided.")
+                    return
+                parameters[params_table.verticalHeaderItem(row).text()] = value_item.text()
+
+        else:
+            parameters[params_table.verticalHeaderItem(row).text()] = value_item.text()
+
+    combobox_plugin: QtWidgets.QComboBox = dashboard.ui.comboBox_select_plugin
+    combobox_op: QtWidgets.QComboBox = dashboard.ui.comboBox_select_plugin_op
+    PARAMETERS = {
+        "sensor_node_id": dashboard.active_sensor_node,
+        "plugin": combobox_plugin.currentText(),
+        "operation": combobox_op.currentText(),
+        "parameters": parameters
+    }
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+        fissure.comms.MessageFields.MESSAGE_NAME: "run_plugin_operation",
+        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    }
+    await dashboard.backend.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+@qasync.asyncSlot(QtCore.QObject)
+async def _slotSensorNodesOperationStop(dashboard: QtCore.QObject):
+    """ 
+    Slot to stop a plugin operation.
+    """
+    ops_table: QtWidgets.QListWidget = dashboard.ui.listWidget_operations
+    selected_items = ops_table.selectedItems()
+    if not selected_items:
+        fissure.Dashboard.UI_Components.Qt5.errorMessage("Please select an operation to stop.")
+        return
+    selected_item = selected_items[0]
+    selected_text = selected_item.text()
+    match = re.search(r"\(ID:\s*([a-fA-F0-9\-]+)\)", selected_text)
+    if match:
+        operation_id = match.group(1)
+    else:
+        fissure.Dashboard.UI_Components.Qt5.errorMessage("Could not extract operation ID from selection.")
+        return
+
+    PARAMETERS = {
+        "sensor_node_id": dashboard.active_sensor_node,
+        "operation_id": operation_id,
+    }
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+        fissure.comms.MessageFields.MESSAGE_NAME: "stop_plugin_operation",
+        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    }
+    await dashboard.backend.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+@qasync.asyncSlot(QtCore.QObject)
+async def _slotSensorNodesPluginOperationOpen(dashboard: QtCore.QObject):
+    """ 
+    Slot to open a plugin operation.
+    """
+    combobox_plugin: QtWidgets.QComboBox = dashboard.ui.comboBox_select_plugin
+    combobox_op: QtWidgets.QComboBox = dashboard.ui.comboBox_select_plugin_op
+    PARAMETERS = {
+        "plugin": combobox_plugin.currentText(),
+        "operation": combobox_op.currentText(),
+    }
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+        fissure.comms.MessageFields.MESSAGE_NAME: "plugin_get_operation_parameters",
+        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    }
+    await dashboard.backend.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)

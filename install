@@ -1,169 +1,200 @@
 #!/bin/bash
 
 ########################################
+#        FISSURE Main Installer        #
+#  (Supports GUI and Headless Modes)   #
+########################################
+
+# Usage:
+#   Interactive: ./install
+#   Headless:    ./install --os "Ubuntu 24.04" --mode full
+#
+#   Modes: full | base | HIPRFISR | Dashboard | SensorNode | custom
+
+
+########################################
+#         Parse Command-Line Args      #
+########################################
+OS_ARG=""
+MODE_ARG=""
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --os)
+            OS_ARG="$2"
+            shift
+            ;;
+        --mode)
+            MODE_ARG="$2"
+            shift
+            ;;
+        *)
+            echo "Unknown argument: $1"
+            echo "Usage: ./install --os \"Ubuntu 24.04\" --mode full"
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+
+########################################
+#       Skip GUI if Args Provided      #
+########################################
+if [[ -n "$OS_ARG" && -n "$MODE_ARG" ]]; then
+    echo "[*] Running non-interactive installation for $OS_ARG ($MODE_ARG mode)"
+    export FISSURE_OS="$OS_ARG"
+    export FISSURE_MODE="$MODE_ARG"
+    SKIP_GUI=1
+else
+    SKIP_GUI=0
+fi
+
+
+########################################
 #        Check Operating System        #
 ########################################
-arch_linux=$(cat /etc/os-release 2>&1 | grep "arch")  # Arch Linux does not come with lsb_release command
-if [[ -n "$arch_linux" ]]
-then
+arch_linux=$(cat /etc/os-release 2>&1 | grep "arch")  # Arch Linux lacks lsb_release
+if [[ -n "$arch_linux" ]]; then
     echo "Arch Linux detected"
     sudo pacman -S lsb-release
 else
     ubuntu20_04=$(lsb_release -d 2>&1 | grep "Ubuntu 20.04")
     parrot_os=$(lsb_release -d 2>&1 | grep "Parrot")
     dragonOS_focal=$(lsb_release -d 2>&1 | grep "DragonOS Focal$")
-    #dragonOS_focalx=$(lsb_release -d 2>&1 | grep "DragonOS FocalX")  # May print old version after upgrade to FocalX
+    dragonOS_noble=$(lsb_release -d 2>&1 | grep "DragonOS Noble$")
     dragonOS_focalx=$(cat /etc/os-dragonos 2>&1 | grep "DragonOS FocalX")
     kde_neon=$(lsb_release -d 2>&1 | grep "KDE neon")
     ubuntu18_04=$(lsb_release -d 2>&1 | grep "Ubuntu 18.04")
     ubuntu22_04=$(lsb_release -d 2>&1 | grep "Ubuntu 22.04")
     kali23_1=$(lsb_release -d 2>&1 | grep "Kali")
     backbox=$(cat /etc/issue -d 2>&1 | grep "BackBox")
-    raspberry_pi_os=$(lsb_release -d 2>&1 | grep "bookworm")
+    raspberry_pi_os_bookworm=$(lsb_release -d 2>&1 | grep "bookworm")
+    raspberry_pi_os_trixie=$(lsb_release -d 2>&1 | grep "trixie")
     ubuntu24_04=$(lsb_release -d 2>&1 | grep "Ubuntu 24.04")
 fi
+
 
 ########################################
 #            Print Detected            #
 ########################################
-# Ubuntu 20.04
-if [[ -n "$ubuntu20_04" ]]
-then
+if [[ -n "$ubuntu20_04" ]]; then
     echo "Ubuntu 20.04 detected"
 fi
 
-# DragonOS Focal
-if [[ -n "$dragonOS_focal" ]]
-then
+if [[ -n "$dragonOS_focal" ]]; then
     echo "DragonOS Focal detected. Focal is no longer supported. Update to FocalX."
     exit
 fi
 
-# KDE neon 5.25
-if [[ -n "$kde_neon" ]]
-then
+if [[ -n "$dragonOS_noble" ]]; then
+    echo "DragonOS Noble detected"
+fi
+
+if [[ -n "$kde_neon" ]]; then
     kde_version=$(lsb_release -d 2>&1 | grep "5.25")
-    if [[ -n "$kde_version" ]]
-    then
+    if [[ -n "$kde_version" ]]; then
         echo "KDE neon 5.25 detected"
     fi
 fi
 
-# Ubuntu 22.04
-if [[ -n "$ubuntu22_04" ]]
-then
+if [[ -n "$ubuntu22_04" ]]; then
     echo "Ubuntu 22.04 detected"
-    ubuntu_arm=$(lscpu 2>&1 | grep "ARM")
-    if [[ -n "$ubuntu_arm" ]]
-    then
-        echo "ARM detected"
-    fi
 fi
 
-# Kali 23.1
-if [[ -n "$kali23_1" ]]
-then
+if [[ -n "$kali23_1" ]]; then
     echo "Kali detected"
 fi
 
-# DragonOS FocalX
-if [[ -n "$dragonOS_focalx" ]]
-then
+if [[ -n "$dragonOS_focalx" ]]; then
     echo "DragonOS FocalX detected"
 fi
 
-# BackBox
-if [[ -n "$backbox" ]]
-then
+if [[ -n "$backbox" ]]; then
     echo "BackBox detected"
 fi
 
-# Raspberry Pi OS
-if [[ -n "$raspberry_pi_os" ]]
-then
+if [[ -n "$raspberry_pi_os_bookworm" ]]; then
     echo "Raspberry Pi OS (bookworm) detected"
 fi
 
-# Parrot OS
-if [[ -n "$parrot_os" ]]
+if [[ -n "$raspberry_pi_os_trixie" ]]
 then
+    echo "Raspberry Pi OS (trixie) detected"
+fi
+
+if [[ -n "$parrot_os" ]]; then
     echo "Parrot OS detected"
 fi
 
-# Ubuntu 24.04
-if [[ -n "$ubuntu24_04" ]]
-then
+if [[ -n "$ubuntu24_04" ]]; then
     echo "Ubuntu 24.04 detected"
 fi
 
-# Python2-maint_3.7, Ubuntu 18.04
-if [[ -n "$ubuntu18_04" ]]
-then    
-    echo "This branch is not for Ubuntu 18.04 variants. Switch to the Python2_maint-3.7 branch and try again!"
+if [[ -n "$ubuntu18_04" ]]; then
+    echo "This branch is not for Ubuntu 18.04. Switch to Python2_maint-3.7 branch and retry."
     exit
 fi
+
 
 ########################################
 #            Check for Qt5             #
 ########################################
-qt5_version=$(qmake --version | grep "version 5")
-if [[ -z "$qt5_version" ]]
-then
+qt5_version=$(qmake --version 2>/dev/null | grep "version 5")
+if [[ -z "$qt5_version" ]]; then
     echo "No Qt5 found."
-    read -p "Qt5 is required to open the installer. Proceeding with this operation will install the missing packages and open the installer. Do you want to proceed? [y]/n: " yn
-    case $yn in
-        # No
-        [Nn]* ) exit;;       
-        
-        # Yes/Everything Else
-        * ) 
-            # Ubuntu 20.04
-            if [[ -n "$ubuntu20_04" ]]
-            then
+
+    if [[ "$SKIP_GUI" -eq 1 ]]; then
+        echo "[*] Headless mode detected — installing Qt5 dependencies automatically..."
+        AUTO_INSTALL_QT=1
+    else
+        read -p "Qt5 is required to open the installer. Install now? [Y/n]: " yn
+        case $yn in
+            [Nn]*) exit ;;
+            *) AUTO_INSTALL_QT=1 ;;
+        esac
+    fi
+
+    if [[ "$AUTO_INSTALL_QT" -eq 1 ]]; then
+        if [[ -n "$ubuntu20_04" ]]; then
+            sudo apt-get update
+            sudo apt-get install -y build-essential qtcreator qt5-default python3-pyqt5 fonts-ubuntu
+        fi
+
+        if [[ -n "$kde_neon" ]]; then
+            kde_version=$(lsb_release -d 2>&1 | grep "5.25")
+            if [[ -n "$kde_version" ]]; then
                 sudo apt-get update
-                sudo apt-get install -y build-essential
-                sudo apt-get install -y qtcreator
-                sudo apt-get install -y qt5-default
-                sudo apt-get install -y python3-pyqt5
-                sudo apt-get install -y fonts-ubuntu
+                sudo apt-get install -y build-essential qtcreator qt5-default python3-pyqt5 fonts-ubuntu
             fi
-            
-            # KDE Neon
-            if [[ -n "$kde_neon" ]]
-            then
-                kde_version=$(lsb_release -d 2>&1 | grep "5.25")
-                if [[ -n "$kde_version" ]]
-                then
-                    # KDE neon 5.25
-                    sudo apt-get update
-                    sudo apt-get install -y build-essential 
-                    sudo apt-get install -y qtcreator
-                    sudo apt-get install -y qt5-default
-                    sudo apt-get install -y python3-pyqt5
-                    sudo apt-get install -y fonts-ubuntu
-                fi                            
-            fi
-              
-            # Ubuntu 22.04, Kali 23.1, BackBox, Ubuntu 24.04
-            if [[ -n "$ubuntu22_04" ]] || [[ -n "$kali23_1" ]] || [[ -n "$backbox" ]] || [[ -n "$raspberry_pi_os" ]] || [[ -n "$parrot_os" ]] || [[ -n "$ubuntu24_04" ]]
-            then
-                sudo apt-get update
-                sudo apt-get install -y build-essential
-                sudo apt-get install -y qtcreator
-                sudo apt-get install -y qtbase5-dev
-                sudo apt-get install -y qtchooser
-                sudo apt-get install -y qt5-qmake
-                sudo apt-get install -y qtbase5-dev-tools
-                sudo apt-get install -y python3-pyqt5
-                sudo apt-get install -y fonts-ubuntu
-            fi
-        ;;
-    esac
+        fi
+
+        if [[ -n "$ubuntu22_04" ]] || [[ -n "$kali23_1" ]] || [[ -n "$backbox" ]] || [[ -n "$raspberry_pi_os_bookworm" ]] \
+          || [[ -n "$raspberry_pi_os_trixie" ]] || [[ -n "$parrot_os" ]] || [[ -n "$ubuntu24_04" ]]; then
+            sudo apt-get update
+            sudo apt-get install -y build-essential qtcreator qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools python3-pyqt5 fonts-ubuntu
+        fi
+    fi
 fi
+
 
 ########################################
 #        Run the Full Installer        #
 ########################################
 DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-$DIR/Installer/installer
+LOGFILE="$DIR/Installer/fissure_install.log"
 
+# Log both bash and python output
+exec > >(tee -a "$LOGFILE") 2>&1
+
+echo "[*] Starting installer at $(date)"
+
+if [[ "$SKIP_GUI" -eq 1 ]]; then
+    echo "[*] Launching headless Python installer..."
+    python3 -u "$DIR/Installer/installer" --headless
+else
+    echo "[*] Launching interactive GUI installer..."
+    python3 -u "$DIR/Installer/installer"
+fi
+
+echo "[*] Finished at $(date)"
