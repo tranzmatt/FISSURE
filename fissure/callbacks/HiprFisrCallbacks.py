@@ -4483,42 +4483,75 @@ async def stop_plugin_operation(component: object, node_uid: str, operation_id: 
     )
 
 
-async def stop_all_plugin_operations(component: object, requester_uid: str, node_uid: str):
-    """Stop all running plugin operations on the sensor node.
+async def stop_all_plugin_operations(
+    component: object,
+    requester_uid: str,
+    requester_type: str,
+    node_uids: List[str],
+):
+    """Stop all running plugin operations on selected sensor nodes.
 
     Parameters
     ----------
     component : object
         Component.
     requester_uid : str
-        TAK UID.
-    node_uid : str
-        Sensor node UID.
+        Requesting client UID.
+    requester_type : str
+        dashboard, tak, or broadcast.
+    node_uids : List[str]
+        List of sensor node UIDs.
     """
-    component.logger.info(f"Stopping all plugin operations on sensor node {node_uid}")
-    PARAMETERS = {
-        "node_uid": node_uid
-    }
-    msg = {
-        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
-        fissure.comms.MessageFields.MESSAGE_NAME: "stop_all_plugin_operations",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-    }
-
-    # Resolve Identity
-    identity = component.nodes[node_uid].get("identity", None)
-    if identity is None:
+    if not node_uids:
+        component.logger.warning(
+            "No node UIDs provided for stop_all_plugin_operations."
+        )
         return
-    
-    # Send through ROUTER
-    await component.sensor_node_router.send_msg(
-        fissure.comms.MessageTypes.COMMANDS,
-        msg,
-        target_ids=[identity]
-    )
+
+    for node_uid in node_uids:
+        component.logger.info(
+            f"Stopping all plugin operations on sensor node {node_uid}"
+        )
+
+        node_record = component.nodes.get(node_uid)
+        if not node_record:
+            component.logger.warning(
+                f"Cannot stop plugin operations for unknown node UID: {node_uid}"
+            )
+            continue
+
+        identity = node_record.get("identity", None)
+        if identity is None:
+            component.logger.warning(
+                f"Cannot stop plugin operations for node {node_uid}: missing identity."
+            )
+            continue
+
+        PARAMETERS = {
+            "requester_uid": requester_uid,
+            "requester_type": requester_type,
+        }
+
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+            fissure.comms.MessageFields.MESSAGE_NAME: "stop_all_plugin_operations",
+            fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+        }
+
+        await component.sensor_node_router.send_msg(
+            fissure.comms.MessageTypes.COMMANDS,
+            msg,
+            target_ids=[identity],
+        )
 
 
-async def sendPluginNamesTak(component: object, requester_uid: str, node_uid: str, tak_context: str):
+async def sendPluginNamesTak(
+    component: object, 
+    requester_uid: str, 
+    requester_type: str, 
+    node_uid: str, 
+    tak_context: str
+):
     """Request Sensor Node plugin names for TAK
 
     Parameters
@@ -4527,6 +4560,8 @@ async def sendPluginNamesTak(component: object, requester_uid: str, node_uid: st
         Component
     requester_uid : str
         TAK unique identifier
+    requester_type : str
+        dashboard, tak, or broadcast
     node_uid : str
         Sensor node UUID
     tak_context : str
@@ -4534,6 +4569,7 @@ async def sendPluginNamesTak(component: object, requester_uid: str, node_uid: st
     """
     PARAMETERS = {
         "requester_uid": requester_uid,
+        "requester_type": requester_type,
         "node_uid": node_uid,
         "tak_context": tak_context
     }
@@ -4556,7 +4592,14 @@ async def sendPluginNamesTak(component: object, requester_uid: str, node_uid: st
     )
 
 
-async def sendPluginNamesTakResults(component: object, requester_uid: str, node_uid: str, plugin_names: List[str], tak_context: str):
+async def sendPluginNamesTakResults(
+    component: object, 
+    requester_uid: str, 
+    requester_type: str, 
+    node_uid: str, 
+    plugin_names: List[str], 
+    tak_context: str
+):
     """Handle Sensor Node plugin names for TAK
 
     Parameters
@@ -4565,6 +4608,8 @@ async def sendPluginNamesTakResults(component: object, requester_uid: str, node_
         Component
     requester_uid : str
         TAK unique identifier
+    requester_type : str
+        dashboard, tak, or broadcast        
     node_uid : str
         Sensor node UID
     plugin_names : List[str]
@@ -4595,10 +4640,17 @@ async def sendPluginNamesTakResults(component: object, requester_uid: str, node_
             }
         }
 
-    await fissure.utils.tak_messages.send(component, msg)
+    await fissure.utils.tak_messages.send(component, msg, requester_type, requester_uid)
 
 
-async def sendPluginActionNamesTak(component: object, requester_uid: str, plugin_name: str, node_uid: str, tak_context: str):
+async def sendPluginActionNamesTak(
+    component: object, 
+    requester_uid: str, 
+    requester_type: str, 
+    plugin_name: str, 
+    node_uid: str, 
+    tak_context: str
+):
     """Request Sensor Node plugin action names for TAK
 
     Parameters
@@ -4607,6 +4659,8 @@ async def sendPluginActionNamesTak(component: object, requester_uid: str, plugin
         Component
     requester_uid : str
         TAK unique identifier
+    requester_type : str
+        dashboard, tak, or broadcast         
     plugin_name : str
         Plugin name
     node_uid : str
@@ -4616,6 +4670,7 @@ async def sendPluginActionNamesTak(component: object, requester_uid: str, plugin
     """
     PARAMETERS = {
         "requester_uid": requester_uid,
+        "requester_type": requester_type,
         "plugin_name": plugin_name,
         "node_uid": node_uid,
         "tak_context": tak_context
@@ -4642,6 +4697,7 @@ async def sendPluginActionNamesTak(component: object, requester_uid: str, plugin
 async def sendPluginActionNamesTakResults(
     component: object, 
     requester_uid: str, 
+    requester_type: str, 
     node_uid: str, 
     plugin_name: str, 
     action_names: List[str], 
@@ -4657,6 +4713,8 @@ async def sendPluginActionNamesTakResults(
         TAK unique identifier
     node_uid : str
         Sensor node UID
+    requester_type : str
+        dashboard, tak, or broadcast       
     plugin_name : str
         Plugin name
     action_names : List[str]
@@ -4690,54 +4748,92 @@ async def sendPluginActionNamesTakResults(
             }
         }
 
-    await fissure.utils.tak_messages.send(component, msg)
+    await fissure.utils.tak_messages.send(component, msg, requester_type, requester_uid)
 
 
-async def sendPluginActionTak(component: object, requester_uid: str, node_uid: str, plugin_name: str, action_name: str, parameters: dict):
-    """Request Sensor Node plugin action for TAK
+async def sendPluginActionTak(
+    component: object,
+    requester_uid: str,
+    requester_type: str,
+    node_uids: List[str],
+    plugin_name: str,
+    action_name: str,
+    parameters: dict,
+):
+    """Request Sensor Node plugin action for selected sensor nodes.
 
     Parameters
     ----------
     component : object
-        Component
+        Component.
     requester_uid : str
-        TAK unique identifier
-    node_uid : str
-        Sensor node UID
+        Requesting client UID.
+    requester_type : str
+        dashboard, tak, or broadcast.
+    node_uids : List[str]
+        List of sensor node UIDs.
     plugin_name : str
-        Plugin name
+        Plugin name.
     action_name : str
-        Plugin action name
+        Plugin action name.
     parameters : dict
-        Plugin action parameters
+        Plugin action parameters.
     """
-    PARAMETERS = {
-        "plugin_name": plugin_name,
-        "action_name": action_name,
-        "node_uid": node_uid,
-        "parameters": parameters,
-    }
-    msg = {
-        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
-        fissure.comms.MessageFields.MESSAGE_NAME: "plugin_action",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-    }
-
-    # Resolve Identity
-    identity = component.nodes[node_uid].get("identity", None)
-    if identity is None:
+    if not node_uids:
+        component.logger.warning("No node UIDs provided for sendPluginActionTak.")
         return
-    
-    # Send through ROUTER
-    await component.sensor_node_router.send_msg(
-        fissure.comms.MessageTypes.COMMANDS,
-        msg,
-        target_ids=[identity]
-    )    
+
+    for node_uid in node_uids:
+        component.logger.info(
+            f"Requesting plugin action '{plugin_name}.{action_name}' "
+            f"from node {node_uid}"
+        )
+
+        node_record = component.nodes.get(node_uid)
+        if not node_record:
+            component.logger.warning(
+                f"Cannot execute plugin action for unknown node UID: {node_uid}"
+            )
+            continue
+
+        identity = node_record.get("identity", None)
+        if identity is None:
+            component.logger.warning(
+                f"Cannot execute plugin action for node {node_uid}: missing identity."
+            )
+            continue
+
+        PARAMETERS = {
+            "requester_uid": requester_uid,
+            "requester_type": requester_type,
+            "plugin_name": plugin_name,
+            "action_name": action_name,
+            "parameters": parameters,
+        }
+
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+            fissure.comms.MessageFields.MESSAGE_NAME: "plugin_action",
+            fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+        }
+
+        await component.sensor_node_router.send_msg(
+            fissure.comms.MessageTypes.COMMANDS,
+            msg,
+            target_ids=[identity],
+        )
 
 
-async def sendPluginActionParametersTak(component: object, requester_uid: str, node_uid: str, plugin_name: str, action_name: str, tak_context: str):
-    """Request Sensor Node plugin action for TAK
+async def sendPluginActionParametersTak(
+    component: object, 
+    requester_uid: str, 
+    requester_type: str, 
+    node_uid: str, 
+    plugin_name: str, 
+    action_name: str, 
+    tak_context: str
+):
+    """Request Sensor Node plugin action parameters for TAK
 
     Parameters
     ----------
@@ -4745,6 +4841,8 @@ async def sendPluginActionParametersTak(component: object, requester_uid: str, n
         Component
     requester_uid : str
         TAK unique identifier
+    requester_type : str
+        dashboard, tak, or broadcast               
     node_uid : str
         Sensor node UID
     plugin_name : str
@@ -4755,6 +4853,8 @@ async def sendPluginActionParametersTak(component: object, requester_uid: str, n
         node or ecosystem
     """
     PARAMETERS = {
+        "requester_uid": requester_uid,
+        "requester_type": requester_type,
         "plugin_name": plugin_name,
         "action_name": action_name,
         "node_uid": node_uid,
@@ -4777,94 +4877,6 @@ async def sendPluginActionParametersTak(component: object, requester_uid: str, n
         msg,
         target_ids=[identity]
     )    
-
-
-# async def pluginOperationStarted(component: object, node_uid: str, operation_id: str, plugin: str, operation: str, parameters: dict):
-#     """Handle Plugin Operation Started Event
-
-#     Parameters
-#     ----------
-#     component : object
-#         Component
-#     node_uid : str
-#         Sensor node UID
-#     operation_id : str
-#         Unique identifier for the operation
-#     plugin : str
-#         Plugin name
-#     operation : str
-#         Operation name
-#     parameters : dict
-#         Parameters for the operation
-#     """
-#     # # Update hub node table (source for WinTAK roster)
-#     # node = component.nodes.get(node_uid)
-#     # if node:
-#     #     node["status"] = f"Running: {operation}"
-#     #     node["last_seen"] = time.time()
-#     #     node["connected"] = True
-
-#     # # Broadcast to WinTAK roster (same shape as your node_status event)
-#     # await component.emit_node_status(uid=node_uid, status=node["status"])
-
-#     # Forward message to dashboard
-#     PARAMETERS = {
-#         "node_uid": node_uid,
-#         "operation_id": operation_id,
-#         "plugin": plugin,
-#         "operation": operation,
-#         "parameters": parameters,
-#     }
-#     msg = {
-#         fissure.comms.MessageFields.IDENTIFIER: component.identifier,
-#         fissure.comms.MessageFields.MESSAGE_NAME: "responsePluginOperationStarted",
-#         fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-#     }
-#     if component.dashboard_connected:
-#         await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
-
-
-# async def pluginOperationStopped(
-#     component: object,
-#     node_uid: str,
-#     operation_id: str,
-#     plugin: str,
-#     operation: str,
-#     success: bool = True,
-#     error: str = "",
-# ) -> None:
-#     """
-#     Handle Plugin Operation Stopped Event
-#     """
-#     # # Update node table + emit roster status
-#     # status_text = "Idle" if success else "Error"
-
-#     # node = component.nodes.get(node_uid)
-#     # if node:
-#     #     node["status"] = status_text
-#     #     node["last_seen"] = time.time()
-#     #     node["connected"] = True
-
-#     # # Emit status even if node entry is missing (best-effort)
-#     # await component.emit_node_status(uid=node_uid, status=status_text)
-
-#     # Forward message to dashboard
-#     PARAMETERS = {
-#         "node_uid": node_uid,
-#         "operation_id": operation_id,
-#         "plugin": plugin,
-#         "operation": operation,
-#         "success": success,
-#         "error": (error or "")[:2000],
-#     }
-#     msg = {
-#         fissure.comms.MessageFields.IDENTIFIER: component.identifier,
-#         fissure.comms.MessageFields.MESSAGE_NAME: "responsePluginOperationStopped",
-#         fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-#     }
-#     if component.dashboard_connected:
-#         await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
-
 
 
 async def updateArtifact(component: object, artifact: dict) -> None:
@@ -4932,6 +4944,7 @@ async def updateArtifact(component: object, artifact: dict) -> None:
         component.logger.error("Artifact missing 'id' field, cannot send metadata to TAK")
         return
 
+    operation_id = artifact.get("operation_id", "")
     event_uid = f"{source_id}-artifact_metadata-{int(time.time()*1000)}"
     msg = {
         "msg_type": "event",
@@ -4940,7 +4953,8 @@ async def updateArtifact(component: object, artifact: dict) -> None:
             "event_type": "artifact_metadata",
             "name": name,
             "timestamp": timestamp,
-            "artid": artid
+            "artid": artid,
+            "operation_id": operation_id,
         }
     }
 
@@ -5736,7 +5750,6 @@ async def targetPatch(
         "frequency_mhz": record.get("frequency_mhz"),
         "artifact_id": record.get("artifact_id", ""),
         "geolocation_status": geo.get("status", "idle"),
-        "geolocate_status": geo.get("status", "idle"),
         "lat": out_lat,
         "lon": out_lon,
         "hae_m": out_hae,
@@ -5764,7 +5777,13 @@ async def targetPatch(
     })
 
 
-async def sendTargetsListTak(component: object, requester_uid: str = "", request_id: str = "", requester_callsign: str = "") -> None:
+async def sendTargetsListTak(
+    component: object,
+    requester_uid: str = "",
+    requester_type: str = "tak",
+    request_id: str = "",
+    requester_callsign: str = ""
+) -> None:
     """
     Respond to WinTAK 'targets_list' request by emitting one TAK event per target.
     WinTAK will upsert rows by target_id.
@@ -5774,95 +5793,171 @@ async def sendTargetsListTak(component: object, requester_uid: str = "", request
     except Exception:
         targets = {}
 
-    # If you want: emit an empty response marker event so WinTAK can clear state intentionally.
-    # For now, just send what exists.
     for tgt_id, tgt in targets.items():
         try:
-            # Normalize fields defensively
-            sensor_node_id = (tgt.get("sensor_node_id") or "").strip()
-            source_soi_id = (tgt.get("source_soi_id") or "").strip()
-            artifact_id = (tgt.get("artifact_id") or "").strip()
-            state = (tgt.get("state") or "").strip()
-            freq_mhz = tgt.get("frequency_mhz")
-
             classification = tgt.get("classification") or {}
-            display_label = (classification.get("display_label") or "").strip()
+            location = tgt.get("location") or {}
 
-            loc = tgt.get("location") or {}
-            lat = loc.get("lat")
-            lon = loc.get("lon")
-            ce_m = loc.get("ce_m")
-            hae_m = loc.get("hae_m")
+            lat = location.get("lat")
+            lon = location.get("lon")
 
-            # Unique event uid for this transmission (don’t reuse target_id directly)
-            event_uid = f"fissure-target-{tgt_id}-{int(time.time()*1000)}"
+            event_uid = (
+                f"fissure-target-{tgt_id}-"
+                f"{int(time.time() * 1000)}"
+            )
 
             tak_data = {
                 "event_type": "target",
+
                 "target_id": tgt_id,
-                "sensor_node_id": sensor_node_id,
-                "source_soi_id": source_soi_id,
+                "sensor_node_id": tgt.get("sensor_node_id"),
+                "source_soi_id": tgt.get("source_soi_id"),
 
-                "display_label": display_label,
-                "state": state,
-                "frequency_mhz": freq_mhz,
-                "artifact_id": artifact_id,
+                "display_label": classification.get("display_label"),
 
-                # include location if present
-                "lat": lat,
-                "lon": lon,
-                "ce_m": ce_m,
-                "hae_m": hae_m,
+                "state": tgt.get("state"),
 
-                # optional correlation back to the request
+                "frequency_mhz": tgt.get("frequency_mhz"),
+
+                "artifact_id": tgt.get("artifact_id"),
+
                 "request_id": request_id,
                 "requester_uid": requester_uid,
                 "requester_callsign": requester_callsign,
             }
 
-            await fissure.utils.tak_messages.send(component, {
-                "msg_type": "event",
-                "uid": event_uid,
-                "data": tak_data,
-            })
+            # -------------------------------------------------------------
+            # Optional location
+            # -------------------------------------------------------------
+            if lat is not None and lon is not None:
+                tak_data["lat"] = lat
+                tak_data["lon"] = lon
+
+                tak_data["ce_m"] = (
+                    location.get("ce_m")
+                )
+
+                tak_data["hae_m"] = (
+                    location.get("hae_m")
+                )
+
+            # -------------------------------------------------------------
+            # Remove empty core fields
+            # -------------------------------------------------------------
+            tak_data = {
+                k: v for k, v in tak_data.items()
+                if v is not None
+                and not (
+                    isinstance(v, str)
+                    and v.strip() == ""
+                )
+            }
+
+            # -------------------------------------------------------------
+            # WIFI (no prefix)
+            # -------------------------------------------------------------
+            for key, value in (tgt.get("wifi") or {}).items():
+                if value is not None and not (
+                    isinstance(value, str)
+                    and value.strip() == ""
+                ):
+                    tak_data[key] = value
+
+            # -------------------------------------------------------------
+            # RF (prefixed)
+            # -------------------------------------------------------------
+            for key, value in (tgt.get("rf") or {}).items():
+                if value is not None and not (
+                    isinstance(value, str)
+                    and value.strip() == ""
+                ):
+                    tak_data[f"rf_{key}"] = value
+
+            # -------------------------------------------------------------
+            # GEOLOCATE (prefixed)
+            # -------------------------------------------------------------
+            for key, value in (tgt.get("geolocate") or {}).items():
+                if value is not None and not (
+                    isinstance(value, str)
+                    and value.strip() == ""
+                ):
+                    tak_data[f"geolocate_{key}"] = value
+
+            await fissure.utils.tak_messages.send(
+                component,
+                {
+                    "msg_type": "event",
+                    "uid": event_uid,
+                    "data": tak_data,
+                },
+                requester_type,
+                requester_uid,
+            )
 
         except Exception as e:
-            component.logger.error(f"Failed sending target {tgt_id} to TAK: {e}")
+            component.logger.error(
+                f"Failed sending target {tgt_id} to TAK: {e}"
+            )
 
 
-async def refresh_status(component: object, requester_uid: str, node_uid: str):
-    """Stop all running plugin operations on the sensor node.
+async def refresh_status(
+    component: object,
+    requester_uid: str,
+    requester_type: str,
+    node_uids: List[str],
+):
+    """Request position/status updates from selected sensor nodes.
 
     Parameters
     ----------
     component : object
         Component.
     requester_uid : str
-        TAK UID.
-    node_uid : str
-        Sensor node UID.
+        Requesting client UID.
+    requester_type : str
+        dashboard, tak, or broadcast.
+    node_uids : List[str]
+        List of sensor node UIDs.
     """
-    component.logger.info(f"Requesting position/status update from node {node_uid}")
-    PARAMETERS = {
-        "node_uid": node_uid
-    }
-    msg = {
-        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
-        fissure.comms.MessageFields.MESSAGE_NAME: "refresh_status",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-    }
-
-    # Resolve Identity
-    identity = component.nodes[node_uid].get("identity", None)
-    if identity is None:
+    if not node_uids:
+        component.logger.warning("No node UIDs provided for refresh_status.")
         return
-    
-    # Send through ROUTER
-    await component.sensor_node_router.send_msg(
-        fissure.comms.MessageTypes.COMMANDS,
-        msg,
-        target_ids=[identity]
-    )
+
+    for node_uid in node_uids:
+        component.logger.info(
+            f"Requesting position/status update from node {node_uid}"
+        )
+
+        node_record = component.nodes.get(node_uid)
+        if not node_record:
+            component.logger.warning(
+                f"Cannot refresh status for unknown node UID: {node_uid}"
+            )
+            continue
+
+        identity = node_record.get("identity", None)
+        if identity is None:
+            component.logger.warning(
+                f"Cannot refresh status for node {node_uid}: missing identity."
+            )
+            continue
+
+        PARAMETERS = {
+            "requester_uid": requester_uid,
+            "requester_type": requester_type,
+        }
+
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+            fissure.comms.MessageFields.MESSAGE_NAME: "refresh_status",
+            fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+        }
+
+        await component.sensor_node_router.send_msg(
+            fissure.comms.MessageTypes.COMMANDS,
+            msg,
+            target_ids=[identity],
+        )
 
 
 async def sendPluginActionParametersResultsTak(
@@ -5934,13 +6029,13 @@ async def sendPluginActionParametersResultsTak(
 async def sendPluginTargetActionsTak(
     component: object,
     requester_uid: str,
+    requester_type: str,
     plugin_name: str,
     node_uid: str,
-    parameters: dict,
+    target_id: str,
 ):
     """Request filtered plugin action names for a target context."""
     try:
-        target_id = parameters.get("target_id")
         if not target_id:
             component.logger.error("query_target_actions missing target_id")
             return
@@ -5991,6 +6086,7 @@ async def sendPluginTargetActionsTak(
 
         PARAMETERS = {
             "requester_uid": requester_uid,
+            "requester_type": requester_type,
             "plugin_name": plugin_name,
             "target_id": target_id,
             "node_uid": node_uid,
@@ -6022,11 +6118,15 @@ async def sendPluginTargetActionsTak(
 async def geolocate_target_start(
     component: object,
     requester_uid: str,
-    parameters: dict,
+    requester_type: str = "tak",    
+    parameters: dict = None,
 ):
     """Select nearest nodes and start appropriate geolocation-related action."""
     try:
         component.logger.info(f"geolocate_target_start called with parameters={parameters}")
+
+        if parameters is None:
+            parameters = {}
 
         target_id = parameters.get("target_id")
         if not target_id:
@@ -6144,38 +6244,29 @@ async def geolocate_target_start(
 
         launched_nodes = []
 
-        for node_info in nearest_nodes:
-            node_uid = node_info["uid"]
+        try:
+            launched_nodes = list(node_uid_list)
 
-            try:
-                identity = component.nodes.get(node_uid, {}).get("identity", None)
-                if identity is None:
-                    component.logger.warning(
-                        f"Skipping node_uid={node_uid}: no identity"
-                    )
-                    continue
+            component.logger.info(
+                f"Launching {action_name} for target_id={target_id} "
+                f"on nodes={launched_nodes}"
+            )
 
-                component.logger.info(
-                    f"Launching {action_name} on node_uid={node_uid} "
-                    f"(target_id={target_id}, distance={node_info['distance_m']:.1f}m)"
-                )
+            await sendPluginActionTak(
+                component,
+                requester_uid,
+                requester_type,
+                node_uid_list,
+                plugin_name,
+                action_name,
+                action_parameters,
+            )
 
-                await sendPluginActionTak(
-                    component,
-                    requester_uid,
-                    node_uid,
-                    plugin_name=plugin_name,
-                    action_name=action_name,
-                    parameters=action_parameters,
-                )
-
-                launched_nodes.append(node_uid)
-
-            except Exception as node_err:
-                component.logger.error(
-                    f"Failed to launch on node_uid={node_uid}: {node_err}"
-                )
-                component.logger.debug(traceback.format_exc())
+        except Exception as launch_err:
+            component.logger.error(
+                f"Failed launching geolocate actions: {launch_err}"
+            )
+            component.logger.debug(traceback.format_exc())
 
         target = component.targets.get(target_id)
         if not target:
@@ -6275,11 +6366,14 @@ def _get_target_geolocate_action_config(
 
     frequency_mhz = target.get("frequency_mhz")
 
+    WIFI_PLUGIN = "WiFi"
+    BASE_PLUGIN = "Base"
+
     if "wifi" in label_text or "802.11" in label_text:
         if search_similar_targets:
             return {
                 "mode": "wifi_all",
-                "plugin_name": "nasc",
+                "plugin_name": WIFI_PLUGIN,
                 "action_name": "wifi_geolocate_all",
                 "parameters": {
                     "target_ids": _get_known_wifi_target_ids(component),
@@ -6289,7 +6383,7 @@ def _get_target_geolocate_action_config(
 
         return {
             "mode": "wifi_target",
-            "plugin_name": "nasc",
+            "plugin_name": WIFI_PLUGIN,
             "action_name": "wifi_geolocate_target",
             "parameters": {
                 "target_id": target_id,
@@ -6300,7 +6394,7 @@ def _get_target_geolocate_action_config(
     if "lfm" in label_text or "beacon" in label_text:
         return {
             "mode": "lfm_beacon",
-            "plugin_name": "nasc",
+            "plugin_name": WIFI_PLUGIN,
             "action_name": "lfm_beacon_geolocate",
             "parameters": {
                 "target_id": target_id,
@@ -6312,7 +6406,7 @@ def _get_target_geolocate_action_config(
     if frequency_mhz not in (None, ""):
         return {
             "mode": "generic_frequency",
-            "plugin_name": "nasc",
+            "plugin_name": WIFI_PLUGIN,
             "action_name": "usrp_b2x0_geolocate",
             "parameters": {
                 "target_id": target_id,
@@ -6376,33 +6470,61 @@ def _clear_target_geolocate_status(target: dict) -> None:
 async def geolocate_target_stop(
     component: object,
     requester_uid: str,
-    parameters: dict,
+    requester_type: str = "tak",
+    parameters: dict = None,
 ):
     """Stop geolocation for a target across all associated nodes."""
     try:
-        component.logger.info(f"geolocate_target_stop called with parameters={parameters}")
+        component.logger.info(
+            f"geolocate_target_stop called with parameters={parameters}"
+        )
+
+        if parameters is None:
+            parameters = {}
 
         target_id = parameters.get("target_id")
+
         if not target_id:
-            component.logger.error("geolocate_target_stop missing target_id")
+            component.logger.error(
+                "geolocate_target_stop missing target_id"
+            )
             return
 
         target = component.targets.get(target_id)
+
         if not target:
-            component.logger.error(f"Target not found for target_id={target_id}")
+            component.logger.error(
+                f"Target not found for target_id={target_id}"
+            )
             return
 
         geolocate = target.get("geolocate") or {}
-        node_uid_list = list(geolocate.get("node_uids") or [])
+
+        node_uid_list = list(
+            geolocate.get("node_uids") or []
+        )
 
         if not node_uid_list:
             component.logger.warning(
-                f"No geolocate node_uids recorded for target_id={target_id}"
+                f"No geolocate node_uids recorded for "
+                f"target_id={target_id}"
             )
 
-            previous_state = geolocate.get("previous_state", "") or target.get("state", "") or "imported"
-            had_detections = bool(geolocate.get("had_detections", False))
-            target["state"] = "detected" if had_detections else previous_state
+            previous_state = (
+                geolocate.get("previous_state", "")
+                or target.get("state", "")
+                or "imported"
+            )
+
+            had_detections = bool(
+                geolocate.get("had_detections", False)
+            )
+
+            target["state"] = (
+                "detected"
+                if had_detections
+                else previous_state
+            )
 
             _set_target_geolocate_status(
                 target,
@@ -6413,10 +6535,16 @@ async def geolocate_target_stop(
                 node_uids=[],
                 error="",
             )
+
             target["geolocate"]["previous_state"] = ""
             target["geolocate"]["had_detections"] = False
 
-            await targetPatch(component, target_id=target_id, patch={})
+            await targetPatch(
+                component,
+                target_id=target_id,
+                patch={},
+            )
+
             return
 
         _set_target_geolocate_status(
@@ -6428,54 +6556,62 @@ async def geolocate_target_stop(
             node_uids=node_uid_list,
             error="",
         )
-        await targetPatch(component, target_id=target_id, patch={})
+
+        await targetPatch(
+            component,
+            target_id=target_id,
+            patch={},
+        )
 
         stopped_nodes = []
         failed_nodes = []
 
-        for node_uid in node_uid_list:
-            try:
-                if node_uid not in component.nodes:
-                    component.logger.warning(
-                        f"Skipping stop for node_uid={node_uid}: node not found"
-                    )
-                    failed_nodes.append(node_uid)
-                    continue
+        try:
+            component.logger.info(
+                f"Stopping geolocation for target_id={target_id} "
+                f"on node_uids={node_uid_list}"
+            )
 
-                identity = component.nodes[node_uid].get("identity", None)
-                if identity is None:
-                    component.logger.warning(
-                        f"Skipping stop for node_uid={node_uid}: no identity"
-                    )
-                    failed_nodes.append(node_uid)
-                    continue
+            await stop_all_plugin_operations(
+                component,
+                requester_uid,
+                requester_type,
+                node_uid_list,
+            )
 
-                component.logger.info(
-                    f"Stopping geolocation for target_id={target_id} on node_uid={node_uid}"
-                )
+            stopped_nodes = list(node_uid_list)
 
-                await stop_all_plugin_operations(
-                    component,
-                    requester_uid,
-                    node_uid=node_uid,
-                )
-                stopped_nodes.append(node_uid)
+        except Exception as stop_err:
+            component.logger.error(
+                f"Failed stopping geolocation for "
+                f"target_id={target_id}: {stop_err}"
+            )
 
-            except Exception as node_err:
-                component.logger.error(
-                    f"Failed to stop geolocation on node_uid={node_uid}: {node_err}"
-                )
-                component.logger.debug(traceback.format_exc())
-                failed_nodes.append(node_uid)
+            component.logger.debug(
+                traceback.format_exc()
+            )
+
+            failed_nodes = list(node_uid_list)
 
         target = component.targets.get(target_id)
+
         if not target:
-            component.logger.error(f"Target disappeared before final idle update: target_id={target_id}")
+            component.logger.error(
+                f"Target disappeared before final idle update: "
+                f"target_id={target_id}"
+            )
             return
 
         geolocate = target.get("geolocate") or {}
-        previous_state = geolocate.get("previous_state", "") or "imported"
-        had_detections = bool(geolocate.get("had_detections", False))
+
+        previous_state = (
+            geolocate.get("previous_state", "")
+            or "imported"
+        )
+
+        had_detections = bool(
+            geolocate.get("had_detections", False)
+        )
 
         if failed_nodes and not stopped_nodes:
             _set_target_geolocate_status(
@@ -6487,10 +6623,20 @@ async def geolocate_target_stop(
                 node_uids=node_uid_list,
                 error="stop_failed",
             )
-            await targetPatch(component, target_id=target_id, patch={})
+
+            await targetPatch(
+                component,
+                target_id=target_id,
+                patch={},
+            )
+
             return
 
-        target["state"] = "detected" if had_detections else previous_state
+        target["state"] = (
+            "detected"
+            if had_detections
+            else previous_state
+        )
 
         _set_target_geolocate_status(
             target,
@@ -6499,30 +6645,57 @@ async def geolocate_target_stop(
             plugin="",
             action="",
             node_uids=[],
-            error="" if not failed_nodes else f"partial_stop_failed:{','.join(failed_nodes)}",
+            error=(
+                ""
+                if not failed_nodes
+                else f"partial_stop_failed:{','.join(failed_nodes)}"
+            ),
         )
+
         target["geolocate"]["previous_state"] = ""
         target["geolocate"]["had_detections"] = False
 
-        await targetPatch(component, target_id=target_id, patch={})
+        await targetPatch(
+            component,
+            target_id=target_id,
+            patch={},
+        )
 
         component.logger.info(
             f"Geolocate stopped for target_id={target_id}; "
-            f"stopped_nodes={stopped_nodes}, failed_nodes={failed_nodes}, "
-            f"restored_state={target.get('state')}, had_detections={had_detections}"
+            f"stopped_nodes={stopped_nodes}, "
+            f"failed_nodes={failed_nodes}, "
+            f"restored_state={target.get('state')}, "
+            f"had_detections={had_detections}"
         )
 
     except Exception as e:
-        component.logger.error(f"Error in geolocate_target_stop: {e}")
-        component.logger.debug(traceback.format_exc())
+        component.logger.error(
+            f"Error in geolocate_target_stop: {e}"
+        )
 
-        target_id = parameters.get("target_id")
+        component.logger.debug(
+            traceback.format_exc()
+        )
+
+        target_id = (
+            parameters.get("target_id")
+            if parameters
+            else None
+        )
+
         if target_id:
             target = component.targets.get(target_id)
+
             if target:
                 _set_target_geolocate_status(
                     target,
                     status="error",
                     error="exception",
                 )
-                await targetPatch(component, target_id=target_id, patch={})
+
+                await targetPatch(
+                    component,
+                    target_id=target_id,
+                    patch={},
+                )

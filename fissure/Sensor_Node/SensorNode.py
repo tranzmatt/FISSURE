@@ -871,7 +871,7 @@ class SensorNode(object):
 
     async def run_plugin_operation(
         self,
-        component: object,
+        component: object,  # Required for callback system
         plugin: str,
         operation: str,
         parameters: Dict[str, Any],
@@ -1166,7 +1166,11 @@ class SensorNode(object):
         return operation_id
 
 
-    async def stop_plugin_operation(self, component: object, operation_id: str, node_uid: str) -> None:
+    async def stop_plugin_operation(
+        self, 
+        component: object, # Required for callback system
+        operation_id: str
+    ) -> None:
         """
         Stops a plugin operation on the Sensor Node.
 
@@ -1213,32 +1217,49 @@ class SensorNode(object):
             self.logger.debug(f"stop_plugin_operation: status polling error for {operation_id}")
 
 
-    async def stop_all_plugin_operations(self, component: object, node_uid: str) -> None:
+    async def stop_all_plugin_operations(
+        self, 
+        component: object,  # Required for callback system
+        requester_uid: str,
+        requester_type: str
+    ) -> None:
         """
         Stops all running plugin operations on the Sensor Node.
 
         Parameters
         ----------
-        node_uid : str
-            Sensor node UID.
+        requester_type : str
+            dashboard, tak, or broadcast 
+        plugin_name : str
+            The name of the plugin.
         """
         self.logger.info("Stopping all plugin operations.")
         for operation_id in list(self.operations.keys()):
-            await self.stop_plugin_operation(component, operation_id, node_uid)
+            await self.stop_plugin_operation(component, operation_id)
 
 
-    async def plugin_action(self, component: object, plugin_name: str, action_name: str, node_uid: str, parameters: Dict[str, Any] = {}) -> None:
+    async def plugin_action(
+        self,
+        comonent: object,  # Required for callback system
+        requester_uid: str, 
+        requester_type: str,  
+        plugin_name: str, 
+        action_name: str, 
+        parameters: Dict[str, Any] = {}
+    ) -> None:
         """
         Calls a specific action function within a plugin.
 
         Parameters
         ----------
+        requester_uid : str
+            TAK unique identifier
+        requester_type : str
+            dashboard, tak, or broadcast 
         plugin_name : str
             The name of the plugin.
         action_name : str
             The name of the action function to invoke.
-        node_uid : str
-            The Sensor Node UID.
         parameters : Dict[str, Any], optional
             The parameters to pass to the action function.
         """
@@ -1276,9 +1297,9 @@ class SensorNode(object):
             # Invoke the action function
             try:
                 if inspect.iscoroutinefunction(action_func):
-                    await action_func(self, parameters, node_uid)
+                    await action_func(self, parameters, self.uuid)
                 else:
-                    action_func(self, parameters, node_uid)
+                    action_func(self, parameters, self.uuid)
             except Exception as e:
                 tb_str = traceback.format_exc()
                 self.logger.error(f"Error invoking plugin action {action_name} from {plugin_actions_module}: {e}\n{tb_str}")

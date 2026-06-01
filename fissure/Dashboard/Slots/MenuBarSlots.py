@@ -5936,3 +5936,22 @@ def _slotMenuStandaloneLFM_BeaconTransmitClicked(dashboard: QtWidgets.QMainWindo
     )
     osCommandString = 'gnuradio-companion "' + filepath + '" &'
     os.system(osCommandString)
+
+
+@QtCore.pyqtSlot()
+def _slotMenuMobileAtlasCreatorClicked(dashboard: QtWidgets.QMainWindow):
+    """
+    Opens Mobile Atlas Creator.
+    """
+    # Open MOBAC
+    expect_script_filepath = os.path.join(fissure.utils.TOOLS_DIR, "expect_script")
+    mobac_command = 'java -jar ~/Installed_by_FISSURE/\\\"Mobile Atlas Creator\\\"/Mobile_Atlas_Creator.jar'
+    if fissure.utils.get_default_expect_terminal(dashboard.backend.os_info) == "gnome-terminal":
+        proc = subprocess.Popen("gnome-terminal -- " + expect_script_filepath + ' "' + mobac_command + '"', shell=True)
+    elif fissure.utils.get_default_expect_terminal(dashboard.backend.os_info) == "qterminal":
+        proc = subprocess.Popen("qterminal -e " + expect_script_filepath + ' "' + mobac_command + '"', shell=True)
+    elif fissure.utils.get_default_expect_terminal(dashboard.backend.os_info) == "lxterminal":
+        proc = subprocess.Popen('lxterminal -e ' + expect_script_filepath + ' "' + mobac_command + '"', shell=True)
+
+
+

@@ -2596,3 +2596,15 @@ fi
 ls "$(find ~/Installed_by_FISSURE/takserver-docker-*/tak/certs/files/ -name 'webadmin.p12' | head -n 1)"
 """,False,'Mapping'))
 
+# Mobile Atlas Creator
+programs_kali.append(('Mobile Atlas Creator',
+"""sudo apt install -y default-jre
+mkdir -p ~/Installed_by_FISSURE
+cd ~/Installed_by_FISSURE
+wget -O mobac.zip "https://sourceforge.net/projects/mobac/files/Mobile%20Atlas%20Creator/MOBAC%202.0/Mobile%20Atlas%20Creator%202.3.3.zip/download"
+unzip mobac.zip -d "Mobile Atlas Creator"
+rm mobac.zip
+# Run with: java -jar ~/Installed_by_FISSURE/"Mobile Atlas Creator"/Mobile_Atlas_Creator.jar
+########## Verify ##########
+ls ~/Installed_by_FISSURE/"Mobile Atlas Creator"/Mobile_Atlas_Creator.jar
+""",True,'Development'))

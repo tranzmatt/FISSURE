@@ -8,14 +8,14 @@ Installer/fissure_install.log
 Logs/CoT_Logs/
 
 # Plugins
-Plugins/*
-!Plugins/plugin_template/
-!Plugins/tpms/
-!Plugins/wifi/
-!Plugins/plugin_template/**
-!Plugins/tpms/**
-!Plugins/wifi/**
-!Plugins/test/
+#Plugins/*
+#!Plugins/plugin_template/
+#!Plugins/tpms/
+#!Plugins/wifi/
+#!Plugins/plugin_template/**
+#!Plugins/tpms/**
+#!Plugins/wifi/**
+#!Plugins/test/
 
 # MacOS Files
 .DS_Store

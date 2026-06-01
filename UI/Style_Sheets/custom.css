@@ -302,17 +302,6 @@ QTableWidget:disabled{
     background-color: @color5;
     color: @color13;
 }
-
-#tabWidget > QTabBar::tab {
-    width: 132px; 
-    height:27px;
-    margin-top: 0px;
-}
-#tabWidget > QTabBar::tab:!selected {
-    margin-top: 6px;
-    height: 21px;
-    width: 132px; 
-}
 QTabBar::tab:disabled {
     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 @color8, stop: 1 @color9);
     border: 1px solid #444444;
@@ -339,7 +328,6 @@ QTabBar::tab::enabled:!selected {
     height: 18px;
     color: @color4;
 }
-
 QTextEdit{
     background-color: @color5;
     color: @color4;
@@ -351,6 +339,50 @@ QTextEdit:disabled{
     color: @color13;
     font-family: "Ubuntu";
     border: 1px solid @color1;
+}
+QToolButton[objectName^="toolButton_"]{
+    color: @color12;
+    border: 1px solid #111111;
+    background-color: qlineargradient(
+        x1: 0, y1: 0,
+        x2: 0, y2: 1,
+        stop: 0 @color6,
+        stop: 1 @color7
+    );
+    font-family: "Ubuntu";
+}
+QToolButton[objectName^="toolButton_"]:disabled{
+    color: @color13;
+    background-color: qlineargradient(
+        x1: 0, y1: 0,
+        x2: 0, y2: 1,
+        stop: 0 @color8,
+        stop: 1 @color9
+    );
+}
+QToolButton[objectName^="toolButton_"]:hover{
+    background-color: qlineargradient(
+        x1: 0, y1: 0,
+        x2: 0, y2: 1,
+        stop: 0 @color10,
+        stop: 1 @color11
+    );
+}
+QToolButton[objectName^="toolButton_"]:pressed{
+    background-color: qlineargradient(
+        x1: 0, y1: 0,
+        x2: 0, y2: 1,
+        stop: 0 @color7,
+        stop: 1 @color7
+    );
+}
+QToolButton[objectName^="toolButton_"]::menu-indicator{
+    image: url(@icon_path/@down_arrow_enabled);
+    subcontrol-position: right center;
+    padding-right: 4px;
+}
+QToolButton[objectName^="toolButton_"]:disabled::menu-indicator{
+    image: url(@icon_path/@down_arrow_disabled);
 }
 QTreeView{
     background-color: @color5;
@@ -400,9 +432,27 @@ QTreeWidget > QHeaderView{
 
 
 
-
-
 /*Specific*/
+#tabWidget > QTabBar::tab {
+    width: 132px; 
+    height:27px;
+    margin-top: 0px;
+}
+#tabWidget > QTabBar::tab:!selected {
+    margin-top: 6px;
+    height: 21px;
+    width: 132px; 
+}
+#tabWidget_tactical QTabBar::tab {
+    width: 98px;
+}
+#tabWidget_tactical_node QTabBar::tab {
+    width: 72px;
+    font: bold 8pt "Ubuntu";
+}
+#tabWidget_tactical_node QTabBar::tab:first {
+    margin-left: 1px;
+}
 QPushButton[objectName^="pushButton1_"]{
     background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 @color3, stop:0.05 #888888, stop:0.15 @color3, stop:0.85 @color3, stop:1 @color3);
     color: @color4;
@@ -714,5 +764,7 @@ QTreeView#treeWidget_attack_attacks > QHeaderView::section{
     padding-left: 4px;
 }
 
-
+QTableWidget#tableWidget_tactical_targets {
+    font-size: 9px;
+}
 

@@ -189,10 +189,7 @@ async def disconnect_hiprfisr(dashboard: QtCore.QObject):
     dashboard.ui.pushButton_top_node5.setEnabled(False)
 
     # Disable Tabs
-    dashboard.ui.tabWidget.setEnabled(False)
-    
-    # Disable Start Button
-    dashboard.ui.pushButton_automation_system_start.setEnabled(False)
+    # dashboard.ui.tabWidget.setEnabled(False)
 
 
 @qasync.asyncSlot(QtCore.QObject)

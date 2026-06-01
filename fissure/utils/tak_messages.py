@@ -17,6 +17,8 @@ from fissure.utils.artifacts import Artifact
 from fissure.utils.common import extractFrequencyFromUID, get_fissure_config
 from fissure.utils.library import classifyFrequencyFromTextDirect
 
+import fissure.comms
+
 # ---------------------------------------------------------
 # Base COT builder
 # ---------------------------------------------------------
@@ -82,26 +84,62 @@ def _set_point_suppressed(msg):
 # Transmission helper
 # ---------------------------------------------------------
 
-def _send_to_tak(component, msg):
-    """Serialize XML and send to TAK via pytak queue."""
-    if not hasattr(component, "clitool") or component.clitool is None:
-        component.logger.warning("TAK disabled or clitool not initialized. CoT message not sent.")
-        return
-    
+async def _dispatch_cot(
+    component,
+    msg,
+    destination="broadcast",
+    requester_uid=None,
+):
     msg_bytes = ET.tostring(msg, encoding="utf-8")
-    component.logger.debug("Sending TAK message:\n" + msg_bytes.decode("utf-8"))
-    component.logger.info("Sending TAK message:\n" + msg_bytes.decode("utf-8"))
+
+    component.logger.debug(
+        "Sending TAK message:\n" + msg_bytes.decode("utf-8")
+    )
 
     component.write_cot_log(msg_bytes)
 
-    component.clitool.tx_queue.put_nowait(msg_bytes)
+    # -------------------------------------------------
+    # TAK
+    # -------------------------------------------------
+    if destination in ("broadcast", "tak"):
+        if hasattr(component, "clitool") and component.clitool is not None:
+            component.clitool.tx_queue.put_nowait(msg_bytes)
+
+    # -------------------------------------------------
+    # Dashboard
+    # -------------------------------------------------
+    if destination in ("broadcast", "dashboard"):
+        if component.dashboard_connected:
+
+            PARAMETERS = {
+                "raw_xml": msg_bytes.decode("utf-8")
+            }
+
+            if requester_uid is not None:
+                PARAMETERS["requester_uid"] = requester_uid
+
+            dashboard_msg = {
+                fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+                fissure.comms.MessageFields.MESSAGE_NAME: "dashboardCoT_Message",
+                fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+            }
+
+            await component.dashboard_socket.send_msg(
+                fissure.comms.MessageTypes.COMMANDS,
+                dashboard_msg
+            )
 
 
 # ---------------------------------------------------------
 # Main entrypoint: send()
 # ---------------------------------------------------------
 
-async def send(component, message: dict):
+async def send(
+    component,
+    message: dict,
+    destination="broadcast",
+    requester_uid=None,
+):
     """
     Unified TAK message sender.
 
@@ -208,7 +246,12 @@ async def send(component, message: dict):
 
         _set_point_pin(msg, lat, lon, alt)
 
-        return _send_to_tak(component, msg)
+        return await _dispatch_cot(
+            component,
+            msg,
+            destination=destination,
+            requester_uid=requester_uid,
+        )
 
     # =====================================================
     # 2. EVENT (structured, non-pin)
@@ -226,16 +269,50 @@ async def send(component, message: dict):
 
         fiss = ET.SubElement(detail, "fissure")
 
-        data = message.get("data", {})
-        event_type = data.get("event_type", "generic")
+        # Structured FISSURE alert block for table-only alerts
+        alert_kind = message.get("alert_kind")
+        alert_summary = message.get("alert_summary")
+        artifact_id = message.get("artifact_id")
+        operation_id = message.get("operation_id")
+        sensor_node_id = message.get("sensor_node_id")
 
-        event_node = ET.SubElement(fiss, event_type)
-        _serialize_payload(event_node, data, skip_keys={"event_type"})
+        if alert_kind or artifact_id or alert_summary:
+            alert = ET.SubElement(fiss, "alert")
+
+            if alert_kind:
+                ET.SubElement(alert, "kind").text = str(alert_kind)
+
+            if alert_summary:
+                ET.SubElement(alert, "summary").text = str(alert_summary)
+
+            if artifact_id:
+                ET.SubElement(alert, "artifact_id").text = str(artifact_id)
+
+            if operation_id:
+                ET.SubElement(alert, "operation_id").text = str(operation_id)
+
+            if sensor_node_id:
+                ET.SubElement(alert, "sensor_node_id").text = str(sensor_node_id)
+
+            # Optional fallback so summary looks nicer if WinTAK checks contact
+            ET.SubElement(detail, "contact", {"callsign": str(alert_summary or alert_kind or uid)})
+
+        else:
+            data = message.get("data", {})
+            event_type = data.get("event_type", "generic")
+
+            event_node = ET.SubElement(fiss, event_type)
+            _serialize_payload(event_node, data, skip_keys={"event_type"})
 
         # _set_point_suppressed(msg)
         _set_point_pin(msg, lat, lon, alt)  # Include lat/lon/hae but do not plot
 
-        return _send_to_tak(component, msg)
+        return await _dispatch_cot(
+            component,
+            msg,
+            destination=destination,
+            requester_uid=requester_uid,
+        )
 
     # =====================================================
     # 3. TRACK (auto-tracking)
@@ -284,7 +361,12 @@ async def send(component, message: dict):
         if version:
             ET.SubElement(node, "version").text = str(version)
 
-        return _send_to_tak(component, msg)
+        return await _dispatch_cot(
+            component,
+            msg,
+            destination=destination,
+            requester_uid=requester_uid,
+        )
 
     # =====================================================
     # UNKNOWN MESSAGE TYPE
@@ -423,7 +505,13 @@ def create_artifact_data_package(artifact: Union[Artifact, dict], file_data: byt
     return zip_data, artifact_filename
 
 
-async def send_artifact_event(component: object, artifact: Union[Artifact, dict], artifact_data: bytes) -> None:
+async def send_artifact_event(
+    component: object,
+    artifact: Union[Artifact, dict],
+    artifact_data: bytes,
+    destination="broadcast",
+    requester_uid=None,
+) -> None:
     """Send artifact event to TAK clients
     
     Parameters
@@ -499,7 +587,12 @@ async def send_artifact_event(component: object, artifact: Union[Artifact, dict]
     point.set("ce", "9999999.0")
     point.set("le", "9999999.0")
 
-    return _send_to_tak(component, msg)
+    await _dispatch_cot(
+        component,
+        msg,
+        destination=destination,
+        requester_uid=requester_uid,
+    )
 
 
 async def upload_data_package_to_tak_server(tak_data: bytes, sha256_hash: str, filename: str, component) -> Union[str, None]:

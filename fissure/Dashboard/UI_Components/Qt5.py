@@ -13,6 +13,12 @@ import asyncio
 import qasync
 import struct
 import matplotlib.pyplot as plt
+import math
+import re
+import json
+import pathlib
+import time
+import urllib.request
 
 
 async def async_save_file_dialog(parent, directory, default_suffix, name_filter):
@@ -956,7 +962,7 @@ class SigMF_Dialog(QtWidgets.QDialog, UI_Types.SigMF):
 
 
 class OptionsDialog(QtWidgets.QDialog, UI_Types.Options):
-    def __init__(self, parent=None, opening_tab="Automation", settings_dictionary=None):
+    def __init__(self, parent=None, opening_tab="Tactical", settings_dictionary=None):
         """
         First thing that executes.
         """
@@ -975,7 +981,7 @@ class OptionsDialog(QtWidgets.QDialog, UI_Types.Options):
         self._connectSlots()
 
         # Change the Current Tab
-        if opening_tab == "Automation":
+        if opening_tab == "Tactical":
             self.listWidget_options.setCurrentRow(0)
         elif opening_tab == "TSI":
             self.listWidget_options.setCurrentRow(1)
@@ -1001,7 +1007,7 @@ class OptionsDialog(QtWidgets.QDialog, UI_Types.Options):
 
         # Populate the Tables
         tables = [
-            self.tableWidget_options_automation,
+            self.tableWidget_options_tactical,
             self.tableWidget_options_tsi,
             self.tableWidget_options_pd,
             self.tableWidget_options_attack,
@@ -1063,7 +1069,7 @@ class OptionsDialog(QtWidgets.QDialog, UI_Types.Options):
         """
         # Retrieve Values from Options Dialog
         tables = [
-            self.tableWidget_options_automation,
+            self.tableWidget_options_tactical,
             self.tableWidget_options_tsi,
             self.tableWidget_options_pd,
             self.tableWidget_options_attack,
@@ -1689,3 +1695,555 @@ def previewIQ_File(get_type, get_filepath):
 
         plt.ioff()  # Needed for 22.04, causes warning in 20.04
         plt.show()  # Needed for 22.04, causes warning in 20.04
+
+
+class DownloadMapPackDialog(QtWidgets.QDialog, UI_Types.DownloadMapPack):
+    def __init__(self, parent):
+        """
+        Feature Extract trim settings.
+        """
+        QtWidgets.QDialog.__init__(self, parent)
+        self.parent = parent
+        self.setupUi(self)
+
+        # Prevent Resizing/Maximizing
+        self.setFixedSize(400, 500)
+
+        # Connect Slots
+        self.pushButton_download.clicked.connect(self._slotDownload_Clicked)
+        self.pushButton_cancel.clicked.connect(self._slotCancelClicked)
+        self.pushButton_estimate_size.clicked.connect(self._slotEstimateSizeClicked)
+        self.pushButton_open_osm_export.clicked.connect(self._slotOpenOSM_ExportClicked)
+
+        self.pushButton_mobac_ok.clicked.connect(self._slotCancelClicked)
+        self.pushButton_mobac_open_mobac.clicked.connect(self._slotMOBAC_OpenMOBAC_Clicked)
+        self.pushButton_mobac_refresh.clicked.connect(self._slotMOBAC_RefeshClicked)
+        self.pushButton_mobac_map_pack_folder.clicked.connect(self._slotMOBAC_MapPackFolderClicked)
+        self.pushButton_mobac_generate_manifest.clicked.connect(self._slotMOBAC_GenerateManifestClicked)
+
+        # Update Edit Boxes
+        self.textEdit_map_pack_name.setPlainText("demo_map_pack")
+        self.textEdit_north.setPlainText("40.8000")
+        self.textEdit_south.setPlainText("40.7000")
+        self.textEdit_west.setPlainText("-74.0200")
+        self.textEdit_east.setPlainText("-73.9300")
+        self.checkBox_zoom12.setChecked(True)
+        self.checkBox_zoom13.setChecked(True)
+        self.checkBox_zoom14.setChecked(True)
+
+        # Estimate Size
+        self._slotEstimateSizeClicked()
+
+    def _slotDownload_Clicked(self):
+        """
+        Downloads an OSM tile map pack into FISSURE/map_data/<map_pack_name>.
+        """
+
+        USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/122 Safari/537.36"
+        TILE_URL_TEMPLATE = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+
+        # Map pack name
+        map_pack_name = self.textEdit_map_pack_name.toPlainText().strip()
+        if not map_pack_name:
+            QtWidgets.QMessageBox.warning(self, "Invalid Map Pack Name", "Enter a map pack name.")
+            return
+
+        map_pack_name = re.sub(r"[^A-Za-z0-9_-]+", "_", map_pack_name)
+
+        # Bounds
+        try:
+            north = float(self.textEdit_north.toPlainText().strip())
+            south = float(self.textEdit_south.toPlainText().strip())
+            west = float(self.textEdit_west.toPlainText().strip())
+            east = float(self.textEdit_east.toPlainText().strip())
+        except ValueError:
+            QtWidgets.QMessageBox.warning(self, "Invalid Bounds", "Bounds must be numbers.")
+            return
+
+        if south > north:
+            north, south = south, north
+        if west > east:
+            west, east = east, west
+
+        # Zoom levels
+        zoom_levels = []
+        for z in range(10, 16):
+            checkbox = getattr(self, f"checkBox_zoom{z}", None)
+            if checkbox and checkbox.isChecked():
+                zoom_levels.append(z)
+
+        if not zoom_levels:
+            QtWidgets.QMessageBox.warning(self, "No Zoom Levels", "Select at least one zoom level.")
+            return
+
+        estimate = self.estimate_tile_download(north, south, west, east, zoom_levels)
+
+        # HARD LIMIT (prevents getting blocked)
+        if estimate["total_tiles"] > 2000:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Too Many Tiles",
+                "Limit OSM downloads to small areas (<= 2000 tiles).\nUse MOBAC for larger regions."
+            )
+            return
+
+        # Confirm large downloads
+        if estimate["total_tiles"] > 1000:
+            answer = QtWidgets.QMessageBox.question(
+                self,
+                "Large Download",
+                f"This will download {estimate['total_tiles']} tiles.\nContinue?",
+            )
+            if answer != QtWidgets.QMessageBox.Yes:
+                return
+
+        # Paths
+        map_pack_dir = os.path.join(fissure.utils.FISSURE_ROOT, "map_data", map_pack_name)
+        tiles_dir = os.path.join(map_pack_dir, "tiles")
+        manifest_path = os.path.join(map_pack_dir, "tile_manifest.json")
+
+        map_pack_dir.mkdir(parents=True, exist_ok=True)
+
+        manifest = {
+            "name": map_pack_name,
+            "source": "OpenStreetMap",
+            "bounds": {"north": north, "south": south, "west": west, "east": east},
+            "zoom_levels": estimate["by_zoom"],
+            "reference_points": [],
+        }
+
+        manifest_path.write_text(json.dumps(manifest, indent=4), encoding="utf-8")
+
+        def download_tile(url, dest):
+            headers = {
+                "User-Agent": USER_AGENT,
+                "Accept": "image/png,image/jpeg,*/*",
+            }
+
+            req = urllib.request.Request(url, headers=headers)
+
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                if resp.status != 200:
+                    raise Exception(f"HTTP {resp.status}")
+
+                data = resp.read()
+
+                # Detect blocked HTML response
+                if data.startswith(b"<"):
+                    raise Exception("Blocked (HTML response)")
+
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(data)
+
+        downloaded = 0
+        skipped = 0
+        failed = 0
+
+        try:
+            for zoom in sorted(estimate["by_zoom"].keys()):
+                info = estimate["by_zoom"][zoom]
+
+                for x in range(info["x_min"], info["x_max"] + 1):
+                    for y in range(info["y_min"], info["y_max"] + 1):
+
+                        dest = tiles_dir / str(zoom) / str(x) / f"{y}.png"
+
+                        if dest.exists():
+                            skipped += 1
+                            continue
+
+                        url = TILE_URL_TEMPLATE.format(z=zoom, x=x, y=y)
+
+                        success = False
+
+                        for attempt in range(3):
+                            try:
+                                print("download", url)
+                                download_tile(url, dest)
+                                downloaded += 1
+                                success = True
+                                break
+                            except Exception as e:
+                                print(f"retry {attempt+1} failed {url}: {e}")
+                                time.sleep(2 + attempt * 2)
+
+                        if not success:
+                            failed += 1
+                            continue
+
+                        # IMPORTANT: slow down requests
+                        time.sleep(1.0)
+
+                        QtWidgets.QApplication.processEvents()
+
+        except Exception as e:
+            QtWidgets.QMessageBox.warning(self, "Download Failed", str(e))
+            return
+
+        QtWidgets.QMessageBox.information(
+            self,
+            "Download Complete",
+            f"Downloaded: {downloaded}\nSkipped: {skipped}\nFailed: {failed}"
+        )
+
+        self.map_pack_name = map_pack_name
+        self.accept()
+
+    def _slotCancelClicked(self):
+        self.reject()
+
+    def _slotEstimateSizeClicked(self):
+        try:
+            north = float(self.textEdit_north.toPlainText().strip())
+            south = float(self.textEdit_south.toPlainText().strip())
+            west = float(self.textEdit_west.toPlainText().strip())
+            east = float(self.textEdit_east.toPlainText().strip())
+        except ValueError:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Invalid Bounds",
+                "North, south, west, and east must be valid numbers."
+            )
+            return
+
+        if not (-90.0 <= north <= 90.0):
+            QtWidgets.QMessageBox.warning(self, "Invalid North Bound", "North must be between -90 and 90.")
+            return
+
+        if not (-90.0 <= south <= 90.0):
+            QtWidgets.QMessageBox.warning(self, "Invalid South Bound", "South must be between -90 and 90.")
+            return
+
+        if not (-180.0 <= west <= 180.0):
+            QtWidgets.QMessageBox.warning(self, "Invalid West Bound", "West must be between -180 and 180.")
+            return
+
+        if not (-180.0 <= east <= 180.0):
+            QtWidgets.QMessageBox.warning(self, "Invalid East Bound", "East must be between -180 and 180.")
+            return
+
+        zoom_levels = []
+        if self.checkBox_zoom10.isChecked():
+            zoom_levels.append(10)
+        if self.checkBox_zoom11.isChecked():
+            zoom_levels.append(11)
+        if self.checkBox_zoom12.isChecked():
+            zoom_levels.append(12)
+        if self.checkBox_zoom13.isChecked():
+            zoom_levels.append(13)
+        if self.checkBox_zoom14.isChecked():
+            zoom_levels.append(14)
+        if self.checkBox_zoom15.isChecked():
+            zoom_levels.append(15)
+
+        if not zoom_levels:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "No Zoom Levels",
+                "Select at least one zoom level."
+            )
+            return
+
+        estimate = self.estimate_tile_download(
+            north=north,
+            south=south,
+            west=west,
+            east=east,
+            zoom_levels=zoom_levels,
+        )
+
+        self.label2_tiles.setText(str(estimate["total_tiles"]))
+        self.label2_size.setText(
+            f'{estimate["size_min_mb"]:.1f} to {estimate["size_max_mb"]:.1f} MB'
+        )
+
+    def latlon_to_tile(self, lat, lon, zoom):
+        """
+        Convert lat/lon to OSM slippy-map tile x/y at a zoom level.
+        """
+        lat_rad = math.radians(lat)
+        n = 2 ** zoom
+
+        x = int((lon + 180.0) / 360.0 * n)
+        y = int((1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n)
+
+        return x, y
+    
+    def estimate_tile_download(self, north, south, west, east, zoom_levels):
+        """
+        Estimate tile count and download size for OSM map bounds.
+
+        Returns:
+            {
+                "total_tiles": int,
+                "by_zoom": {
+                    zoom: {
+                        "x_min": int,
+                        "x_max": int,
+                        "y_min": int,
+                        "y_max": int,
+                        "tiles": int,
+                    }
+                },
+                "size_min_mb": float,
+                "size_max_mb": float,
+            }
+        """
+
+        # Normalize bounds
+        if south > north:
+            north, south = south, north
+
+        if west > east:
+            west, east = east, west
+
+        by_zoom = {}
+        total_tiles = 0
+
+        for zoom in sorted(zoom_levels):
+            x_west, y_north = self.latlon_to_tile(north, west, zoom)
+            x_east, y_south = self.latlon_to_tile(south, east, zoom)
+
+            x_min = min(x_west, x_east)
+            x_max = max(x_west, x_east)
+            y_min = min(y_north, y_south)
+            y_max = max(y_north, y_south)
+
+            tiles = (x_max - x_min + 1) * (y_max - y_min + 1)
+            total_tiles += tiles
+
+            by_zoom[int(zoom)] = {
+                "x_min": x_min,
+                "x_max": x_max,
+                "y_min": y_min,
+                "y_max": y_max,
+                "tiles": tiles,
+            }
+
+        # Very rough PNG estimate.
+        # OSM tiles vary a lot depending on city density, labels, roads, etc.
+        avg_tile_min_kb = 25
+        avg_tile_max_kb = 120
+
+        size_min_mb = total_tiles * avg_tile_min_kb / 1024.0
+        size_max_mb = total_tiles * avg_tile_max_kb / 1024.0
+
+        return {
+            "total_tiles": total_tiles,
+            "by_zoom": by_zoom,
+            "size_min_mb": size_min_mb,
+            "size_max_mb": size_max_mb,
+        }
+    
+    def _slotOpenOSM_ExportClicked(self):
+        """
+        Opens OSM export page centered on current bounds using xdg-open.
+        """
+        try:
+            north = float(self.textEdit_north.toPlainText().strip())
+            south = float(self.textEdit_south.toPlainText().strip())
+            west = float(self.textEdit_west.toPlainText().strip())
+            east = float(self.textEdit_east.toPlainText().strip())
+        except ValueError:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Invalid Bounds",
+                "North, south, west, and east must be valid numbers."
+            )
+            return
+
+        # Normalize bounds
+        if south > north:
+            north, south = south, north
+        if west > east:
+            west, east = east, west
+
+        # Center of bounds
+        center_lat = (north + south) / 2.0
+        center_lon = (west + east) / 2.0
+
+        # Pick zoom (use highest selected for better detail)
+        zoom_levels = []
+        if self.checkBox_zoom10.isChecked():
+            zoom_levels.append(10)
+        if self.checkBox_zoom11.isChecked():
+            zoom_levels.append(11)
+        if self.checkBox_zoom12.isChecked():
+            zoom_levels.append(12)
+        if self.checkBox_zoom13.isChecked():
+            zoom_levels.append(13)
+        if self.checkBox_zoom14.isChecked():
+            zoom_levels.append(14)
+        if self.checkBox_zoom15.isChecked():
+            zoom_levels.append(15)
+
+        zoom = max(zoom_levels) if zoom_levels else 12
+
+        url = f"https://www.openstreetmap.org/export#map={zoom}/{center_lat:.6f}/{center_lon:.6f}"
+
+        # Your chosen method
+        os.system(f"xdg-open '{url}'")
+
+
+    def _slotMOBAC_OpenMOBAC_Clicked(self):
+        """
+        Opens MOBAC with Java.
+        """
+        # Open
+        dest_dir = os.path.expanduser("~/Installed_by_FISSURE/Mobile Atlas Creator/")
+        subprocess.Popen(["java", "-jar", os.path.join(dest_dir, "Mobile_Atlas_Creator.jar")])
+
+
+    def _slotMOBAC_RefeshClicked(self):
+        """
+        Refreshes the combobox with all folders in FISSURE/map_data,
+        including folders that do not yet have tile_manifest.json.
+        """
+        combo = self.comboBox_mobac_map_pack
+
+        current_map = combo.currentText()
+        combo.clear()
+
+        map_data_dir = os.path.join(fissure.utils.FISSURE_ROOT, "map_data")
+
+        map_names = []
+
+        if os.path.isdir(map_data_dir):
+            for name in sorted(os.listdir(map_data_dir)):
+                map_pack_dir = os.path.join(map_data_dir, name)
+
+                if os.path.isdir(map_pack_dir):
+                    map_names.append(name)
+
+        combo.addItems(map_names)
+
+        if current_map in map_names:
+            combo.setCurrentText(current_map)
+        elif map_names:
+            combo.setCurrentIndex(0)
+
+
+    def _slotMOBAC_MapPackFolderClicked(self):
+        """ 
+        Opens the FISSURE map pack folder.
+        """
+        # Open a Window
+        get_folder = os.path.join(fissure.utils.FISSURE_ROOT, "map_data")
+        subprocess.Popen(['xdg-open', get_folder])
+
+
+    def _slotMOBAC_GenerateManifestClicked(self):
+        """ 
+        Creates the tile manifest file for FISSURE map packs.
+        """
+        # Get selected map pack name from combobox
+        map_pack_name = self.comboBox_mobac_map_pack.currentText().strip()
+
+        if not map_pack_name:
+            QtWidgets.QMessageBox.warning(self, "No Map Pack Selected", "Select a map pack.")
+            return
+
+        # Build paths using os.path.join
+        PACK_DIR = os.path.join(fissure.utils.FISSURE_ROOT, "map_data", map_pack_name)
+        TILES_DIR = os.path.join(PACK_DIR, "tiles")
+        OUTPUT = os.path.join(PACK_DIR, "tile_manifest.json")
+        NAME = map_pack_name
+
+        if not os.path.isdir(TILES_DIR):
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Missing Tiles Folder",
+                f"No tiles folder found:\n{TILES_DIR}"
+            )
+            return
+
+        def tile_to_latlon(x, y, z):
+            n = 2.0 ** z
+            lon = x / n * 360.0 - 180.0
+            lat = math.degrees(math.atan(math.sinh(math.pi * (1.0 - 2.0 * y / n))))
+            return lat, lon
+
+        manifest = {
+            "name": NAME,
+            "source": "MOBAC",
+            "bounds": {},
+            "zoom_levels": {},
+            "reference_points": []
+        }
+
+        global_north = -90.0
+        global_south = 90.0
+        global_west = 180.0
+        global_east = -180.0
+
+        # Iterate zoom folders
+        for z_name in sorted(os.listdir(TILES_DIR), key=lambda x: int(x)):
+            z_path = os.path.join(TILES_DIR, z_name)
+
+            if not os.path.isdir(z_path):
+                continue
+
+            z = int(z_name)
+            x_values = []
+            y_values = []
+
+            for x_name in os.listdir(z_path):
+                x_path = os.path.join(z_path, x_name)
+
+                if not os.path.isdir(x_path):
+                    continue
+
+                x = int(x_name)
+
+                for file_name in os.listdir(x_path):
+                    if not file_name.lower().endswith((".png", ".jpg", ".jpeg")):
+                        continue
+
+                    y = int(os.path.splitext(file_name)[0])
+
+                    x_values.append(x)
+                    y_values.append(y)
+
+            if not x_values or not y_values:
+                continue
+
+            x_min = min(x_values)
+            x_max = max(x_values)
+            y_min = min(y_values)
+            y_max = max(y_values)
+
+            manifest["zoom_levels"][str(z)] = {
+                "x_min": x_min,
+                "x_max": x_max,
+                "y_min": y_min,
+                "y_max": y_max
+            }
+
+            # Calculate bounds
+            north, west = tile_to_latlon(x_min, y_min, z)
+            south, east = tile_to_latlon(x_max + 1, y_max + 1, z)
+
+            global_north = max(global_north, north)
+            global_south = min(global_south, south)
+            global_west = min(global_west, west)
+            global_east = max(global_east, east)
+
+        manifest["bounds"] = {
+            "north": global_north,
+            "south": global_south,
+            "west": global_west,
+            "east": global_east
+        }
+
+        # Write JSON
+        with open(OUTPUT, "w", encoding="utf-8") as f:
+            json.dump(manifest, f, indent=4)
+
+        print(f"Wrote {OUTPUT}")
+        print(json.dumps(manifest, indent=4))
+
+        QtWidgets.QMessageBox.information(
+            self,
+            "Manifest Generated",
+            f"Manifest created for:\n{map_pack_name}"
+        )

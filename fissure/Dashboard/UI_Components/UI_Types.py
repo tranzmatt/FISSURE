@@ -21,4 +21,5 @@ class UI_Types:
     Triggers, _ = uic.loadUiType(os.path.join(fissure.utils.UI_DIR, "triggers.ui"))
     Demod, _ = uic.loadUiType(os.path.join(fissure.utils.UI_DIR, "demod.ui"))
     Features, _ = uic.loadUiType(os.path.join(fissure.utils.UI_DIR, "features.ui"))
+    DownloadMapPack, _ = uic.loadUiType(os.path.join(fissure.utils.UI_DIR, "download_map_pack.ui"))
 

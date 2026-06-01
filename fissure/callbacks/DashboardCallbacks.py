@@ -50,6 +50,8 @@ from fissure.Dashboard.UI_Components.Qt5 import (
     # TrimSettings,
 )
 
+from fissure.utils import cot_utils
+
 
 async def flowGraphFinished(component: object, sensor_node_id=0, category=""):
     """
@@ -1010,29 +1012,29 @@ async def demodFG_LibrarySearchReturn(component: object, flow_graphs=[]):
     # Select the First File
     component.frontend.ui.listWidget_pd_flow_graphs_recommended_fgs.setCurrentRow(0)
 
-    # Auto-Load PD Flow Graphs is Selected
-    if component.frontend.ui.checkBox_automation_auto_select_pd_flow_graphs.isChecked():
-        # Target Protocol if Targeting
-        target_protocol = str(component.frontend.ui.comboBox_automation_target_protocol.currentText())
+    # # Auto-Load PD Flow Graphs is Selected
+    # if component.frontend.ui.checkBox_automation_auto_select_pd_flow_graphs.isChecked():  # Combobox deleted
+    #     # Target Protocol if Targeting
+    #     target_protocol = str(component.frontend.ui.comboBox_automation_target_protocol.currentText())
 
-        # Protocol Flow Graph
-        match_found = False
-        if target_protocol != "None":
-            for n in range(0,len(modulation_list)):
-                if target_protocol in modulation_list[n]:
-                    # Select Flow Graph
-                    component.frontend.ui.listWidget_pd_flow_graphs_recommended_fgs.setCurrentRow(n)
-                    PDTabSlots._slotPD_DemodulationLoadSelectedClicked(component.frontend)
-                    match_found = True
+    #     # Protocol Flow Graph
+    #     match_found = False
+    #     if target_protocol != "None":
+    #         for n in range(0,len(modulation_list)):
+    #             if target_protocol in modulation_list[n]:
+    #                 # Select Flow Graph
+    #                 component.frontend.ui.listWidget_pd_flow_graphs_recommended_fgs.setCurrentRow(n)
+    #                 PDTabSlots._slotPD_DemodulationLoadSelectedClicked(component.frontend)
+    #                 match_found = True
 
-        # Generic Flow Graph
-        if match_found == False:
-            get_modulation = str(component.frontend.ui.textEdit_pd_flow_graphs_modulation.toPlainText()).upper()
-            for n in range(0,len(modulation_list)):
-                if get_modulation in modulation_list[n]:
-                    # Select Flow Graph
-                    component.frontend.ui.listWidget_pd_flow_graphs_recommended_fgs.setCurrentRow(n)
-                    PDTabSlots._slotPD_DemodulationLoadSelectedClicked(component.fronted)
+    #     # Generic Flow Graph
+    #     if match_found == False:
+    #         get_modulation = str(component.frontend.ui.textEdit_pd_flow_graphs_modulation.toPlainText()).upper()
+    #         for n in range(0,len(modulation_list)):
+    #             if get_modulation in modulation_list[n]:
+    #                 # Select Flow Graph
+    #                 component.frontend.ui.listWidget_pd_flow_graphs_recommended_fgs.setCurrentRow(n)
+    #                 PDTabSlots._slotPD_DemodulationLoadSelectedClicked(component.fronted)
 
     # Insert Message into the Status Window
     get_text = time.strftime('%H:%M:%S', time.localtime()) + ": Recommended Flow Graphs: " + str(modulation_list) +  "\n"
@@ -1179,13 +1181,13 @@ async def libraryUpdateFinished(component: object):
             protocols_with_demod_fgs.append(p)
     component.frontend.ui.comboBox_pd_sniffer_protocols.addItems(sorted(protocols_with_demod_fgs))
 
-    # Automation Target Protocols
-    get_targeted_protocol = str(component.frontend.ui.comboBox_automation_target_protocol.currentText())  # Might want to recheck that this is ok.
-    component.frontend.ui.comboBox_automation_target_protocol.clear()
-    component.frontend.ui.comboBox_automation_target_protocol.addItems(sorted(protocols))
-    index = component.frontend.ui.comboBox_automation_target_protocol.findText(get_targeted_protocol, QtCore.Qt.MatchFixedString)
-    if index >= 0:
-        component.frontend.ui.comboBox_automation_target_protocol.setCurrentIndex(index)
+    # # Automation Target Protocols
+    # get_targeted_protocol = str(component.frontend.ui.comboBox_automation_target_protocol.currentText())  # Might want to recheck that this is ok.
+    # component.frontend.ui.comboBox_automation_target_protocol.clear()
+    # component.frontend.ui.comboBox_automation_target_protocol.addItems(sorted(protocols))
+    # index = component.frontend.ui.comboBox_automation_target_protocol.findText(get_targeted_protocol, QtCore.Qt.MatchFixedString)
+    # if index >= 0:
+    #     component.frontend.ui.comboBox_automation_target_protocol.setCurrentIndex(index)
 
     LibraryTabSlots._slotAttackImportFileTypeChanged(component.frontend)
 
@@ -1260,11 +1262,7 @@ async def retrieveDatabaseCacheReturn(component: object, database_return={}, ref
     component.frontend.ui.pushButton_top_node5.setEnabled(True)
 
     # Enable Tabs
-    if component.frontend.ui.pushButton_automation_system_start.text() == "Stop":
-        component.frontend.ui.tabWidget.setEnabled(True)
-
-    # Enable Start Button
-    component.frontend.ui.pushButton_automation_system_start.setEnabled(True)
+    component.frontend.ui.tabWidget.setEnabled(True)
 
     # Refresh Library Dependent Widgets
     if refresh_frontend_widgets is True:
@@ -2136,3 +2134,18 @@ async def nodeRefreshReturn(component: object, dashboard_node_index:str, nodes):
     .
     """
     component.frontend.popups["HardwareSelectDialog"].refreshNodes(dashboard_node_index=dashboard_node_index, nodes=nodes)
+
+
+async def dashboardCoT_Message(component: object, raw_xml:str):
+    """
+    Receives a copy of the CoT message sent to the TAK server and hands it off for parsing.
+    """
+    try:
+        cot_message = fissure.utils.cot_utils.parse_cot_xml(raw_xml)
+    except Exception as e:
+        component.logger.error(f"Failed to parse Dashboard CoT message: {e}")
+        return
+
+    print("HURRAY")
+    print(cot_message)
+    fissure.utils.cot_utils.handle_tactical_cot_message(component, cot_message)

@@ -48,7 +48,7 @@
    </property>
    <item>
     <property name="text">
-     <string>Automation</string>
+     <string>Tactical</string>
     </property>
    </item>
    <item>
@@ -127,7 +127,7 @@
      <number>0</number>
     </property>
     <widget class="QWidget" name="page">
-     <widget class="QTableWidget" name="tableWidget_options_automation">
+     <widget class="QTableWidget" name="tableWidget_options_tactical">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -156,81 +156,11 @@
       <attribute name="verticalHeaderStretchLastSection">
        <bool>false</bool>
       </attribute>
-      <row>
-       <property name="text">
-        <string>startup_automation_mode</string>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>SOI_trigger_mode</string>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>SOI_trigger_time</string>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>SOI_trigger_timeout</string>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>SOI_quantity_limit</string>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>SOI_quantity_limit</string>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-      </row>
       <column>
        <property name="text">
         <string/>
        </property>
       </column>
-      <item row="0" column="0">
-       <property name="text">
-        <string/>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-      </item>
      </widget>
     </widget>
     <widget class="QWidget" name="page_2">

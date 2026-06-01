@@ -31,6 +31,7 @@ SENSOR_NODE_DIR: os.PathLike = os.path.join(FISSURE_ROOT, "fissure", "Sensor_Nod
 GALLERY_DIR: os.PathLike = os.path.join(FISSURE_ROOT, "docs", "Gallery")
 CLASSIFIER_DIR: os.PathLike = os.path.join(FISSURE_ROOT, "Classifier")
 PLUGIN_DIR: os.PathLike = os.path.join(FISSURE_ROOT, "Plugins")
+HUB_ARTIFACTS_DIR: os.PathLike = os.path.join(FISSURE_ROOT, "artifacts")
 
 
 FISSURE_CONFIG_FILE = os.path.join(YAML_DIR, "fissure_config.yaml")

@@ -846,10 +846,11 @@
      <addaction name="actiongrip"/>
      <addaction name="actionguidus"/>
      <addaction name="actionhtop"/>
+     <addaction name="actionMobile_Atlas_Creator"/>
+     <addaction name="actionpgAdmin"/>
      <addaction name="menuQtDesigner"/>
      <addaction name="actionSystemback"/>
      <addaction name="actionwl_color_picker"/>
-     <addaction name="actionpgAdmin"/>
     </widget>
     <widget class="QMenu" name="menuWeather">
      <property name="title">
@@ -3587,6 +3588,11 @@
   <action name="actionlfm_beacon_transmit">
    <property name="text">
     <string>lfm_beacon_transmit</string>
+   </property>
+  </action>
+  <action name="actionMobile_Atlas_Creator">
+   <property name="text">
+    <string>Mobile Atlas Creator</string>
    </property>
   </action>
  </widget>

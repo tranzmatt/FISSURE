@@ -1339,7 +1339,13 @@ async def removePlugin(component: object, node_uid: str, plugin_name: str):
     plugin.remove(plugin_name)
 
 
-async def sendPluginNamesTak(component: object, requester_uid: str, node_uid: str, tak_context: str):
+async def sendPluginNamesTak(
+    component: object, 
+    requester_uid: str, 
+    requester_type: str, 
+    node_uid: str, 
+    tak_context: str
+):
     """Send Plugin Names for TAK
 
     Parameters
@@ -1348,6 +1354,8 @@ async def sendPluginNamesTak(component: object, requester_uid: str, node_uid: st
         Component
     requester_uid : str
         TAK UID
+    requester_type : str
+        dashboard, tak, or broadcast        
     node_uid : str
         Sensor node UID
     tak_context : str
@@ -1359,6 +1367,7 @@ async def sendPluginNamesTak(component: object, requester_uid: str, node_uid: st
         # send plugin names
         PARAMETERS = {
             "requester_uid": requester_uid,
+            "requester_type": requester_type,
             "node_uid": node_uid,
             "plugin_names": plugin_names,
             "tak_context": tak_context
@@ -1376,7 +1385,14 @@ async def sendPluginNamesTak(component: object, requester_uid: str, node_uid: st
         component.logger.debug(tb)
 
 
-async def sendPluginActionNamesTak(component: object, requester_uid: str, plugin_name: str, node_uid: str, tak_context: str):
+async def sendPluginActionNamesTak(
+    component: object, 
+    requester_uid: str, 
+    requester_type: str, 
+    plugin_name: str, 
+    node_uid: str, 
+    tak_context: str
+):
     """Send Plugin Action Names for TAK
 
     Parameters
@@ -1385,6 +1401,8 @@ async def sendPluginActionNamesTak(component: object, requester_uid: str, plugin
         Component
     requester_uid : str
         TAK UID
+    requester_type : str
+        dashboard, tak, or broadcast         
     plugin_name : str
         Plugin name
     node_uid : str
@@ -1398,6 +1416,7 @@ async def sendPluginActionNamesTak(component: object, requester_uid: str, plugin
         # send action names
         PARAMETERS = {
             "requester_uid": requester_uid,
+            "requester_type": requester_type,
             "node_uid": node_uid,
             "plugin_name": plugin_name,
             "action_names": action_names,
@@ -1724,14 +1743,20 @@ async def transferArtifactRequest(component: object, artifact_id: str, destinati
     )
 
 
-async def refresh_status(component: object, node_uid: str) -> None:
+async def refresh_status(
+    component: object, 
+    requester_uid: str,
+    requester_type: str,
+) -> None:
     """
     Immediately sends a GPS update to the HIPRFISR.
 
     Parameters
     ----------
-    node_uid : str
-        Sensor node UID.
+    requester_uid : str
+        TAK UID.
+    requester_type : str
+        dashboard, tak, or broadcast 
     """
     component.logger.info("Refreshing status and sending a GPS update to the HIPRFISR")
 
@@ -1756,6 +1781,8 @@ async def refresh_status(component: object, node_uid: str) -> None:
 
 async def sendPluginActionParametersTak(
     component: object,
+    requester_uid: str,
+    requester_type: str,
     plugin_name: str,
     action_name: str,
     node_uid: str,
@@ -1788,6 +1815,8 @@ async def sendPluginActionParametersTak(
             schema["params"] = []
 
         PARAMETERS = {
+            "requester_uid": requester_uid,
+            "requester_type": requester_type,
             "plugin_name": plugin_name,
             "action_name": action_name,
             "node_uid": node_uid,
@@ -1822,6 +1851,7 @@ async def sendPluginActionParametersTak(
 async def sendPluginTargetActionsTak(
     component: object,
     requester_uid: str,
+    requester_type: str,
     plugin_name: str,
     node_uid: str,
     target_id: str,
@@ -1849,9 +1879,11 @@ async def sendPluginTargetActionsTak(
 
         PARAMETERS = {
             "requester_uid": requester_uid,
+            "requester_type": requester_type,
             "node_uid": node_uid,
             "plugin_name": plugin_name,
             "action_names": action_names,
+            "tak_context": "node",
         }
 
         msg = {

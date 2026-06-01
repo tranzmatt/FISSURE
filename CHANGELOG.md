@@ -1,6 +1,32 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2026-5-29
+
+New Tactical tab, TAK alerts without pins, fixing target list imports.
+
+### Added
+
+- Support for sending TAK alerts with and without pins
+- Tactical tab with map pack viewing and download
+- Widgets and functionality for Node, Targets, and Ecosystem controls and status
+- Mobile Atlas Creator to the installer and menu
+- Added tak and dashboard requester_types to messaging
+- Added requester_uid to more of the messaging
+- Added tak, dashboard, and broadcast routing for CoT messaging
+- Base, WiFi, Dummy, and Mission-01 plugins
+
+### Changed
+
+- Updated target list import to report more optional protocol fields
+- Replaced Automation tab with Tactical tab
+- Removed Automation tab widgets and functions
+- Removed startup automation mode logic
+
+### Fixed
+
+- Fixed target list imports in TAK for more of the optional fields
+
 ## 2026-3-24
 
 TAK geolocation, multi-node actions, CoT logging, and plugin enhancements.

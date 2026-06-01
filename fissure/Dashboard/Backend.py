@@ -2441,6 +2441,289 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
+    async def tacticalNodeQuery(self, uid, tak_context="node"):
+        """
+        Sends a message to the HIPRFISR to query the node for plugins.
+        """
+        # Send the Message
+        if self.hiprfisr_connected is True:
+            PARAMETERS = {
+                "requester_uid": self.socket_id,
+                "requester_type": "dashboard",
+                "node_uid": uid,
+                "tak_context": tak_context
+            }
+            msg = {
+                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+                    fissure.comms.MessageFields.MESSAGE_NAME: "sendPluginNamesTak",
+                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+            }
+            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+    async def tacticalNodeSelect(self, uid, plugin_name, tak_context="node"):
+        """
+        Sends a message to the HIPRFISR to query the node for plugin actions.
+        """
+        # Send the Message
+        if self.hiprfisr_connected is True:
+            PARAMETERS = {
+                "requester_uid": self.socket_id,
+                "requester_type": "dashboard",
+                "plugin_name": plugin_name,
+                "node_uid": uid,
+                "tak_context": tak_context
+            }
+            msg = {
+                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+                    fissure.comms.MessageFields.MESSAGE_NAME: "sendPluginActionNamesTak",
+                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+            }
+            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+    async def tacticalNodeCustomize(self, uid, plugin_name, action_name, tak_context="node"):
+        """
+        Sends a message to the HIPRFISR to query the node for plugin action default input parameters.
+        """
+        # Send the Message
+        if self.hiprfisr_connected is True:
+            PARAMETERS = {
+                "requester_uid": self.socket_id,
+                "requester_type": "dashboard",
+                "node_uid": uid,
+                "plugin_name": plugin_name,
+                "action_name": action_name,
+                "tak_context": tak_context
+            }
+            msg = {
+                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+                    fissure.comms.MessageFields.MESSAGE_NAME: "sendPluginActionParametersTak",
+                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+            }
+            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+    async def tacticalNodeExecute(
+        self,
+        uids,
+        plugin_name,
+        action_name,
+        parameters,
+    ):
+        """
+        Sends a message to the HIPRFISR to execute a plugin action.
+        """
+        if self.hiprfisr_connected is True:
+            PARAMETERS = {
+                "requester_uid": self.socket_id,
+                "requester_type": "dashboard",
+                "node_uids": uids,
+                "plugin_name": plugin_name,
+                "action_name": action_name,
+                "parameters": parameters,
+            }
+
+            msg = {
+                fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+                fissure.comms.MessageFields.MESSAGE_NAME: "sendPluginActionTak",
+                fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+            }
+
+            await self.hiprfisr_socket.send_msg(
+                fissure.comms.MessageTypes.COMMANDS,
+                msg,
+            )
+
+
+    async def tacticalNodeStop(self, uids):
+        """
+        Sends a message to the HIPRFISR to stop a plugin action.
+        
+        :param self: Description
+        :[str] uids: List of ndoe UIDs.
+        """
+        if self.hiprfisr_connected is True:
+            PARAMETERS = {
+                "requester_uid": self.socket_id,
+                "requester_type": "dashboard",
+                "node_uids": uids,
+            }
+
+            msg = {
+                fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+                fissure.comms.MessageFields.MESSAGE_NAME: "stop_all_plugin_operations",
+                fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+            }
+
+            await self.hiprfisr_socket.send_msg(
+                fissure.comms.MessageTypes.COMMANDS,
+                msg,
+            )
+
+
+    async def tacticalEcosystemRefreshStatus(self, uids):
+        """
+        Sends a message to the HIPRFISR to force a refresh of node status.
+        
+        :param self: Description
+        :param uids: Description
+        """
+        if self.hiprfisr_connected is True:
+            PARAMETERS = {
+                "requester_uid": self.socket_id,
+                "requester_type": "dashboard",
+                "node_uids": uids,
+            }
+
+            msg = {
+                fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+                fissure.comms.MessageFields.MESSAGE_NAME: "refresh_status",
+                fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+            }
+
+            await self.hiprfisr_socket.send_msg(
+                fissure.comms.MessageTypes.COMMANDS,
+                msg,
+            )
+
+
+    async def tacticalTargetsRefreshTargets(self):
+        """
+        Sends a message to the HIPRFISR to refresh the target list.
+        
+        :param self: Description
+        """
+        if self.hiprfisr_connected is True:
+            PARAMETERS = {
+                "requester_uid": self.socket_id,
+                "requester_type": "dashboard",
+            }
+
+            msg = {
+                fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+                fissure.comms.MessageFields.MESSAGE_NAME: "sendTargetsListTak",
+                fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+            }
+
+            await self.hiprfisr_socket.send_msg(
+                fissure.comms.MessageTypes.COMMANDS,
+                msg,
+            )    
+
+
+    async def tacticalNodeTargetsQueryActions(self, uid, plugin_name, target_id):
+        """
+        Sends a message to the HIPRFISR to query the node for plugin actions for a selected target type.
+        """
+        # Send the Message
+        if self.hiprfisr_connected is True:
+            PARAMETERS = {
+                "requester_uid": self.socket_id,
+                "requester_type": "dashboard",
+                "plugin_name": plugin_name,
+                "node_uid": uid,
+                "target_id": target_id
+            }
+            msg = {
+                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+                    fissure.comms.MessageFields.MESSAGE_NAME: "sendPluginTargetActionsTak",
+                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+            }
+            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+    async def tacticalPromoteSoiToTarget(
+        self,
+        target_id,
+        patch,
+        history_entry=None,
+        artifact_id="",
+    ):
+        if history_entry is None:
+            history_entry = {}
+
+        if self.hiprfisr_connected is True:
+            PARAMETERS = {
+                "target_id": target_id,
+                "patch": patch,
+                "history_entry": history_entry,
+                "artifact_id": artifact_id or "",
+            }
+
+            msg = {
+                fissure.comms.MessageFields.IDENTIFIER:
+                    fissure.comms.Identifiers.DASHBOARD,
+                fissure.comms.MessageFields.MESSAGE_NAME:
+                    "targetPatch",
+                fissure.comms.MessageFields.PARAMETERS:
+                    PARAMETERS,
+            }
+
+            await self.hiprfisr_socket.send_msg(
+                fissure.comms.MessageTypes.COMMANDS,
+                msg,
+            )
+
+
+    async def tacticalTargetsGeolocateStart(
+        self,
+        target_id,
+        search_similar_targets=False,
+    ):
+        if self.hiprfisr_connected is True:
+            PARAMETERS = {
+                "requester_uid": self.socket_id,
+                "requester_type": "dashboard",
+                "parameters": {
+                    "target_id": target_id,
+                    "search_similar_targets": search_similar_targets,
+                },
+            }
+
+            msg = {
+                fissure.comms.MessageFields.IDENTIFIER:
+                    fissure.comms.Identifiers.DASHBOARD,
+                fissure.comms.MessageFields.MESSAGE_NAME:
+                    "geolocate_target_start",
+                fissure.comms.MessageFields.PARAMETERS:
+                    PARAMETERS,
+            }
+
+            await self.hiprfisr_socket.send_msg(
+                fissure.comms.MessageTypes.COMMANDS,
+                msg,
+            )
+
+
+    async def tacticalTargetsGeolocateStop(
+        self,
+        target_id,
+    ):
+        if self.hiprfisr_connected is True:
+            PARAMETERS = {
+                "requester_uid": self.socket_id,
+                "requester_type": "dashboard",
+                "parameters": {
+                    "target_id": target_id,
+                },
+            }
+
+            msg = {
+                fissure.comms.MessageFields.IDENTIFIER:
+                    fissure.comms.Identifiers.DASHBOARD,
+                fissure.comms.MessageFields.MESSAGE_NAME:
+                    "geolocate_target_stop",
+                fissure.comms.MessageFields.PARAMETERS:
+                    PARAMETERS,
+            }
+
+            await self.hiprfisr_socket.send_msg(
+                fissure.comms.MessageTypes.COMMANDS,
+                msg,
+            )
+
+
 #######################################################################################
 ############################## Low Throughput Messages ################################
 #######################################################################################

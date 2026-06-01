@@ -1,0 +1,27 @@
+{
+    "name": "demo_map_pack",
+    "source": "OpenStreetMap",
+    "bounds": {
+        "north": 40.8,
+        "south": 40.7,
+        "west": -74.02,
+        "east": -73.93
+    },
+    "zoom_levels": {
+        "12": {
+            "x_min": 1205,
+            "x_max": 1206,
+            "y_min": 1538,
+            "y_max": 1540,
+            "tiles": 6
+        },
+        "13": {
+            "x_min": 2411,
+            "x_max": 2413,
+            "y_min": 3077,
+            "y_max": 3080,
+            "tiles": 12
+        }
+    },
+    "reference_points": []
+}

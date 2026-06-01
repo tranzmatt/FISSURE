@@ -1,227 +1,582 @@
 tgt-00000000-0000-4000-8000-000000000001:
-  target_id: "tgt-00000000-0000-4000-8000-000000000001"
-  sensor_node_id: "node-bravo-01"
-  source_soi_id: "soi-demo-123"
-
-  created_time: "2026-02-02T18:32:11Z"
-  last_update_time: "2026-02-02T18:32:11Z"
-
+  target_id: tgt-00000000-0000-4000-8000-000000000001
+  sensor_node_id: node-bravo-01
+  source_soi_id: soi-demo-123
+  created_time: '2026-02-02T18:32:11Z'
+  last_update_time: '2026-02-02T18:32:11Z'
   frequency_mhz: 311.0
-
   classification:
-    display_label: "Garage Door Opener"
+    display_label: Garage Door Opener
     candidates:
-      - source: "database"
-        label: "Garage Door Opener"
-      - source: "model"
-        label: "Garage_Door"
-        confidence: 0.62
-
+    - source: database
+      label: Garage Door Opener
+    - source: model
+      label: Garage_Door
+      confidence: 0.62
   location:
-    lat: 41.2457
-    lon: -76.9983
+    lat: 40.758913
+    lon: -73.984828
     hae_m: 0
-    ce_m: 50
-    timestamp: "2026-02-02T18:31:55Z"
-    source: "node_last_known"
-
-  state: "imported"
-
+    ce_m: 25
+    timestamp: '2026-02-02T18:31:55Z'
+    source: node_last_known
+  state: imported
   geolocate:
-    status: "idle"
-    mode: ""
-    plugin: ""
-    action: ""
+    status: idle
+    mode: ''
+    plugin: ''
+    action: ''
     node_uids: []
-    error: ""
-    updated_time: ""
-
+    error: ''
+    updated_time: ''
   history: []
-
-wifiap-5555A28F4444:
-  target_id: "wifiap-5555A28F4444"
-  sensor_node_id: "node-bravo-01"
-  source_soi_id: ""
-
-  created_time: "2026-03-18T18:32:11Z"
-  last_update_time: "2026-03-18T18:32:11Z"
-
+wifiap-0284B31AF167:
+  target_id: wifiap-0284B31AF167
+  sensor_node_id: node-bravo-01
+  source_soi_id: ''
+  created_time: '2026-03-18T18:32:11Z'
+  last_update_time: '2026-03-18T18:32:11Z'
   frequency_mhz: 2437.0
-
   classification:
-    display_label: "Wi-Fi AP"
+    display_label: Wi-Fi AP
     candidates:
-      - source: "database"
-        label: "Wi-Fi AP"
-      - source: "model"
-        label: "802.11 Access Point"
-        confidence: 0.95
-
+    - source: database
+      label: Wi-Fi AP
+    - source: model
+      label: 802.11 Access Point
+      confidence: 0.95
   location:
-    lat: 40.712776
-    lon: -74.005974
+    lat: 40.767065
+    lon: -73.973032
     hae_m: 10.5
-    ce_m: 42.0
-    timestamp: "2026-03-18T18:32:11Z"
-    source: "wifi_geo"
-
-  state: "imported"
-
+    ce_m: 100
+    timestamp: '2026-03-18T18:32:11Z'
+    source: wifi_geo
+  state: imported
   geolocate:
-    status: "idle"
-    mode: ""
-    plugin: ""
-    action: ""
+    status: idle
+    mode: ''
+    plugin: ''
+    action: ''
     node_uids: []
-    error: ""
-    updated_time: ""
-
+    error: ''
+    updated_time: ''
   wifi:
-    ssid: "MyNetwork"
-    bssid: "24:F5:A2:8F:C8:DF"
+    ssid: FieldNode-Alpha
+    bssid: 02:84:B3:1A:F1:67
     channel: 6
-    band: "2.4GHz"
+    band: 2.4GHz
     rssi_dbm: -61
-    encryption: "WPA2"
-    last_observation_time: "2026-03-18T18:32:11Z"
-
+    encryption: WPA2
+    last_observation_time: '2026-03-18T18:32:11Z'
   history: []
-
-wifiap-A1B2C3D4E5F6:
-  target_id: "wifiap-A1B2C3D4E5F6"
-  sensor_node_id: "node-charlie-02"
-  source_soi_id: ""
-
-  created_time: "2026-03-18T19:05:44Z"
-  last_update_time: "2026-03-18T19:05:44Z"
-
+wifiap-06BE8705E024:
+  target_id: wifiap-06BE8705E024
+  sensor_node_id: node-charlie-02
+  source_soi_id: ''
+  created_time: '2026-03-18T19:05:44Z'
+  last_update_time: '2026-03-18T19:05:44Z'
   frequency_mhz: 5180.0
-
   classification:
-    display_label: "Wi-Fi AP"
+    display_label: Wi-Fi AP
     candidates:
-      - source: "database"
-        label: "Wi-Fi AP"
-      - source: "model"
-        label: "802.11 Access Point"
-        confidence: 0.91
-
+    - source: database
+      label: Wi-Fi AP
+    - source: model
+      label: 802.11 Access Point
+      confidence: 0.91
   location:
-    lat: 40.713401
-    lon: -74.004901
+    lat: 40.748549
+    lon: -73.984316
     hae_m: 12.0
-    ce_m: 28.0
-    timestamp: "2026-03-18T19:05:44Z"
-    source: "wifi_geo"
-
-  state: "imported"
-
+    ce_m: 50
+    timestamp: '2026-03-18T19:05:44Z'
+    source: wifi_geo
+  state: imported
   geolocate:
-    status: "idle"
-    mode: ""
-    plugin: ""
-    action: ""
+    status: idle
+    mode: ''
+    plugin: ''
+    action: ''
     node_uids: []
-    error: ""
-    updated_time: ""
-
+    error: ''
+    updated_time: ''
   wifi:
-    ssid: "Office-5G"
-    bssid: "A1:B2:C3:D4:E5:F6"
+    ssid: SurveyLink-24
+    bssid: 06:BE:87:05:E0:24
     channel: 36
-    band: "5GHz"
+    band: 5GHz
     rssi_dbm: -54
-    encryption: "WPA3"
-    last_observation_time: "2026-03-18T19:05:44Z"
-
+    encryption: WPA3
+    last_observation_time: '2026-03-18T19:05:44Z'
   history: []
-
-
 lfmbeacon-433920000:
-  target_id: "lfmbeacon-433920000"
-  sensor_node_id: "node-bravo-01"
-  source_soi_id: ""
-
-  created_time: "2026-03-23T13:00:00Z"
-  last_update_time: "2026-03-23T13:00:00Z"
-
+  target_id: lfmbeacon-433920000
+  sensor_node_id: node-bravo-01
+  source_soi_id: ''
+  created_time: '2026-03-23T13:00:00Z'
+  last_update_time: '2026-03-23T13:00:00Z'
   frequency_mhz: 433.92
-
   classification:
-    display_label: "LFM Beacon"
+    display_label: LFM Beacon
     candidates:
-      - source: "database"
-        label: "LFM Beacon"
-
+    - source: database
+      label: LFM Beacon
   location:
-    lat: 40.712776
-    lon: -74.005974
+    lat: 40.70583
+    lon: -74.008617
     hae_m: 10.0
-    ce_m: 100.0
-    timestamp: "2026-03-23T13:00:00Z"
-    source: "imported"
-
-  state: "imported"
-
+    ce_m: 150
+    timestamp: '2026-03-23T13:00:00Z'
+    source: imported
+  state: imported
   geolocate:
-    status: "idle"
-    mode: ""
-    plugin: ""
-    action: ""
+    status: idle
+    mode: ''
+    plugin: ''
+    action: ''
     node_uids: []
-    error: ""
-    updated_time: ""
-
+    error: ''
+    updated_time: ''
   rf:
-    signal_type: "lfm_beacon"
-    description: "Test LFM beacon target used for hub multilateration"
+    signal_type: lfm_beacon
+    description: Test LFM beacon target used for hub multilateration
     nominal_frequency_mhz: 433.92
-    last_observation_time: ""
-
+    last_observation_time: ''
   history: []
-
-
 signal-2436mhz-demo:
-  target_id: "signal-2436mhz-demo"
-  sensor_node_id: "node-bravo-01"
-  source_soi_id: ""
-
-  created_time: "2026-03-23T19:10:00Z"
-  last_update_time: "2026-03-23T19:10:00Z"
-
+  target_id: signal-2436mhz-demo
+  sensor_node_id: node-bravo-01
+  source_soi_id: ''
+  created_time: '2026-03-23T19:10:00Z'
+  last_update_time: '2026-03-23T19:10:00Z'
   frequency_mhz: 2436.0
-
   classification:
-    display_label: "Generic RF Signal"
+    display_label: Generic RF Signal
     candidates:
-      - source: "database"
-        label: "Generic RF Signal"
-      - source: "manual"
-        label: "2.436 GHz Signal"
-
+    - source: database
+      label: Generic RF Signal
+    - source: manual
+      label: 2.436 GHz Signal
   location:
-    lat: 42.191356
-    lon: -76.953738
+    lat: 40.711664
+    lon: -74.004893
     hae_m: 556.8
-    ce_m: 100.0
-    timestamp: "2026-03-23T19:10:00Z"
-    source: "imported"
-
-  state: "imported"
-
+    ce_m: 150
+    timestamp: '2026-03-23T19:10:00Z'
+    source: imported
+  state: imported
   geolocate:
-    status: "idle"
-    mode: ""
-    plugin: ""
-    action: ""
+    status: idle
+    mode: ''
+    plugin: ''
+    action: ''
     node_uids: []
-    error: ""
-    updated_time: ""
-
+    error: ''
+    updated_time: ''
   rf:
-    signal_type: "generic_frequency"
-    description: "Generic RF target for hub-side geolocation testing"
+    signal_type: generic_frequency
+    description: Generic RF target for hub-side geolocation testing
     nominal_frequency_mhz: 2436.0
-    last_observation_time: ""
-
+    last_observation_time: ''
+  history: []
+wifiap-0AEAB3155CBB:
+  target_id: wifiap-0AEAB3155CBB
+  sensor_node_id: node-bravo-01
+  source_soi_id: ''
+  created_time: '2026-03-30T21:49:47Z'
+  last_update_time: '2026-03-30T21:49:47Z'
+  frequency_mhz: null
+  classification:
+    display_label: Wi-Fi AP
+    candidates:
+    - source: database
+      label: Wi-Fi AP
+    - source: model
+      label: 802.11 Access Point
+      confidence: 0.95
+  location:
+    lat: 40.732125
+    lon: -73.997516
+    hae_m: 294.0575
+    ce_m: 42
+    timestamp: '2026-03-30T21:49:47Z'
+    source: wifi_geo
+  state: imported
+  geolocate:
+    status: idle
+    mode: ''
+    plugin: ''
+    action: ''
+    node_uids: []
+    error: ''
+    updated_time: ''
+  wifi:
+    ssid: CivicMesh-Blue
+    bssid: 0A:EA:B3:15:5C:BB
+    channel: null
+    band: ''
+    rssi_dbm: -82
+    encryption: ''
+    last_observation_time: '2026-03-30T21:49:47Z'
+  history: []
+wifiap-0E21F31A7E15:
+  target_id: wifiap-0E21F31A7E15
+  sensor_node_id: node-bravo-01
+  source_soi_id: ''
+  created_time: '2026-03-30T21:51:34Z'
+  last_update_time: '2026-03-30T21:51:34Z'
+  frequency_mhz: null
+  classification:
+    display_label: Wi-Fi AP
+    candidates:
+    - source: database
+      label: Wi-Fi AP
+    - source: model
+      label: 802.11 Access Point
+      confidence: 0.95
+  location:
+    lat: 40.751357
+    lon: -73.978495
+    hae_m: 278.8627
+    ce_m: 75
+    timestamp: '2026-03-30T21:51:34Z'
+    source: wifi_geo
+  state: imported
+  geolocate:
+    status: idle
+    mode: ''
+    plugin: ''
+    action: ''
+    node_uids: []
+    error: ''
+    updated_time: ''
+  wifi:
+    ssid: MetroRelay-5G
+    bssid: 0E:21:F3:1A:7E:15
+    channel: null
+    band: ''
+    rssi_dbm: -88
+    encryption: ''
+    last_observation_time: '2026-03-30T21:51:34Z'
+  history: []
+wifiap-1224F94FEA34:
+  target_id: wifiap-1224F94FEA34
+  sensor_node_id: node-bravo-01
+  source_soi_id: ''
+  created_time: '2026-03-30T21:52:09Z'
+  last_update_time: '2026-03-30T21:52:09Z'
+  frequency_mhz: null
+  classification:
+    display_label: Wi-Fi AP
+    candidates:
+    - source: database
+      label: Wi-Fi AP
+    - source: model
+      label: 802.11 Access Point
+      confidence: 0.95
+  location:
+    lat: 40.7543
+    lon: -74.002074
+    hae_m: 283.2047
+    ce_m: 75
+    timestamp: '2026-03-30T21:52:09Z'
+    source: wifi_geo
+  state: imported
+  geolocate:
+    status: idle
+    mode: ''
+    plugin: ''
+    action: ''
+    node_uids: []
+    error: ''
+    updated_time: ''
+  wifi:
+    ssid: OpsNet-East
+    bssid: 12:24:F9:4F:EA:34
+    channel: null
+    band: ''
+    rssi_dbm: -78
+    encryption: ''
+    last_observation_time: '2026-03-30T21:52:09Z'
+  history: []
+wifiap-164CA97C6A00:
+  target_id: wifiap-164CA97C6A00
+  sensor_node_id: node-bravo-01
+  source_soi_id: ''
+  created_time: '2026-03-30T21:52:28Z'
+  last_update_time: '2026-03-30T21:52:28Z'
+  frequency_mhz: null
+  classification:
+    display_label: Wi-Fi AP
+    candidates:
+    - source: database
+      label: Wi-Fi AP
+    - source: model
+      label: 802.11 Access Point
+      confidence: 0.95
+  location:
+    lat: 40.80608
+    lon: -73.962514
+    hae_m: 277.5229
+    ce_m: 150
+    timestamp: '2026-03-30T21:52:28Z'
+    source: wifi_geo
+  state: imported
+  geolocate:
+    status: idle
+    mode: ''
+    plugin: ''
+    action: ''
+    node_uids: []
+    error: ''
+    updated_time: ''
+  wifi:
+    ssid: SignalBridge-12
+    bssid: 16:4C:A9:7C:6A:00
+    channel: null
+    band: ''
+    rssi_dbm: -79
+    encryption: ''
+    last_observation_time: '2026-03-30T21:52:28Z'
+  history: []
+wifiap-1A2F9E043EC8:
+  target_id: wifiap-1A2F9E043EC8
+  sensor_node_id: node-bravo-01
+  source_soi_id: ''
+  created_time: '2026-03-30T21:52:57Z'
+  last_update_time: '2026-03-30T21:52:57Z'
+  frequency_mhz: null
+  classification:
+    display_label: Wi-Fi AP
+    candidates:
+    - source: database
+      label: Wi-Fi AP
+    - source: model
+      label: 802.11 Access Point
+      confidence: 0.95
+  location:
+    lat: 40.703052
+    lon: -74.016991
+    hae_m: 271.3885
+    ce_m: 100
+    timestamp: '2026-03-30T21:52:57Z'
+    source: wifi_geo
+  state: imported
+  geolocate:
+    status: idle
+    mode: ''
+    plugin: ''
+    action: ''
+    node_uids: []
+    error: ''
+    updated_time: ''
+  wifi:
+    ssid: Waypoint-Guest
+    bssid: 1A:2F:9E:04:3E:C8
+    channel: null
+    band: ''
+    rssi_dbm: -75
+    encryption: ''
+    last_observation_time: '2026-03-30T21:52:57Z'
+  history: []
+wifiap-1E6D68D28ACB:
+  target_id: wifiap-1E6D68D28ACB
+  sensor_node_id: node-bravo-01
+  source_soi_id: ''
+  created_time: '2026-03-30T21:53:33Z'
+  last_update_time: '2026-03-30T21:53:33Z'
+  frequency_mhz: null
+  classification:
+    display_label: Wi-Fi AP
+    candidates:
+    - source: database
+      label: Wi-Fi AP
+    - source: model
+      label: 802.11 Access Point
+      confidence: 0.95
+  location:
+    lat: 40.773059
+    lon: -73.956839
+    hae_m: 278.6176
+    ce_m: 300
+    timestamp: '2026-03-30T21:53:33Z'
+    source: wifi_geo
+  state: imported
+  geolocate:
+    status: idle
+    mode: ''
+    plugin: ''
+    action: ''
+    node_uids: []
+    error: ''
+    updated_time: ''
+  wifi:
+    ssid: GridLink-07
+    bssid: 1E:6D:68:D2:8A:CB
+    channel: null
+    band: ''
+    rssi_dbm: -88
+    encryption: ''
+    last_observation_time: '2026-03-30T21:53:33Z'
+  history: []
+wifiap-220E5C10EF07:
+  target_id: wifiap-220E5C10EF07
+  sensor_node_id: node-bravo-01
+  source_soi_id: ''
+  created_time: '2026-03-30T21:55:06Z'
+  last_update_time: '2026-03-30T21:55:06Z'
+  frequency_mhz: null
+  classification:
+    display_label: Wi-Fi AP
+    candidates:
+    - source: database
+      label: Wi-Fi AP
+    - source: model
+      label: 802.11 Access Point
+      confidence: 0.95
+  location:
+    lat: 40.727257
+    lon: -73.982424
+    hae_m: 278.6241
+    ce_m: 25
+    timestamp: '2026-03-30T21:55:06Z'
+    source: wifi_geo
+  state: imported
+  geolocate:
+    status: idle
+    mode: ''
+    plugin: ''
+    action: ''
+    node_uids: []
+    error: ''
+    updated_time: ''
+  wifi:
+    ssid: RavenNet-24
+    bssid: 22:0E:5C:10:EF:07
+    channel: null
+    band: ''
+    rssi_dbm: -84
+    encryption: ''
+    last_observation_time: '2026-03-30T21:55:06Z'
+  history: []
+wifiap-26478CCE1038:
+  target_id: wifiap-26478CCE1038
+  sensor_node_id: node-bravo-01
+  source_soi_id: ''
+  created_time: '2026-03-30T21:55:39Z'
+  last_update_time: '2026-03-30T21:55:39Z'
+  frequency_mhz: null
+  classification:
+    display_label: Wi-Fi AP
+    candidates:
+    - source: database
+      label: Wi-Fi AP
+    - source: model
+      label: 802.11 Access Point
+      confidence: 0.95
+  location:
+    lat: 40.756968
+    lon: -73.986851
+    hae_m: 289.5331
+    ce_m: 42
+    timestamp: '2026-03-30T21:55:39Z'
+    source: wifi_geo
+  state: imported
+  geolocate:
+    status: idle
+    mode: ''
+    plugin: ''
+    action: ''
+    node_uids: []
+    error: ''
+    updated_time: ''
+  wifi:
+    ssid: NorthBlock-5G
+    bssid: 26:47:8C:CE:10:38
+    channel: null
+    band: ''
+    rssi_dbm: -78
+    encryption: ''
+    last_observation_time: '2026-03-30T21:55:39Z'
+  history: []
+wifiap-2A24014603C4:
+  target_id: wifiap-2A24014603C4
+  sensor_node_id: node-bravo-01
+  source_soi_id: ''
+  created_time: '2026-03-30T21:56:09Z'
+  last_update_time: '2026-03-30T21:56:09Z'
+  frequency_mhz: null
+  classification:
+    display_label: Wi-Fi AP
+    candidates:
+    - source: database
+      label: Wi-Fi AP
+    - source: model
+      label: 802.11 Access Point
+      confidence: 0.95
+  location:
+    lat: 40.768965
+    lon: -73.971336
+    hae_m: 284.9141
+    ce_m: 42
+    timestamp: '2026-03-30T21:56:09Z'
+    source: wifi_geo
+  state: imported
+  geolocate:
+    status: idle
+    mode: ''
+    plugin: ''
+    action: ''
+    node_uids: []
+    error: ''
+    updated_time: ''
+  wifi:
+    ssid: TransitMesh-A
+    bssid: 2A:24:01:46:03:C4
+    channel: null
+    band: ''
+    rssi_dbm: -88
+    encryption: ''
+    last_observation_time: '2026-03-30T21:56:09Z'
+  history: []
+wifiap-2EEB5E3E245E:
+  target_id: wifiap-2EEB5E3E245E
+  sensor_node_id: node-bravo-01
+  source_soi_id: ''
+  created_time: '2026-03-30T21:57:17Z'
+  last_update_time: '2026-03-30T21:57:17Z'
+  frequency_mhz: null
+  classification:
+    display_label: Wi-Fi AP
+    candidates:
+    - source: database
+      label: Wi-Fi AP
+    - source: model
+      label: 802.11 Access Point
+      confidence: 0.95
+  location:
+    lat: 40.748124
+    lon: -73.984861
+    hae_m: 288.3508
+    ce_m: 50
+    timestamp: '2026-03-30T21:57:17Z'
+    source: wifi_geo
+  state: imported
+  geolocate:
+    status: idle
+    mode: ''
+    plugin: ''
+    action: ''
+    node_uids: []
+    error: ''
+    updated_time: ''
+  wifi:
+    ssid: HarborLink-31
+    bssid: 2E:EB:5E:3E:24:5E
+    channel: null
+    band: ''
+    rssi_dbm: -90
+    encryption: ''
+    last_observation_time: '2026-03-30T21:57:17Z'
   history: []

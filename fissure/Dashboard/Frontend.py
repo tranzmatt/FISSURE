@@ -3,7 +3,7 @@ from fissure.Dashboard.Backend import DashboardBackend
 from fissure.Dashboard.Slots import (
     ArchiveTabSlots,
     AttackTabSlots,
-    AutomationTabSlots,
+    TacticalTabSlots,
     DashboardSlots,
     IQDataTabSlots,
     LibraryTabSlots,
@@ -50,6 +50,9 @@ import time
 import signal
 import json
 import random
+
+from fissure.Dashboard.UI_Components.TacticalMapView import TacticalMapView
+
 
 # Base Window Size
 WINDOW_WIDTH = 1280
@@ -115,7 +118,6 @@ class Dashboard(QtWidgets.QMainWindow):
         self.ui.pushButton_top_node5.setVisible(False)
         self.ui.pushButton_top_node1.setEnabled(False)
         self.ui.tabWidget.setEnabled(False)
-        self.ui.pushButton_automation_system_start.setEnabled(False)
 
         # Light/Dark Mode Style Sheets
         if self.backend.settings["color_mode"] == "Dark Mode":
@@ -174,6 +176,314 @@ class Dashboard(QtWidgets.QMainWindow):
             self.__init2__()            
 
         self.logger.info("=== READY ===")
+
+
+        # ####################################################
+
+
+        #         ####################################################
+        # # Offline tile map test in Dashboard graphicsView
+
+        # import math
+
+        # TILE_SIZE = 256
+
+        # self.map_scene = QtWidgets.QGraphicsScene(self)
+        # self.ui.graphicsView.setScene(self.map_scene)
+
+        # self.ui.graphicsView.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
+        # self.ui.graphicsView.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+        # self.ui.graphicsView.setResizeAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+        # self.ui.graphicsView.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        # self.ui.graphicsView.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, True)
+
+        # # ---- map pack selection ----
+        # # For now, hardcode one pack. Later this can come from a combobox.
+        # self.current_map_name = "elmira_demo"
+
+        # # Expected:
+        # # FISSURE/map_data/elmira_demo/tile_manifest.json
+        # # FISSURE/map_data/elmira_demo/tiles/11/... etc
+        # self.map_pack_dir = os.path.join(fissure.utils.FISSURE_ROOT, "map_data", self.current_map_name)
+        # self.map_manifest_path = os.path.join(self.map_pack_dir, "tile_manifest.json")
+
+        # if not os.path.isfile(self.map_manifest_path):
+        #     print("ERROR: tile manifest not found:", self.map_manifest_path)
+        # else:
+        #     with open(self.map_manifest_path, "r", encoding="utf-8") as f:
+        #         self.map_manifest = json.load(f)
+
+        #     self.map_reference_points = self.map_manifest.get("reference_points", [])
+        #     self.map_available_zooms = sorted(int(z) for z in self.map_manifest["zoom_levels"].keys())
+
+        #     # Pick a default zoom. Prefer 12 if present, otherwise the first available.
+        #     self.map_zoom = 12 if 12 in self.map_available_zooms else self.map_available_zooms[0]
+
+        #     def latlon_to_world(lat, lon, zoom):
+        #         lat_rad = math.radians(lat)
+        #         n = 2 ** zoom
+        #         x = (lon + 180.0) / 360.0 * n * TILE_SIZE
+        #         y = (1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n * TILE_SIZE
+        #         return x, y
+
+        #     def scene_to_latlon(scene_x, scene_y):
+        #         world_x = scene_x + self.map_x_min * TILE_SIZE
+        #         world_y = scene_y + self.map_y_min * TILE_SIZE
+
+        #         n = 2 ** self.map_zoom
+        #         lon = world_x / (n * TILE_SIZE) * 360.0 - 180.0
+        #         merc_y = math.pi * (1.0 - 2.0 * world_y / (n * TILE_SIZE))
+        #         lat = math.degrees(math.atan(math.sinh(merc_y)))
+        #         return lat, lon
+
+        #     def latlon_to_scene(lat, lon):
+        #         world_x, world_y = latlon_to_world(lat, lon, self.map_zoom)
+        #         scene_x = world_x - self.map_x_min * TILE_SIZE
+        #         scene_y = world_y - self.map_y_min * TILE_SIZE
+        #         return scene_x, scene_y
+
+        #     def clear_map_scene():
+        #         self.map_scene.clear()
+
+        #     def load_tiles_for_current_zoom():
+        #         missing = 0
+        #         tile_root = os.path.join(self.map_pack_dir, "tiles", str(self.map_zoom))
+
+        #         for x in range(self.map_x_min, self.map_x_max + 1):
+        #             for y in range(self.map_y_min, self.map_y_max + 1):
+        #                 tile_path = os.path.join(tile_root, str(x), f"{y}.png")
+        #                 scene_x = (x - self.map_x_min) * TILE_SIZE
+        #                 scene_y = (y - self.map_y_min) * TILE_SIZE
+
+        #                 if os.path.isfile(tile_path):
+        #                     pixmap = QtGui.QPixmap(tile_path)
+        #                 else:
+        #                     missing += 1
+        #                     pixmap = QtGui.QPixmap(TILE_SIZE, TILE_SIZE)
+        #                     pixmap.fill(QtGui.QColor("#f0f0f0"))
+        #                     painter = QtGui.QPainter(pixmap)
+        #                     painter.setPen(QtGui.QPen(QtGui.QColor("#999999")))
+        #                     painter.drawRect(0, 0, TILE_SIZE - 1, TILE_SIZE - 1)
+        #                     painter.drawText(20, 30, "missing")
+        #                     painter.drawText(20, 55, f"z={self.map_zoom}")
+        #                     painter.drawText(20, 80, f"x={x}")
+        #                     painter.drawText(20, 105, f"y={y}")
+        #                     painter.end()
+
+        #                 item = self.map_scene.addPixmap(pixmap)
+        #                 item.setPos(scene_x, scene_y)
+        #                 item.setZValue(0)
+
+        #         print("missing tiles:", missing)
+
+        #     def add_reference_points(points):
+        #         colors = {
+        #             "Corning": QtGui.QColor("#1d4ed8"),
+        #             "Horseheads": QtGui.QColor("#dc2626"),
+        #             "Elmira": QtGui.QColor("#16a34a"),
+        #         }
+
+        #         for p in points:
+        #             x, y = latlon_to_scene(p["lat"], p["lon"])
+        #             color = colors.get(p["name"], QtGui.QColor("#000000"))
+
+        #             item = self.map_scene.addEllipse(
+        #                 x - 5, y - 5, 10, 10,
+        #                 QtGui.QPen(QtCore.Qt.black),
+        #                 QtGui.QBrush(color)
+        #             )
+        #             item.setZValue(2)
+
+        #             label = self.map_scene.addText(p["name"])
+        #             label.setDefaultTextColor(QtGui.QColor("#111111"))
+        #             label.setPos(x + 8, y - 18)
+        #             label.setZValue(3)
+
+        #     def load_zoom(zoom, center_lat=None, center_lon=None, fit=False):
+        #         self.map_zoom = zoom
+        #         info = self.map_manifest["zoom_levels"][str(self.map_zoom)]
+        #         self.map_x_min = info["x_min"]
+        #         self.map_x_max = info["x_max"]
+        #         self.map_y_min = info["y_min"]
+        #         self.map_y_max = info["y_max"]
+
+        #         clear_map_scene()
+        #         load_tiles_for_current_zoom()
+
+        #         if self.map_reference_points:
+        #             add_reference_points(self.map_reference_points)
+
+        #         scene_width = (self.map_x_max - self.map_x_min + 1) * TILE_SIZE
+        #         scene_height = (self.map_y_max - self.map_y_min + 1) * TILE_SIZE
+        #         self.map_scene.setSceneRect(0, 0, scene_width, scene_height)
+
+        #         if fit:
+        #             self.ui.graphicsView.fitInView(self.map_scene.sceneRect(), QtCore.Qt.KeepAspectRatio)
+        #         elif center_lat is not None and center_lon is not None:
+        #             scene_x, scene_y = latlon_to_scene(center_lat, center_lon)
+        #             self.ui.graphicsView.resetTransform()
+        #             self.ui.graphicsView.centerOn(scene_x, scene_y)
+
+        #         print("loaded map:", self.current_map_name, "zoom:", self.map_zoom)
+
+        #     def current_view_center_latlon():
+        #         viewport_center = self.ui.graphicsView.viewport().rect().center()
+        #         scene_center = self.ui.graphicsView.mapToScene(viewport_center)
+        #         return scene_to_latlon(scene_center.x(), scene_center.y())
+
+        #     def graphicsview_wheel_event(event):
+        #         direction = +1 if event.angleDelta().y() > 0 else -1
+        #         new_zoom = self.map_zoom + direction
+
+        #         if new_zoom in self.map_available_zooms:
+        #             center_lat, center_lon = current_view_center_latlon()
+        #             load_zoom(new_zoom, center_lat=center_lat, center_lon=center_lon, fit=False)
+
+        #         event.accept()
+
+        #     self.ui.graphicsView.wheelEvent = graphicsview_wheel_event
+
+        #     # Initial center:
+        #     # 1) use bounds center if present
+        #     bounds = self.map_manifest.get("bounds", {})
+        #     if all(k in bounds for k in ("north", "south", "west", "east")):
+        #         center_lat = (bounds["north"] + bounds["south"]) / 2.0
+        #         center_lon = (bounds["west"] + bounds["east"]) / 2.0
+        #     else:
+        #         center_lat = 42.1503
+        #         center_lon = -76.9517
+
+        #     load_zoom(self.map_zoom, center_lat=center_lat, center_lon=center_lon, fit=True)
+
+        # print("Dashboard tile map test loaded")
+
+        # ####################################################
+        # # ####################################################
+        # # # Temporary QGraphicsView real map test
+        # # # Uses the existing Designer widget: self.ui.graphicsView
+        # # # Expected map path: FISSURE/map_data/map.png
+
+        # # scene = QtWidgets.QGraphicsScene(self)
+        # # self.ui.graphicsView.setScene(scene)
+
+        # # # Basic view behavior
+        # # self.ui.graphicsView.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
+        # # self.ui.graphicsView.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+        # # self.ui.graphicsView.setResizeAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+        # # self.ui.graphicsView.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        # # self.ui.graphicsView.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, True)
+
+        # # # Load real map image
+        # # map_path = os.path.join(fissure.utils.FISSURE_ROOT, "map_data", "map.png")
+        # # pixmap = QtGui.QPixmap(map_path)
+
+        # # if pixmap.isNull():
+        # #     print("ERROR: Failed to load map:", map_path)
+
+        # #     # Fallback image so the tab still shows something
+        # #     map_width = 1400
+        # #     map_height = 900
+        # #     pixmap = QtGui.QPixmap(map_width, map_height)
+        # #     pixmap.fill(QtGui.QColor("#d9dde3"))
+
+        # #     painter = QtGui.QPainter(pixmap)
+
+        # #     grid_pen = QtGui.QPen(QtGui.QColor("#b5bcc6"))
+        # #     for x in range(0, map_width, 100):
+        # #         painter.setPen(grid_pen)
+        # #         painter.drawLine(x, 0, x, map_height)
+        # #     for y in range(0, map_height, 100):
+        # #         painter.drawLine(0, y, map_width, y)
+
+        # #     painter.setPen(QtGui.QPen(QtGui.QColor("#111111")))
+        # #     painter.setFont(QtGui.QFont("Arial", 16))
+        # #     painter.drawText(20, 30, "ERROR: map_data/map.png not found")
+
+        # #     painter.end()
+        # # else:
+        # #     print("Loaded map:", map_path)
+
+        # # map_width = pixmap.width()
+        # # map_height = pixmap.height()
+        # # print("Map size:", map_width, map_height)
+
+        # # bg_item = scene.addPixmap(pixmap)
+        # # bg_item.setZValue(0)
+
+        # # # Approximate geographic bounds for the exported Corning/Horseheads/Elmira image
+        # # # Adjust later if the markers appear slightly off.
+        # # LAT_MAX = 42.2661
+        # # LAT_MIN = 42.0342
+        # # LON_MIN = -77.2212
+        # # LON_MAX = -76.665 #-76.6822
+
+        # # def latlon_to_xy(lat, lon):
+        # #     x = (lon - LON_MIN) / (LON_MAX - LON_MIN) * map_width
+        # #     y = (LAT_MAX - lat) / (LAT_MAX - LAT_MIN) * map_height
+        # #     return x, y
+
+        # # def add_marker(lat, lon, label, color, radius=5):
+        # #     x, y = latlon_to_xy(lat, lon)
+
+        # #     item = scene.addEllipse(
+        # #         x - radius, y - radius, radius * 2, radius * 2,
+        # #         QtGui.QPen(QtCore.Qt.black),
+        # #         QtGui.QBrush(color)
+        # #     )
+        # #     item.setZValue(2)
+
+        # #     text = scene.addText(label)
+        # #     text.setDefaultTextColor(QtGui.QColor("#111111"))
+        # #     text.setPos(x + 8, y - 18)
+        # #     text.setZValue(3)
+
+        # #     return item, text
+
+        # # # Real sanity-check points
+        # # # Corning should be left-center
+        # # add_marker(42.1429, -77.0547, "Corning", QtGui.QColor("#1d4ed8"), radius=6)
+
+        # # # Horseheads should be upper-right of center
+        # # add_marker(42.1670, -76.8200, "Horseheads", QtGui.QColor("#dc2626"), radius=5)
+
+        # # # Elmira should be lower-right
+        # # elmira_x, elmira_y = latlon_to_xy(42.0898, -76.8077)
+        # # elmira_item = scene.addEllipse(
+        # #     elmira_x - 5, elmira_y - 5, 10, 10,
+        # #     QtGui.QPen(QtCore.Qt.black),
+        # #     QtGui.QBrush(QtGui.QColor("#16a34a"))
+        # # )
+        # # elmira_item.setZValue(2)
+
+        # # elmira_label = scene.addText("Elmira")
+        # # elmira_label.setDefaultTextColor(QtGui.QColor("#111111"))
+        # # elmira_label.setPos(elmira_x + 8, elmira_y - 18)
+        # # elmira_label.setZValue(3)
+
+        # # # Example CE / uncertainty ring around Elmira
+        # # ring_radius_px = 40
+        # # ring_item = scene.addEllipse(
+        # #     elmira_x - ring_radius_px, elmira_y - ring_radius_px,
+        # #     ring_radius_px * 2, ring_radius_px * 2,
+        # #     QtGui.QPen(QtGui.QColor("#444444"), 2, QtCore.Qt.DashLine),
+        # #     QtGui.QBrush(QtCore.Qt.transparent)
+        # # )
+        # # ring_item.setZValue(1)
+
+        # # scene.setSceneRect(0, 0, map_width, map_height)
+        # # self.ui.graphicsView.fitInView(scene.sceneRect(), QtCore.Qt.KeepAspectRatio)
+
+        # # # Temporary wheel zoom handler
+        # # def _graphicsview_wheel_event(event):
+        # #     factor = 1.15 if event.angleDelta().y() > 0 else (1.0 / 1.15)
+        # #     self.ui.graphicsView.scale(factor, factor)
+
+        # # self.ui.graphicsView.wheelEvent = _graphicsview_wheel_event
+
+        # # print("graphicsView real map test loaded")
+
+        # ####################################################
+        # ####################################################
         
     
     def __init2__(self):
@@ -181,7 +491,7 @@ class Dashboard(QtWidgets.QMainWindow):
         # Initialize Tabs
         if self.backend.library != None:
             TopBarSlots.sensor_node_rightClick(self, -1)
-            self.__init_Automation__()
+            self.__init_Tactical__()
             self.__init_TSI__()
             self.__init_PD__()
             self.__init_Attack__()
@@ -200,58 +510,113 @@ class Dashboard(QtWidgets.QMainWindow):
             time.sleep(0.1)
             self.splash.close()
 
+        # Enable the Tabs
+        self.ui.tabWidget.setEnabled(True)
+        self.ui.tabWidget.setTabEnabled(1,True)
+        self.ui.tabWidget.setTabEnabled(2,True)
+        self.ui.tabWidget.setTabEnabled(3,True)
+        self.ui.tabWidget.setTabEnabled(4,True)
+        self.ui.tabWidget.setTabEnabled(5,True)
+        self.ui.tabWidget.setTabEnabled(6,True)
+        self.ui.tabWidget.setTabEnabled(7,True)
+        self.ui.tabWidget.setTabEnabled(8,True)
+
         # Show the Dialog
         self.show()
         self.raise_()          # Needed to maintain taskbar icon if splash screen loses focus
         self.activateWindow()  # Needed to show dialog if splash screen loses focus
 
 
-    def __init_Automation__(self):
+    def __init_Tactical__(self):
         """
-        Initializes Automation Tab on Dashboard launch.
-        """
-        # Load and Apply Automation Mode Settings
-        if self.backend.settings['startup_automation_mode'] == 'Discovery':
-            AutomationTabSlots._slotAutomationDiscoveryClicked(self)
-        elif self.backend.settings['startup_automation_mode'] == 'Target':
-            AutomationTabSlots._slotAutomationTargetClicked(self)
-        elif self.backend.settings['startup_automation_mode'] == 'Manual':
-            AutomationTabSlots._slotAutomationManualClicked(self)
-        else:
-            AutomationTabSlots._slotAutomationCustomClicked(self)
+        Initializes Tactical Tab on Dashboard launch.
+        """ 
+        # Initialize Variables
+        self.tactical_nodes = {}
+        self.tactical_alerts = {}
+        self.tactical_detections = {}
+        self.tactical_targets = {}
+        self.tactical_sois = {}
+        self.tactical_artifacts = {}
+        self.selected_tactical_node_uid = None
+        self.selected_tactical_node_uids = []
+        self.selected_tactical_target_id = None
+        self.selected_tactical_node_target_id = None
+        self.selected_tactical_node_soi_id = None
+        self.selected_tactical_node_artifact_id = None
 
-        # Get Protocols
-        protocols = fissure.utils.library.getProtocols(self.backend.library)
+        # Initialize Map Pack
+        self.tactical_map = TacticalMapView(
+            graphics_view=self.ui.graphicsView,
+            parent=self,
+            default_map_name="elmira_demo",
+        )
 
-        # Load Target Protocol Protocols
-        self.ui.comboBox_automation_target_protocol.addItems(sorted(protocols))
+        # Refresh Combobox and Map
+        TacticalTabSlots._slotTacticalRefreshMapPacks(self)
 
-        # Set up SOI List Priority Table
-        self.ui.label2_soi_priority_row2.setVisible(False)
-        self.ui.label2_soi_priority_row3.setVisible(False)
+        # Set up Callbacks
+        self.tactical_map.set_node_clicked_callback(
+            lambda node_uid: TacticalTabSlots._slotTacticalNodeMapClicked(self, node_uid)
+        )
+        self.tactical_map.set_alert_clicked_callback(
+            lambda alert_uid: TacticalTabSlots._slotTacticalAlertMapClicked(self, alert_uid)
+        )
+        self.tactical_map.set_detection_clicked_callback(
+            lambda detection_uid: TacticalTabSlots._slotTacticalNodeDetectionMapClicked(self, detection_uid)
+        )
+        self.tactical_map.set_target_clicked_callback(
+            lambda target_id: TacticalTabSlots._slotTacticalTargetMapClicked(self, target_id)
+        )
+        self.tactical_map.set_soi_clicked_callback(
+            lambda soi_key: TacticalTabSlots._slotTacticalNodeSoiMapClicked(self, soi_key)
+        )
 
-        new_combobox1 = QtWidgets.QComboBox(self, objectName='comboBox2_')
-        self.ui.tableWidget_automation_soi_list_priority.setCellWidget(0,0,new_combobox1)
-        new_combobox1.addItem("Power")
-        new_combobox1.addItem("Frequency")
-        new_combobox1.addItem("Modulation")
-        new_combobox1.currentIndexChanged.connect(lambda: AutomationTabSlots._slotSOI_PriorityCategoryChanged(self))
-        new_combobox1.setCurrentIndex(0)
+        # Initialize Clear Toolbutton
+        self.__init_tactical_clear_menu__()
 
-        new_combobox2 = QtWidgets.QComboBox(self, objectName='comboBox2_')
-        self.ui.tableWidget_automation_soi_list_priority.setCellWidget(0,1,new_combobox2)
-        new_combobox2.addItem("Highest")
-        new_combobox2.addItem("Lowest")
-        new_combobox2.addItem("Nearest to")
-        new_combobox2.addItem("Greater than")
-        new_combobox2.addItem("Less than")
 
-        empty_item1 = QtWidgets.QTableWidgetItem("")
-        self.ui.tableWidget_automation_soi_list_priority.setItem(0,2,empty_item1)
+    def __init_tactical_clear_menu__(self):
+        clear_menu = QtWidgets.QMenu()
 
-        self.ui.tableWidget_automation_soi_list_priority.resizeColumnsToContents()
-        self.ui.tableWidget_automation_soi_list_priority.resizeRowsToContents()
+        action_clear_alerts = clear_menu.addAction("Clear Alert Pins")
+        action_clear_detections = clear_menu.addAction("Clear Detection Pins")
+        action_clear_nodes = clear_menu.addAction("Clear Node Pins")
+        action_clear_targets = clear_menu.addAction("Clear Target Pins")
+        action_clear_sois = clear_menu.addAction("Clear SOI Pins")
 
+        clear_menu.addSeparator()
+
+        action_clear_overlays = clear_menu.addAction("Clear All Pins")
+
+        self.ui.toolButton_tactical_clear.setMenu(clear_menu)
+        self.ui.toolButton_tactical_clear.setPopupMode(
+            QtWidgets.QToolButton.InstantPopup
+        )
+
+        action_clear_alerts.triggered.connect(
+            lambda: TacticalTabSlots.clear_tactical_alert_pins(self)
+        )
+
+        action_clear_detections.triggered.connect(
+            lambda: TacticalTabSlots.clear_tactical_detection_pins(self)
+        )
+
+        action_clear_nodes.triggered.connect(
+            lambda: TacticalTabSlots.clear_tactical_node_pins(self)
+        )
+
+        action_clear_targets.triggered.connect(
+            lambda: TacticalTabSlots.clear_tactical_target_pins(self)
+        )
+
+        action_clear_sois.triggered.connect(
+            lambda: TacticalTabSlots.clear_tactical_soi_pins(self)
+        )
+
+        action_clear_overlays.triggered.connect(
+            lambda: TacticalTabSlots.clear_tactical_map_pins(self)
+        )
 
     def __init_TSI__(self):
         """
@@ -1634,6 +1999,7 @@ def connect_slots(dashboard: Dashboard):
     connect_menuBar_slots(dashboard)
     connect_top_bar_slots(dashboard)
     connect_dashboard_slots(dashboard)
+    connect_tactical_slots(dashboard)
     connect_tsi_slots(dashboard)
     connect_pd_slots(dashboard)
     connect_iq_slots(dashboard)
@@ -1671,8 +2037,6 @@ def connect_top_bar_slots(dashboard: Dashboard):
     dashboard.ui.pushButton_top_node5.customContextMenuRequested.connect(
         lambda: TopBarSlots.sensor_node_rightClick(dashboard, node_idx=4)
     )
-
-    dashboard.ui.pushButton_automation_system_start.clicked.connect(lambda: TopBarSlots.start(dashboard))
 
     # Demo Mode
     dashboard.ui.pushButton_demo.clicked.connect(lambda: TopBarSlots.demoClicked(dashboard))
@@ -2070,7 +2434,8 @@ def connect_menuBar_slots(dashboard: Dashboard):
     dashboard.window.actionTAK_Start_Docker_Containers.triggered.connect(lambda: MenuBarSlots._slotMenuTAK_StartDockerContainersClicked(dashboard))
     dashboard.window.actionTAK_Stop_Docker_Containers.triggered.connect(lambda: MenuBarSlots._slotMenuTAK_StopDockerContainersClicked(dashboard))
     dashboard.window.actionJohn_the_Ripper.triggered.connect(lambda: MenuBarSlots._slotMenuJohnTheRipperClicked(dashboard))
-        
+    dashboard.window.actionMobile_Atlas_Creator.triggered.connect(lambda: MenuBarSlots._slotMenuMobileAtlasCreatorClicked(dashboard))
+
     # Lessons Menu
     dashboard.window.actionLessonOpenBTS.triggered.connect(MenuBarSlots._slotMenuLessonOpenBTS_Clicked)
     dashboard.window.actionLessonLuaDissectors.triggered.connect(MenuBarSlots._slotMenuLessonLuaDissectorsClicked)
@@ -2289,51 +2654,197 @@ def connect_menuBar_slots(dashboard: Dashboard):
     )
     
 
-
-def connect_automation_slots(dashboard: Dashboard):
-    # Check Box
-    dashboard.ui.checkBox_automation_receive_only.clicked.connect(
-        lambda: AutomationTabSlots._slotAutomationReceiveOnlyClicked(dashboard)
+def connect_tactical_slots(dashboard: Dashboard):
+    # Combo Box
+    dashboard.ui.comboBox_tactical_map_pack.currentIndexChanged.connect(
+        lambda: TacticalTabSlots._slotTacticalMapPackChanged(dashboard)
     )
-    dashboard.ui.checkBox_automation_auto_select_sois.clicked.connect(
-        lambda: AutomationTabSlots._slotAutomationAutoSelectSOIsClicked(dashboard)
+    dashboard.ui.comboBox_tactical_node_actions.currentIndexChanged.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeActionChanged(dashboard)
     )
-    dashboard.ui.checkBox_automation_lock_search_band.clicked.connect(
-        lambda: AutomationTabSlots._slotAutomationLockSearchBandClicked(dashboard)
+    dashboard.ui.comboBox_tactical_node_plugins.currentIndexChanged.connect(
+        lambda: TacticalTabSlots._slotTacticalNodePluginChanged(dashboard)
     )
-    dashboard.ui.checkBox_automation_auto_start_pd.clicked.connect(
-        lambda: AutomationTabSlots._slotAutomationAutoStartPD_Clicked(dashboard)
+    dashboard.ui.comboBox_tactical_ecosystem_actions.currentIndexChanged.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemActionChanged(dashboard)
     )
-    dashboard.ui.checkBox_automation_auto_select_pd_flow_graphs.clicked.connect(
-        lambda: AutomationTabSlots._slotAutomationAutoSelectPD_FlowGraphsClicked(dashboard)
+    dashboard.ui.comboBox_tactical_ecosystem_plugins.currentIndexChanged.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemPluginChanged(dashboard)
     )
 
     # Push Button
-    dashboard.ui.pushButton_automation_soi_priority_add_level.clicked.connect(
-        lambda: AutomationTabSlots._slotAutomationSOI_PriorityAddLevelClicked(dashboard)
+    dashboard.ui.pushButton_tactical_map_pack_refresh.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalRefreshMapPacks(dashboard)
     )
-    dashboard.ui.pushButton_automation_soi_priority_remove_level.clicked.connect(
-        lambda: AutomationTabSlots._slotAutomationSOI_PriorityRemoveLevelClicked(dashboard)
+    dashboard.ui.pushButton_tactical_download_map_pack.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalDownloadMapPack(dashboard)
     )
-    dashboard.ui.pushButton_automation_system_reset.clicked.connect(
-        lambda: AutomationTabSlots._slotAutomationSystemResetClicked(dashboard)
+    dashboard.ui.pushButton_tactical_delete_map_pack.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalDeleteMapPack(dashboard)
     )
-    dashboard.ui.pushButton_automation_manual.clicked.connect(
-        lambda: AutomationTabSlots._slotAutomationManualClicked(dashboard)
+    dashboard.ui.pushButton_tactical_ecosystem_select_all.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemSelectAllNodesClicked(dashboard)
     )
-    dashboard.ui.pushButton_automation_discovery.clicked.connect(
-        lambda: AutomationTabSlots._slotAutomationDiscoveryClicked(dashboard)
+    dashboard.ui.pushButton_tactical_ecosystem_clear_selection.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemClearSelectionClicked(dashboard)
+    )    
+    dashboard.ui.pushButton_tactical_node_query.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeQueryClicked(dashboard)
+    )   
+    dashboard.ui.pushButton_tactical_node_select.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeSelectClicked(dashboard)
     )
-    dashboard.ui.pushButton_automation_target.clicked.connect(
-        lambda: AutomationTabSlots._slotAutomationTargetClicked(dashboard)
+    dashboard.ui.pushButton_tactical_node_customize.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeCustomizeClicked(dashboard)
     )
-    dashboard.ui.pushButton_automation_custom.clicked.connect(
-        lambda: AutomationTabSlots._slotAutomationCustomClicked(dashboard)
+    dashboard.ui.pushButton_tactical_node_execute.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeExecuteClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_stop.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeStopClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_ecosystem_refresh_status.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemRefreshStatusClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_ecosystem_query.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemQueryClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_ecosystem_select.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemSelectClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_ecosystem_customize.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemCustomizeClicked(dashboard)
+    )    
+    dashboard.ui.pushButton_tactical_ecosystem_execute.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemExecuteClicked(dashboard)
+    )    
+    dashboard.ui.pushButton_tactical_ecosystem_stop.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemStopClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_detections_plot.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeDetectionsPlotClicked(dashboard)
+    ) 
+    dashboard.ui.pushButton_tactical_node_detections_plot_zoom.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeDetectionsPlotZoomClicked(dashboard)
+    ) 
+    dashboard.ui.pushButton_tactical_node_detection_remove_from_map.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeDetectionsRemoveClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_detections_delete_row.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeDetectionsDeleteRowClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_detections_clear_rows.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeDetectionsClearRowsClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_ecosystem_delete_row.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemDeleteNodeRowClicked(dashboard)
+    ) 
+    dashboard.ui.pushButton_tactical_ecosystem_clear_rows.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemClearNodeRowsClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_targets_refresh_targets.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalTargetsRefreshTargetsClicked(dashboard)
+    )       
+    dashboard.ui.pushButton_tactical_targets_plot.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalTargetsPlotClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_targets_plot_and_zoom.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalTargetsPlotZoomClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_targets_remove_pin.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalTargetsRemovePinClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_targets_plot_all.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalTargetsPlotAllClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_targets_delete_row.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalTargetsDeleteRowClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_targets_clear_rows.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalTargetsClearRowsClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_targets_refresh_targets.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeTargetsRefreshTargetsClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_targets_plot.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeTargetsPlotClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_targets_plot_and_zoom.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeTargetsPlotZoomClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_targets_remove_from_map.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeTargetsRemoveClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_targets_query_actions.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeTargetsQueryActionsClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_targets_more_details.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeTargetsMoreDetailsClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_soi_plot.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeSoisPlotClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_soi_plot_zoom.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeSoisPlotZoomClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_soi_remove_from_map.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeSoisRemoveClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_soi_download_evidence.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeSoisDownloadEvidenceClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_artifacts_open_folder.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeArtifactsOpenFolderClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_targets_query_actions.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalTargetsQueryActionsClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_detections_promote_to_soi.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeDetectionsPromoteToSoiClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_soi_promote_to_target.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeSoiPromoteToTargetClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_targets_geolocate.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalTargetsGeolocateClicked(dashboard)
     )
 
-    # Table Widgets
-    dashboard.ui.tableWidget_automation_scan_options.cellChanged.connect(
-        lambda: AutomationTabSlots._slotAutomationLockSearchBandClicked(dashboard)
+    # Table Widget
+    dashboard.ui.tableWidget_tactical_ecosystem.itemSelectionChanged.connect(
+        lambda: TacticalTabSlots.update_selected_tactical_nodes(dashboard)
+    )
+    dashboard.ui.tableWidget_tactical_ecosystem.itemDoubleClicked.connect(
+        lambda item: TacticalTabSlots._slotTacticalEcosystemNodeRosterDoubleClicked(dashboard, item)
+    )
+    dashboard.ui.tableWidget_tactical_node_detections.currentCellChanged.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeDetectionRowChanged(dashboard)
+    )
+    dashboard.ui.tableWidget_tactical_node_detections.itemDoubleClicked.connect(
+        lambda item: TacticalTabSlots._slotTacticalNodeDetectionDoubleClicked(dashboard, item)
+    )
+    dashboard.ui.tableWidget_tactical_targets.itemSelectionChanged.connect(
+        lambda: TacticalTabSlots._slotTacticalTargetsRowSelectionChanged(dashboard)
+    )
+    dashboard.ui.tableWidget_tactical_targets.itemDoubleClicked.connect(
+        lambda item: TacticalTabSlots._slotTacticalTargetsTableDoubleClicked(dashboard, item)
+    )
+    dashboard.ui.checkBox_tactical_targets_show_ce_rings.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalTargetsShowCeRingsToggled(dashboard)
+    )
+    dashboard.ui.tableWidget_tactical_node_targets.itemSelectionChanged.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeTargetsRowSelectionChanged(dashboard)
+    )
+    dashboard.ui.tableWidget_tactical_node_targets.itemDoubleClicked.connect(
+        lambda item: TacticalTabSlots._slotTacticalNodeTargetsDoubleClicked(dashboard, item)
+    )
+    dashboard.ui.tableWidget_tactical_node_sois.itemSelectionChanged.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeSoisRowSelectionChanged(dashboard)
+    )
+    dashboard.ui.tableWidget_tactical_node_sois.itemDoubleClicked.connect(
+        lambda item: TacticalTabSlots._slotTacticalNodeSoisDoubleClicked(dashboard, item)
+    )
+    dashboard.ui.tableWidget_tactical_node_artifacts.itemSelectionChanged.connect(
+       lambda: TacticalTabSlots._slotTacticalNodeArtifactsRowSelectionChanged(dashboard)
     )
 
 

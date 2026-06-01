@@ -44,13 +44,43 @@ FISSURE streamlines complex SDR workflows by centralizing software, libraries, a
 - Collect, replay, and manipulate IQ data
 - Discover protocols and craft custom packets
 - Execute fuzzing and vulnerability testing
-- Automate workflows with AI and ML integration
 - Archive signals and build playlists for testing
-- Integrate alerts and data into TAK for team awareness
+- Coordinate distributed sensor nodes
+- Geolocate RF emitters and targets
+- Integrate alerts, targets, and artifacts into TAK
+- Automate workflows with AI and ML integration
 
 <p align="center">
   <img src="/docs/Icons/README/rf_re.png" height="275">&nbsp;&nbsp;&nbsp;&nbsp;
   <img src="/docs/Icons/README/key_capabilities1.png" height="275">
+</p>
+
+## FISSURE and Fracture
+
+Fracture is AIS's deployable tactical RF system built on the open-source FISSURE framework.
+
+FISSURE provides the underlying software environment for RF sensing, signal analysis, protocol experimentation, TAK integration, distributed node coordination, and plugin-based capability development. Fracture extends this foundation into deployable hardware configurations designed for operational use.
+
+Fracture focuses on distributed RF sensing, geolocation, RF effects, electronic warfare workflows, and real-time operator control through WinTAK and ATAK. A central hub coordinates edge nodes over IP networks and long-range RF links to support sensing, targeting, and mission execution across distributed environments.
+
+The architecture is designed to support fixed-site, vehicle, manpack, sUAS, and fixed-wing deployments while remaining extensible through FISSURE's plugin framework.
+
+For organizations requiring a supported and integrated tactical RF capability, Fracture provides a productization path that preserves the flexibility, transparency, and extensibility of the underlying FISSURE ecosystem.
+
+<p align="center">
+<img src="/docs/Icons/README/fracture_ov1.png" style="width: 75%; height: auto;">
+</p>
+
+### Fracture System Architecture
+
+<p align="center">
+<img src="/docs/Icons/README/fracture_system_architecture.png" style="width: 75%; height: auto;">
+</p>
+
+### TAK Integration Workflow
+
+<p align="center">
+<img src="/docs/Icons/README/fracture_workflow.png" style="width: 40%; height: auto;">
 </p>
 
 ## Deployment Options
@@ -89,11 +119,11 @@ For the most up-to-date view, explore the interactive roadmap:
 
 ### Current Priorities
 
-- **Plugin Ecosystem:** Redefining plugin boundaries and execution, developing a standalone plugin editor, converting existing flow graph libraries into plugins, and improving how plugins are deployed on sensor nodes and loaded into TAK.
-- **TAK Integration:** Creating a WinTAK application, enhancing the bridge between TAK and FISSURE’s hub, enabling plugin/action selection directly in TAK, and strengthening alerting and coordination features.
-- **Installer & Packaging:** Breaking out installers by operating system, improving error logging, delivering prebuilt ISOs and VM images for popular platforms, and exploring Docker and Apptainer for deployable FISSURE components.
-- **Tactical Node Orchestration:** Expanding plugin support on nodes, integrating new sensor types, laying the foundation for multi-node coordination, and improving artifact recording/synchronization and networking resilience.
-- **Electronic Support / Monitoring:** Extending direction-finding and monitoring capabilities, with emphasis on practical electronic support workflows.
+- **Plugin Ecosystem & Actions:** Applying the new plugin and action architecture throughout the FISSURE Dashboard, WinTAK, ATAK, and sensor nodes. Expanding plugin support, converting existing library content into plugins, and simplifying capability deployment while protecting sensitive functionality through the plugin framework.
+- **TAK Integration & Operator Workflows:** Expanding WinTAK and ATAK functionality, improving target management, geolocation workflows, alerting, artifact handling, and operator-driven actions. Focus areas include real-world testing, performance optimization, usability improvements, and tighter integration between TAK and distributed sensor nodes.
+- **Installer, Packaging & Deployment:** Improving installer reliability, refining Apptainer support, hosting downloadable container images, delivering prebuilt deployment options, and simplifying installation across supported operating systems and hardware platforms.
+- **Tactical Nodes, Sensors & Networking:** Expanding support for tactical node deployments, integrating additional sensors and hardware, evaluating new communications pathways including cellular, Starlink, mesh networking, and communications radios, and improving resilience across distributed deployments.
+- **Geolocation, Direction Finding & Electronic Support:** Advancing geolocation, direction-finding, and monitoring capabilities through field testing and operational evaluations. Emphasis is placed on practical electronic support workflows, multi-node sensing, performance validation, and the collection of real-world operational feedback.
 
 ## Videos
 
@@ -128,33 +158,31 @@ AIS has published several articles highlighting FISSURE’s applications, update
 
 ![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
 
-**Updated Node Networking** Nodes automatically connect to the HIPRFISR/hub over IP or Meshtastic and show up in WinTAK.
+**Plugin & Action Architecture:** FISSURE is transitioning to a unified plugin and action framework that enables capabilities to be packaged, deployed, and executed across the Dashboard, sensor nodes, WinTAK, and ATAK.
 
 ![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
 
-**Headless HIPRFISR/Hub** The HIPRFISR can be run without the Dashboard using the `fissure-hiprfisr` command with "auto_connect_hiprfisr=false". A remote Dashboard can then be connected to the HIPRFISR over an IP network from the status bar.
+**WinTAK Integration:** WinTAK now supports node management, alerts, targets, detections, artifacts, plugin selection, action execution, and distributed sensor node operations.
 
 ![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
 
-**Apptainer Containerization** Run FISSURE inside a lightweight Apptainer container for consistent, portable deployments with full GUI and hardware access.
+**ATAK Integration:** ATAK integration is actively under development, extending FISSURE and Fracture capabilities to mobile devices and tactical edge operators.
 
 ![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
 
-**Command Line Installer** Quickly install FISSURE and its dependencies using a streamlined command line interface with mode selection and automation options.
+**Distributed Tactical Nodes:** Sensor nodes support remote operation, distributed sensing workflows, TAK integration, artifact collection, alerting, and plugin execution across IP-connected networks.
+
+![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
+
+**Geolocation & Target Management:** Development efforts continue on RF geolocation, target management, multi-node coordination, and real-world operational testing.
+
+![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
+
+**Apptainer Containerization:** FISSURE can be deployed within Apptainer containers to simplify installation, testing, portability, and deployment across supported platforms.
 
 ![NEW](https://img.shields.io/badge/NEW-Documentation-brightgreen) 
 
-**Updated Info Sheet** https://www.ainfosec.com/wp-content/uploads/2023/04/AIS-FISSURE.pdf
-
-![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
-
-**Alerts and Sensor Node Positions in WebTAK** View GPS tagged alerts with custom text and sensor node GPS beacons in a WebTAK browser.
-
-![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
-
-**Attack Alerts, Reports, Exploit Recommendations** Create custom messages from attacks that show up in the Dashboard. Stage new attacks with the return data from a single button click.
-
-![NEW](https://img.shields.io/badge/NEW-Feature-brightgreen) 
+**Fracture Architecture & TAK Workflows:** New diagrams and documentation have been added to illustrate Fracture system architecture, TAK integration workflows, and distributed tactical operations.
 
 ## Upcoming/Recent Events
 
@@ -168,7 +196,7 @@ AIS has published several articles highlighting FISSURE’s applications, update
 
 ![Career Fair](https://img.shields.io/badge/Event-Career%20Fair-darkgray) **Thu. February 6, 2025**: Binghamton University Spring 2025 Job and Internship Fair - 1100-1500 EST
 
-![Exhibition](https://img.shields.io/badge/Event-Exhibition-green) **May 5-8, 2025**: SOF Week - Assured Information Security, Inc. (AIS) booth
+![Exhibition](https://img.shields.io/badge/Event-Exhibition-darkgray) **May 5-8, 2025**: SOF Week - Assured Information Security, Inc. (AIS) booth
 
 ## Documentation
 
@@ -374,7 +402,7 @@ The FISSURE installer is helpful for staging computers or installing select soft
 
 Install FISSURE per usual on a general purpose computer. Install FISSURE on the remote computer in the same directory location as the local computer (until further notice) to avoid filepath errors with certain actions. To configure the sensor node for remote operation, edit the "default.yaml" file in the `./fissure/Sensor_Node/Sensor_Node_Config/` directory. Edit the following fields to change from local to remote operation:
 - nickname: (anything but "Local Sensor Node")
-- ip_address: (your remote sensor node computer's ip_address)
+- ip_address: (the HIPRFISR/hub IP address the sensor node connects to)
 
 Change the "autorun" field from from `false` to `true` to run the default autorun playlist file on startup and forgo remote operations. New autorun playlists can be generated and saved from the Dashboard Autorun tab.
 
@@ -399,6 +427,16 @@ sudo pkill python3
 sudo kill -9 <PID of __main__.py>
 sudo pkill python3 && sudo pkill -9 -f fissure
 ```
+
+**Headless Hub**
+
+The HIPRFISR can be launched without the Dashboard GUI to make TAK testing and operational deployments more efficient. Set the `auto_connect_hiprfisr` value to false in the FISSURE `config.yaml` file and open a new terminal after installation and enter:
+
+```
+fissure-hiprfisr
+```
+
+The hub will automatically connect up to the TAK server and remote nodes will be able to join without interaction. 
 
 **Remote Sensor Node Usage**
 
@@ -561,9 +599,13 @@ Need more specific ideas? There are a lot of topics we have yet to investigate. 
 
 Are you a student or looking to learn more about RF and programming or an organization looking to expose students to the world of open source? Reach out today and refer to the [2023 Project Idea List](./idea_list.md).
 
-## Collaborating
+## Commercial Support and Collaboration
 
-Contact Assured Information Security, Inc. (AIS) Business Development to propose and formalize any FISSURE collaboration opportunities–whether that is through dedicating time towards integrating your software, having the talented people at AIS develop solutions for your technical challenges, or integrating FISSURE into other platforms/applications.  
+Contact Assured Information Security, Inc. (AIS) Business Development to discuss FISSURE and Fracture collaboration opportunities. AIS can assist with integrating FISSURE into existing platforms and workflows, developing custom plugins and capabilities, expanding support for new hardware and sensors, and building mission-specific RF solutions.
+
+Organizations interested in deployable Fracture systems can engage AIS to develop and integrate tactical node configurations for fixed-site, vehicle, manpack, sUAS, and fixed-wing applications. AIS can also support TAK integration, distributed sensor architectures, RF sensing and geolocation workflows, custom electronic warfare capabilities, operator training, and long-term system sustainment.
+
+Whether your goal is research, education, prototyping, operational deployment, or integration into a larger system-of-systems architecture, AIS can help accelerate development and deployment while preserving the flexibility of the underlying FISSURE framework.  
 
 ## License
 
