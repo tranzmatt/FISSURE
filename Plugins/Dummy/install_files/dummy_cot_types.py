@@ -180,13 +180,16 @@ class OperationMain(Operation):
     def __init__(
         self,
         # --- UI schema params ---
-        scope: str = "all",              # all / a-* / b-*
-        limit_mode: str = "all",         # all / first_n
-        first_n: int = 250,
-        expand_dots: Union[str, bool] = "yes",
+        scope: str = "b-*",
+        limit_mode: str = "first_n",
+        first_n: int = 5,
+        expand_dots: Union[str, bool] = "no",
+        base_lat: float = 40.703052,
+        base_lon: float = -74.016991,
+        delay_s: float = 0.05,
         description: str = "Dummy CoT Types",
         # --- framework plumbing ---
-        sensor_node_id: Union[int, str] = 0,
+        node_uid: str = "",
         logger: logging.Logger = logging.getLogger(__name__),
         alert_callback: Union[Callable, None] = None,
         tak_cot_callback: Union[Callable, None] = None,
@@ -195,7 +198,7 @@ class OperationMain(Operation):
         artifact_manager=None,
     ) -> None:
         super().__init__(
-            sensor_node_id=sensor_node_id,
+            node_uid=node_uid,
             logger=logger,
             alert_callback=alert_callback,
             tak_cot_callback=tak_cot_callback,
@@ -205,16 +208,16 @@ class OperationMain(Operation):
         )
 
         # ---- normalize UI params ----
-        self.scope = _to_str(scope, "all").lower()
+        self.scope = _to_str(scope, "b-*").lower()
         if self.scope not in ("all", "a-*", "b-*"):
-            self.scope = "all"
+            self.scope = "b-*"
 
-        self.limit_mode = _to_str(limit_mode, "all").lower()
+        self.limit_mode = _to_str(limit_mode, "first_n").lower()
         if self.limit_mode not in ("all", "first_n"):
-            self.limit_mode = "all"
+            self.limit_mode = "first_n"
 
-        self.first_n = _clamp_int(_to_int(first_n, 250), 1, 5000)
-        self.expand_dots = _to_bool_yn(expand_dots, True)
+        self.first_n = _clamp_int(_to_int(first_n, 5), 1, 5000)
+        self.expand_dots = _to_bool_yn(expand_dots, False)
         self.description = _to_str(description, "Dummy CoT Types")
 
         # ---- existing defaults (power-user tunables remain supported via self.parameters) ----
@@ -227,10 +230,10 @@ class OperationMain(Operation):
         self.groups_limit = 0
         self.emit_block_headers = True
 
-        self.base_lat = 30.0000
-        self.base_lon = -90.0000
+        self.base_lat = float(base_lat)
+        self.base_lon = float(base_lon)
 
-        self.delay_s = 0.005
+        self.delay_s = float(delay_s)
         self.uid_prefix = "cot"
 
         self.affiliation_set = ["f", "u", "n", "h"]

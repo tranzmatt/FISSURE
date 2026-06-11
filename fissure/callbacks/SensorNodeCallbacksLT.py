@@ -71,7 +71,7 @@ async def recallInfoMeshtasticLT(component: object, tab_index="", source_id=None
     # component.logger.info(f"Sent recallInfoMeshtasticReturnLT with payload: {payload}")
 
 
-async def recallHardwareMeshtasticLT(component: object, sensor_node_id="", source_id=None):
+async def recallHardwareMeshtasticLT(component: object, source_id=None):
     """
     Recall default settings from a local yaml file and send only essential fields to HIPRFISR.
     Handles low-throughput mode by sending 'nickname', 'location', and 'notes' together if under a certain size.
@@ -430,7 +430,7 @@ async def guessHardwareLT(component: object, tab_index=0, table_row=[], table_ro
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def autorunPlaylistExecuteLT(component: object, sensor_node_id=0, playlist_filename=""):
+async def autorunPlaylistExecuteLT(component: object, playlist_filename=""):
     """
     Starts a new thread for loading and cycling through the autorun playlist.
     """
@@ -438,10 +438,10 @@ async def autorunPlaylistExecuteLT(component: object, sensor_node_id=0, playlist
 
     # Run Event and Do Not Block
     loop = asyncio.get_event_loop()
-    loop.run_in_executor(None, component.autorunPlaylistExecute, sensor_node_id, playlist_filename)
+    loop.run_in_executor(None, component.autorunPlaylistExecute, playlist_filename)
 
 
-async def autorunPlaylistStopLT(component: object, sensor_node_id=0):
+async def autorunPlaylistStopLT(component: object):
     """
     Stops an autorun playlist already in progress.
     """
@@ -476,7 +476,7 @@ async def gpsBeaconDisableMeshtasticLT(component: object):
     component.gps_tak_beacon = False
 
 
-async def rebootMeshtasticLT(component: object, sensor_node_id=0):
+async def rebootMeshtasticLT(component: object):
     """
     Reboots the sensor node computer.
     """
@@ -486,7 +486,7 @@ async def rebootMeshtasticLT(component: object, sensor_node_id=0):
     os.system("sudo reboot")
 
 
-async def uptimeMeshtasticLT(component: object, sensor_node_id: str, source_id=None):
+async def uptimeMeshtasticLT(component: object, source_id=None):
     """
     Retrieves the uptime of the sensor node computer.
     """
@@ -506,7 +506,9 @@ async def uptimeMeshtasticLT(component: object, sensor_node_id: str, source_id=N
         uptime_string = "Uptime format not recognized"
 
     # Return the Text
-    PARAMETERS = {"sensor_node_id": sensor_node_id, "uptime": uptime_string}
+    PARAMETERS = {
+        "uptime": uptime_string
+    }
     response_message = {
         MessageFields.SOURCE: component.assigned_id,
         MessageFields.DESTINATION: source_id,
@@ -517,7 +519,7 @@ async def uptimeMeshtasticLT(component: object, sensor_node_id: str, source_id=N
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
 
 
-async def memoryMeshtasticLT(component: object, sensor_node_id: str, source_id=None):
+async def memoryMeshtasticLT(component: object, source_id=None):
     """
     Retrieves the memory usage of the sensor node computer.
     """
@@ -529,7 +531,9 @@ async def memoryMeshtasticLT(component: object, sensor_node_id: str, source_id=N
     memory_list = output[1].split()[1:]  # Skip "Mem:"
 
     # Return the Text
-    PARAMETERS = {"sensor_node_id": sensor_node_id, "memory": memory_list}
+    PARAMETERS = {
+        "memory": memory_list
+    }
     response_message = {
         MessageFields.SOURCE: component.assigned_id,
         MessageFields.DESTINATION: source_id,
@@ -540,7 +544,7 @@ async def memoryMeshtasticLT(component: object, sensor_node_id: str, source_id=N
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
 
 
-async def diskMeshtasticLT(component: object, sensor_node_id: str, source_id=None):
+async def diskMeshtasticLT(component: object, source_id=None):
     """
     Retrieves the disk usage of the sensor node computer.
     """
@@ -558,7 +562,9 @@ async def diskMeshtasticLT(component: object, sensor_node_id: str, source_id=Non
     #     print(f"{key}: {value}")
 
     # Return the Text
-    PARAMETERS = {"sensor_node_id": sensor_node_id, "disk": disk_dict}
+    PARAMETERS = {
+        "disk": disk_dict
+    }
     response_message = {
         MessageFields.SOURCE: component.assigned_id,
         MessageFields.DESTINATION: source_id,
@@ -569,7 +575,7 @@ async def diskMeshtasticLT(component: object, sensor_node_id: str, source_id=Non
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
 
 
-async def cpuMeshtasticLT(component: object, sensor_node_id: str, source_id=None):
+async def cpuMeshtasticLT(component: object, source_id=None):
     """
     Retrieves the CPU percentage of the sensor node computer.
     """
@@ -578,7 +584,9 @@ async def cpuMeshtasticLT(component: object, sensor_node_id: str, source_id=None
     cpu_result = f"{cpu_result}%"
 
     # Return the Text
-    PARAMETERS = {"sensor_node_id": sensor_node_id, "cpu": cpu_result}
+    PARAMETERS = {
+        "cpu": cpu_result
+    }
     response_message = {
         MessageFields.SOURCE: component.assigned_id,
         MessageFields.DESTINATION: source_id,
@@ -589,7 +597,7 @@ async def cpuMeshtasticLT(component: object, sensor_node_id: str, source_id=None
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
 
 
-async def processesMeshtasticLT(component: object, sensor_node_id: str, source_id=None):
+async def processesMeshtasticLT(component: object, source_id=None):
     """
     Retrieves the processes on the sensor node computer.
     """
@@ -601,7 +609,9 @@ async def processesMeshtasticLT(component: object, sensor_node_id: str, source_i
     ).strip()
 
     # Return the Text
-    PARAMETERS = {"sensor_node_id": sensor_node_id, "processes": processes_result}
+    PARAMETERS = {
+        "processes": processes_result
+    }
     response_message = {
         MessageFields.SOURCE: component.assigned_id,
         MessageFields.DESTINATION: source_id,
@@ -612,7 +622,7 @@ async def processesMeshtasticLT(component: object, sensor_node_id: str, source_i
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
 
 
-async def ifconfigMeshtasticLT(component: object, sensor_node_id: str, source_id=None):
+async def ifconfigMeshtasticLT(component: object, source_id=None):
     """
     Retrieves an abbreviated ifconfig output: only physical Ethernet/Wi-Fi interfaces with their IPv4 address or '-'.
     """
@@ -645,7 +655,9 @@ async def ifconfigMeshtasticLT(component: object, sensor_node_id: str, source_id
         ifconfig_result = f"Error: {e}"
 
     # Return the Text
-    PARAMETERS = {"sensor_node_id": sensor_node_id, "ifconfig": ifconfig_result}
+    PARAMETERS = {
+        "ifconfig": ifconfig_result
+    }
     response_message = {
         MessageFields.SOURCE: component.assigned_id,
         MessageFields.DESTINATION: source_id,
@@ -656,7 +668,7 @@ async def ifconfigMeshtasticLT(component: object, sensor_node_id: str, source_id
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, response_message)
 
 
-async def iwconfigMeshtasticLT(component: object, sensor_node_id: str, source_id=None):
+async def iwconfigMeshtasticLT(component: object, source_id=None):
     """
     Retrieves the wireless interface name and mode (Managed or Monitor) on the sensor node computer.
     """
@@ -679,7 +691,9 @@ async def iwconfigMeshtasticLT(component: object, sensor_node_id: str, source_id
         iwconfig_result = f"Error: {e}"
 
     # Return the Text
-    PARAMETERS = {"sensor_node_id": sensor_node_id, "iwconfig": iwconfig_result}
+    PARAMETERS = {
+        "iwconfig": iwconfig_result
+    }
     response_message = {
         MessageFields.SOURCE: component.assigned_id,
         MessageFields.DESTINATION: source_id,

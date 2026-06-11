@@ -1,76 +1,18 @@
-from ..UI_Components import HardwareSelectDialog
+from ..UI_Components import NodeSelectDialog
+from ..UI_Components import NodeConfigureDialog
 from PyQt5 import QtCore, QtWidgets
 
 import time
+import os
+import fissure.utils
+import subprocess
+import qasync
+import asyncio
+import sys
+import signal
 
-
-@QtCore.pyqtSlot(QtCore.QObject, int)
-def sensor_node_leftClick(dashboard: QtCore.QObject, node_idx: int):
-    button: QtWidgets.QPushButton = getattr(dashboard.ui, f"pushButton_top_node{node_idx+1}")
-    dashboard.logger.debug(f"[Sensor Node {node_idx+1}] Clicked")
-
-    button.setChecked(True)
-    dashboard.openPopUp("HardwareSelectDialog", HardwareSelectDialog, node_idx)
-    button.setChecked(False)
-
-
-@QtCore.pyqtSlot(QtCore.QObject, int)
-def sensor_node_rightClick(dashboard: QtCore.QObject, node_idx: int):
-    """ 
-    Highlight sensor node on right-click.
-    """
-    # Unhighlight
-    if node_idx == -1:
-        dashboard.active_sensor_node = -1
-        dashboard.ui.pushButton_top_node1.setStyleSheet("")
-        dashboard.configureTSI_Hardware(node_idx)
-        dashboard.configurePD_Hardware(node_idx)
-        dashboard.configureAttackHardware(node_idx)
-        dashboard.configureIQ_Hardware(node_idx)
-        dashboard.configureArchiveHardware(node_idx)
-        dashboard.configureSensorNodeHardware(node_idx)
-        dashboard.statusBar().dialog.label1_sensor_node.setText("No Sensor Nodes Connected")
-        dashboard.refreshStatusBarText()
-        return
-        
-    # Highlight
-    top_buttons = [dashboard.ui.pushButton_top_node1, dashboard.ui.pushButton_top_node2, dashboard.ui.pushButton_top_node3, dashboard.ui.pushButton_top_node4, dashboard.ui.pushButton_top_node5]
-    if str(top_buttons[node_idx].text()) != "New Sensor Node":
-        dashboard.active_sensor_node = node_idx
-        for n in range(0,5):
-            if n == node_idx:
-                top_buttons[node_idx].setStyleSheet("color: rgb(0,0,0); border: 2px solid darkGray; border-radius: 10px; border-style: outset; border-color: " + dashboard.backend.settings['color3'] + "; background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #ffb477, stop: 1 #db8d4e); min-width: 80px;")
-            else:
-                top_buttons[n].setStyleSheet("")
-            
-        # TSI
-        dashboard.configureTSI_Hardware(node_idx)
-        
-        # PD
-        dashboard.configurePD_Hardware(node_idx)
-
-        # Attack                
-        dashboard.configureAttackHardware(node_idx)
-
-        # IQ
-        dashboard.configureIQ_Hardware(node_idx)
-
-        # Archive
-        dashboard.configureArchiveHardware(node_idx)
-        
-        # Sensor Node
-        dashboard.configureSensorNodeHardware(node_idx)
-
-        # Change Status Bar Text
-        dashboard.statusBar().dialog.label1_sensor_node.setText("Sensor Node " + str(node_idx + 1))
-        dashboard.refreshStatusBarText()
-
-        # Swap Between High Throughput and Low Throughput Modes
-        get_sensor_node = ['sensor_node1','sensor_node2','sensor_node3','sensor_node4','sensor_node5']
-        if dashboard.backend.settings[get_sensor_node[node_idx]]["network_type"] == "IP":
-            dashboard.configureHighThroughputWidgets()
-        elif dashboard.backend.settings[get_sensor_node[node_idx]]["network_type"] == "Meshtastic":
-            dashboard.configureLowThroughputWidgets()
+# top_buttons[node_idx].setStyleSheet("color: rgb(0,0,0); border: 2px solid darkGray; border-radius: 10px; border-style: outset; border-color: " + dashboard.backend.settings['color3'] + "; background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #ffb477, stop: 1 #db8d4e); min-width: 80px;")
+# top_buttons[n].setStyleSheet("")
 
 
 @QtCore.pyqtSlot(QtCore.QObject)
@@ -82,4 +24,162 @@ def demoClicked(dashboard: QtCore.QObject):
     dashboard.logger.info("Stop Demo Mode")
     dashboard.stop_demo_flag = True
     dashboard.ui.pushButton_demo.setText("Stopping...")
-    
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def _slotLaunchLocalNodeClicked(dashboard: QtCore.QObject):
+    """
+    Launch or stop a local sensor node from the Dashboard top bar.
+    """
+    proc = getattr(dashboard, "local_sensor_node_process", None)
+
+    # Stop local node
+    if proc is not None and proc.poll() is None:
+        await stopLocalSensorNode(dashboard, remove_from_hiprfisr=True)
+        return
+
+    # Launch local node
+    sensor_node_path = os.path.join(
+        fissure.utils.SENSOR_NODE_DIR,
+        "SensorNode.py"
+    )
+
+    dashboard.local_sensor_node_process = subprocess.Popen(
+        [
+            sys.executable,
+            sensor_node_path,
+            "--local",
+        ],
+        start_new_session=True,
+    )
+
+    dashboard.logger.info("Launching local sensor node, please wait...")
+    dashboard.new_local_connection = True
+
+    dashboard.ui.label_top_launch_local_node_title.setText("Stop Local Node")
+    dashboard.ui.label_top_launch_local_node_subtitle.setText("Terminate the local sensor node")
+    dashboard.ui.frame_top_launch_local_node.setEnabled(True)
+
+
+async def stopLocalSensorNode(dashboard: QtCore.QObject, remove_from_hiprfisr: bool = True):
+    """
+    Stop the local sensor node process and optionally remove it from HIPRFISR.
+    """
+    proc = getattr(dashboard, "local_sensor_node_process", None)
+
+    if proc is not None and proc.poll() is None:
+        dashboard.logger.info("Stopping local sensor node...")
+
+        try:
+            # Kill the whole local-node process group if it was launched with start_new_session=True.
+            os.killpg(proc.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+        except Exception as e:
+            dashboard.logger.warning(f"Failed to terminate local sensor node process group: {e}")
+            proc.terminate()
+
+        try:
+            proc.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            dashboard.logger.warning("Local sensor node did not stop cleanly. Killing it.")
+
+            try:
+                os.killpg(proc.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            except Exception as e:
+                dashboard.logger.warning(f"Failed to kill local sensor node process group: {e}")
+                proc.kill()
+
+            try:
+                proc.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                dashboard.logger.error("Local sensor node still did not exit after SIGKILL.")
+
+    dashboard.local_sensor_node_process = None
+
+    if remove_from_hiprfisr:
+        try:
+            uuid_file = os.path.expanduser("~/.fissure/local_sensor_node_uuid.uuid")
+
+            with open(uuid_file, "r") as f:
+                node_uid = f.read().strip()
+
+            if node_uid:
+                await dashboard.backend.removeNode(node_uid=node_uid)
+
+                if getattr(dashboard, "selected_node_uid", None) == node_uid:
+                    clearSelectedNode(dashboard)
+
+        except FileNotFoundError:
+            dashboard.logger.warning("Local sensor node UUID file not found.")
+        except Exception as e:
+            dashboard.logger.error(f"Failed to remove local node from HIPRFISR: {e}")
+
+    dashboard.ui.label_top_launch_local_node_title.setText("Launch Local Node")
+    dashboard.ui.label_top_launch_local_node_subtitle.setText("Start a local sensor node")
+    dashboard.ui.frame_top_launch_local_node.setEnabled(True)
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotSelectNodeClicked(dashboard: QtCore.QObject):
+    dashboard.openPopUp("NodeSelectDialog", NodeSelectDialog)
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotConfigureNodeClicked(dashboard: QtCore.QObject):
+    if not getattr(dashboard, "selected_node_uid", None):
+        return
+
+    dashboard.openPopUp("NodeConfigureDialog", NodeConfigureDialog)
+
+
+def _refresh_frame_style(frame):
+    frame.style().unpolish(frame)
+    frame.style().polish(frame)
+    frame.update()
+
+
+def _topFramePressed(frame: QtWidgets.QFrame, event: QtCore.QEvent):
+    if event.button() != QtCore.Qt.LeftButton:
+        return
+
+    frame.setProperty("pressed", True)
+    _refresh_frame_style(frame)
+
+
+def _topFrameReleased(dashboard, frame: QtWidgets.QFrame, event: QtCore.QEvent, callback):
+    if event.button() != QtCore.Qt.LeftButton:
+        return
+
+    frame.setProperty("pressed", False)
+    _refresh_frame_style(frame)
+
+    if not frame.rect().contains(event.pos()):
+        return
+
+    result = callback(dashboard)
+
+    if asyncio.iscoroutine(result):
+        asyncio.create_task(result)
+
+
+def clearSelectedNode(dashboard: QtCore.QObject):
+    """
+    Clear the currently selected sensor node in the Dashboard UI.
+    """
+    dashboard.selected_node_uid = None
+    dashboard.selected_node_ip = None
+    dashboard.selected_node_settings = {}
+
+    # Show "No Node Selected" page
+    dashboard.ui.stackedWidget_top_configure_node.setCurrentIndex(0)
+
+    # Update selected-node card styling
+    frame = dashboard.ui.frame_top_configure_node
+    frame.setProperty("selected", False)
+    frame.setProperty("pressed", False)
+    frame.style().unpolish(frame)
+    frame.style().polish(frame)
+    frame.update()

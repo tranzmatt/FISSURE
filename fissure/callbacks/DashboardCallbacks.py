@@ -15,6 +15,7 @@ import qasync
 import datetime
 import zipfile
 import numpy as np
+from fissure.Dashboard.Slots import TacticalTabSlots
 
 from fissure.utils.plugin import get_fissure_plugin_editor_plugins_path
 from fissure.Dashboard.UI_Components.Qt5 import MyMessageBox
@@ -53,7 +54,7 @@ from fissure.Dashboard.UI_Components.Qt5 import (
 from fissure.utils import cot_utils
 
 
-async def flowGraphFinished(component: object, sensor_node_id=0, category=""):
+async def flowGraphFinished(component: object, category=""):
     """
     Update the Dashboard in response to a flow graph finished message.
     """
@@ -71,7 +72,7 @@ async def flowGraphFinished(component: object, sensor_node_id=0, category=""):
             component.frontend.ui.label2_pd_status_flow_graph_status.setText("Stopped")
 
             # Update the Status Dialog               
-            component.frontend.statusbar_text[sensor_node_id][2] = "Not Running"
+            # component.frontend.statusbar_text[sensor_node_id][2] = "Not Running"
             component.frontend.refreshStatusBarText()
 
     elif category == "Attack":
@@ -117,11 +118,11 @@ async def flowGraphFinished(component: object, sensor_node_id=0, category=""):
                 component.frontend.ui.tableWidget_attack_fuzzing_flow_graph_current_values.setItem(get_row,0,get_value_item)
 
         # Update the Status Dialog
-        component.frontend.statusbar_text[sensor_node_id][3] = "Not Running"
+        # component.frontend.statusbar_text[sensor_node_id][3] = "Not Running"
         component.frontend.refreshStatusBarText()
 
 
-async def flowGraphStarted(component: object, sensor_node_id=0, category=""):
+async def flowGraphStarted(component: object, category=""):
     """
     Enable the stop buttons and change the status messages to indicate the flow graph is running.
     """
@@ -156,7 +157,7 @@ async def flowGraphStarted(component: object, sensor_node_id=0, category=""):
             component.frontend.refreshStatusBarText()
 
 
-async def archivePlaylistPosition(component: object, sensor_node_id=0, position=0):
+async def archivePlaylistPosition(component: object, position=0):
     """ 
     Highlights the active archive playlist flow graph in the table.
     """        
@@ -167,11 +168,11 @@ async def archivePlaylistPosition(component: object, sensor_node_id=0, position=
         component.logger.error("Invalid row value")
         
     # Update the Status Dialog
-    component.frontend.statusbar_text[sensor_node_id][5] = "Replaying file in row " + str(position)
+    # component.frontend.statusbar_text[sensor_node_id][5] = "Replaying file in row " + str(position)
     component.frontend.refreshStatusBarText()
 
 
-async def archivePlaylistFinished(component: object, sensor_node_id=0):
+async def archivePlaylistFinished(component: object):
     """ 
     Changes the pushbuttons and labels upon receiving a message from the sensor node.
     """        
@@ -180,72 +181,86 @@ async def archivePlaylistFinished(component: object, sensor_node_id=0):
     component.frontend.ui.label2_archive_replay_status.setVisible(False)
 
     # Update the Status Dialog
-    component.frontend.statusbar_text[sensor_node_id][5] = "Not Running"
+    # component.frontend.statusbar_text[sensor_node_id][5] = "Not Running"
     component.frontend.refreshStatusBarText()
 
     # Enable the Controls
     component.frontend.ui.frame_archive_replay_controls.setEnabled(True)
 
 
-async def hardwareGuessResults(component: object, tab_index=0, table_row=0, hardware_type="", scan_results="", new_guess_index=0):
+async def hardwareGuessResults(component: object, table_row=0, hardware_type="", scan_results="", new_guess_index=0):
     """
-    Fills the scan results table row with hardware information in HardwareSelectDialog.
+    Fills the scan results table row with hardware information in the Node Configure Dialog.
     """
     # Fill the Table
-    component.frontend.popups["HardwareSelectDialog"].guessReturn(tab_index, table_row, hardware_type, scan_results, new_guess_index)
+    component.frontend.popups["NodeConfigureDialog"].guessReturn(table_row, hardware_type, scan_results, new_guess_index)
 
 
-async def hardwareProbeResults(component: object, tab_index=0, output="", height_width=[]):
+async def hardwareProbeResults(component: object, output="", height_width=[]):
     """
-    Returns the probe results to the HardwareSelectDialog.
+    Returns the probe results to the NodeConfigureDialog.
     """
     # Parse Return String
     probe_text = output
     
     # Hide Label
-    scan_results_labels = [
-        component.frontend.popups["HardwareSelectDialog"].label2_scan_results_probe_1,
-        component.frontend.popups["HardwareSelectDialog"].label2_scan_results_probe_2,
-        component.frontend.popups["HardwareSelectDialog"].label2_scan_results_probe_3,
-        component.frontend.popups["HardwareSelectDialog"].label2_scan_results_probe_4,
-        component.frontend.popups["HardwareSelectDialog"].label2_scan_results_probe_5
-    ]
-    scan_results_labels[int(tab_index)].setVisible(False)
+    scan_results_label = component.frontend.popups["NodeConfigureDialog"].label2_scan_results_probe
+    scan_results_label.setVisible(False)
 
     # Enable Probe Button
-    probe_buttons = [
-        component.frontend.popups["HardwareSelectDialog"].pushButton_scan_results_probe_1,
-        component.frontend.popups["HardwareSelectDialog"].pushButton_scan_results_probe_2,
-        component.frontend.popups["HardwareSelectDialog"].pushButton_scan_results_probe_3,
-        component.frontend.popups["HardwareSelectDialog"].pushButton_scan_results_probe_4,
-        component.frontend.popups["HardwareSelectDialog"].pushButton_scan_results_probe_5
-    ]
-    probe_buttons[int(tab_index)].setEnabled(True)
+    probe_button = component.frontend.popups["NodeConfigureDialog"].pushButton_scan_results_probe
+    probe_button.setEnabled(True)
 
     # Open a Text Dialog
-    # if height_width[0] == '':
-    #     msgBox = MyMessageBox(my_text = probe_text)
-    # else:
-    #     msgBox = MyMessageBox(my_text = probe_text, height=height_width[0], width=height_width[1])
-    # msgBox.exec_()
-
-    # Open a Text Dialog
-    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], probe_text)
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["NodeConfigureDialog"], probe_text)
     
 
-async def hardwareScanResults(component: object, tab_index=0, hardware_scan_results=[]):
+async def hardwareScanResults(component: object, hardware_scan_results=[]):
     """
-    Returns Auto Scan results to the HardwareSelectDialog.
+    Returns Auto Scan results to the Node Configure Dialog.
     """
-    component.frontend.popups["HardwareSelectDialog"].scanReturn(tab_index=tab_index, all_scan_results=hardware_scan_results)
+    component.frontend.popups["NodeConfigureDialog"].scanReturn(all_scan_results=hardware_scan_results)
 
 
-async def recallSettingsReturn(component: object, settings_dict={}):
+async def recallSettingsReturn(component: object, node_uuid: str, node_ip_address: str, settings_dict={}):
     """
-    Populates the HardwareSelectDialog with the sensor node settings on connect.
+    Store selected sensor node settings and update the selected node display.
     """
-    # Pass Sensor Node Settings to HardwareSelectDialog
-    component.frontend.popups["HardwareSelectDialog"].importResults(settings_dict=settings_dict, recall_settings_on_connect=True)
+    # Save selected node state
+    component.frontend.selected_node_uid = node_uuid
+    component.frontend.selected_node_ip = node_ip_address
+    component.frontend.selected_node_settings = settings_dict or {}
+
+    # Get display name
+    nickname = (
+        settings_dict
+        .get("Sensor Node", {})
+        .get("nickname", node_uuid)
+    )
+
+    # Make Local Node Look Better
+    if node_ip_address == "ipc":
+        node_ip_address = "Local Process"
+
+    # Update third button
+    component.frontend.ui.label_top_configure_node_title.setText(f"{nickname}  (Online)")
+    component.frontend.ui.label_top_configure_node_subtitle.setText(f"{node_ip_address}")
+    component.frontend.ui.label_top_configure_node_subtitle2.setText("Click to view and configure this node")
+
+    frame = component.frontend.ui.frame_top_configure_node
+
+    frame.setProperty("selected", True)
+    frame.style().unpolish(frame)
+    frame.style().polish(frame)
+
+    component.frontend.ui.stackedWidget_top_configure_node.setCurrentIndex(1)
+
+    # Update Tactical selected-node info frame state, if Tactical has been initialized
+    if hasattr(component.frontend, "selected_tactical_node_uid"):
+        TacticalTabSlots._updateTacticalNodeInfoFrameState(component.frontend)
+
+    # Populate Hardware
+    component.frontend.configureSelectedNodeHardware()
 
 
 async def componentDisconnected(component: object, component_name=""):
@@ -259,26 +274,8 @@ async def componentDisconnected(component: object, component_name=""):
     elif component_name == fissure.comms.Identifiers.PD:
         component.frontend.signals.ComponentStatus.emit(fissure.comms.Identifiers.PD, False, component.frontend.statusBar())
     else:
-        try:
-            sensor_node_id = int(component_name)
-        except:
-            return
-        if sensor_node_id == 0:
-            component.frontend.signals.ComponentStatus.emit("Sensor Node 0", False, component.frontend.statusBar())
-            component.sensor_node_connected[0] = False
-        elif sensor_node_id == 1:
-            component.frontend.signals.ComponentStatus.emit("Sensor Node 1", False, component.frontend.statusBar())
-            component.sensor_node_connected[1] = False
-        elif sensor_node_id == 2:
-            component.frontend.signals.ComponentStatus.emit("Sensor Node 2", False, component.frontend.statusBar())
-            component.sensor_node_connected[2] = False
-        elif sensor_node_id == 3:
-            component.frontend.signals.ComponentStatus.emit("Sensor Node 3", False, component.frontend.statusBar())
-            component.sensor_node_connected[3] = False
-        elif sensor_node_id == 4:
-            component.frontend.signals.ComponentStatus.emit("Sensor Node 4", False, component.frontend.statusBar())
-            component.sensor_node_connected[4] = False
-        component.frontend.popups["HardwareSelectDialog"].sensorNodeDisconnected(tab_index=sensor_node_id)
+        pass
+        # component.frontend.popups["NodeConfigureDialog"].sensorNodeDisconnected()
 
 
 async def componentConnected(component: object, component_name=""):
@@ -292,27 +289,8 @@ async def componentConnected(component: object, component_name=""):
     elif component_name == fissure.comms.Identifiers.DASHBOARD:
         pass
     else:
-        # Modify the Button
-        try:
-            sensor_node_id = int(component_name)
-        except:
-            return
-        if sensor_node_id == 0:
-            component.frontend.signals.ComponentStatus.emit("Sensor Node 0", True, component.frontend.statusBar())
-            component.sensor_node_connected[0] = True
-        elif sensor_node_id == 1:
-            component.frontend.signals.ComponentStatus.emit("Sensor Node 1", True, component.frontend.statusBar())
-            component.sensor_node_connected[1] = True
-        elif sensor_node_id == 2:
-            component.frontend.signals.ComponentStatus.emit("Sensor Node 2", True, component.frontend.statusBar())
-            component.sensor_node_connected[2] = True
-        elif sensor_node_id == 3:
-            component.frontend.signals.ComponentStatus.emit("Sensor Node 3", True, component.frontend.statusBar())
-            component.sensor_node_connected[3] = True
-        elif sensor_node_id == 4:
-            component.frontend.signals.ComponentStatus.emit("Sensor Node 4", True, component.frontend.statusBar())
-            component.sensor_node_connected[4] = True
-        component.frontend.popups["HardwareSelectDialog"].sensorNodeConnected(tab_index=sensor_node_id, serial=False)
+        pass
+        # component.frontend.popups["NodeConfigureDialog"].sensorNodeConnected(serial=False)
 
 
 
@@ -329,38 +307,8 @@ async def hiprfisrConnectedSerial(component: object):
     """
     component.hiprfisr_serial_connected = True
 
-    # Use the other componentConnected function instead!
-    # if component_name == fissure.comms.Identifiers.PD:
-    #     pass
-    # elif component_name == fissure.comms.Identifiers.TSI:
-    #     pass
-    # elif component_name == fissure.comms.Identifiers.DASHBOARD:
-    #     pass
-    # else:
-    #     # Modify the Button/Stacked Widget
-    #     try:
-    #         sensor_node_id = int(component_name)
-    #     except:
-    #         return
-    #     if sensor_node_id == 0:
-    #         component.frontend.signals.ComponentStatus.emit("Sensor Node 0", True, component.frontend.statusBar())
-    #         component.sensor_node_connected[0] = True
-    #     elif sensor_node_id == 1:
-    #         component.frontend.signals.ComponentStatus.emit("Sensor Node 1", True, component.frontend.statusBar())
-    #         component.sensor_node_connected[1] = True
-    #     elif sensor_node_id == 2:
-    #         component.frontend.signals.ComponentStatus.emit("Sensor Node 2", True, component.frontend.statusBar())
-    #         component.sensor_node_connected[2] = True
-    #     elif sensor_node_id == 3:
-    #         component.frontend.signals.ComponentStatus.emit("Sensor Node 3", True, component.frontend.statusBar())
-    #         component.sensor_node_connected[3] = True
-    #     elif sensor_node_id == 4:
-    #         component.frontend.signals.ComponentStatus.emit("Sensor Node 4", True, component.frontend.statusBar())
-    #         component.sensor_node_connected[4] = True
-    #     component.frontend.popups["HardwareSelectDialog"].sensorNodeConnected(tab_index=sensor_node_id, serial=True)
 
-
-async def bandID_Return(component: object, sensor_node_id=0, band_id=0, frequency=0):
+async def bandID_Return(component: object, band_id=0, frequency=0):
     """ 
     Updates the search bands plot with the current band and center frequency of the detector.
     """
@@ -572,7 +520,7 @@ async def tsiFE_Finished(component: object, table_strings=[]):
     component.frontend.ui.pushButton_tsi_fe_operation_start.setText("Start")
 
 
-async def flowGraphStartedIQ(component: object, sensor_node_id=0):
+async def flowGraphStartedIQ(component: object):
     """ 
     This will be called in response to "Flow Graph Started IQ" Messages from Sensor Node.
     The purpose is to check the enable the cancel buttons and change the status messages to indicate the IQ flow graph is running.
@@ -591,7 +539,7 @@ async def flowGraphStartedIQ(component: object, sensor_node_id=0):
         component.frontend.refreshStatusBarText()
 
 
-async def flowGraphStartedIQ_Playback(component: object, sensor_node_id=0):
+async def flowGraphStartedIQ_Playback(component: object):
     """ 
     This will be called in response to "Flow Graph Started IQ" Messages from Sensor Node.
     The purpose is to check the enable the cancel buttons and change the status messages to indicate the IQ flow graph is running.
@@ -606,7 +554,7 @@ async def flowGraphStartedIQ_Playback(component: object, sensor_node_id=0):
         component.frontend.refreshStatusBarText()
 
 
-async def flowGraphStartedIQ_Inspection(component: object, sensor_node_id=0):
+async def flowGraphStartedIQ_Inspection(component: object):
     """
     Inspection flow graph started at sensor node.
     """
@@ -614,7 +562,7 @@ async def flowGraphStartedIQ_Inspection(component: object, sensor_node_id=0):
     pass
 
 
-async def flowGraphStartedSniffer(component: object, sensor_node_id=0, category=""):
+async def flowGraphStartedSniffer(component: object, category=""):
     """ 
     Flow graph started message returned from Sensor Node.
     """        
@@ -627,13 +575,13 @@ async def flowGraphStartedSniffer(component: object, sensor_node_id=0, category=
         component.frontend.ui.pushButton_pd_sniffer_msg_pdu.setEnabled(True)
 
 
-async def flowGraphFinishedIQ(component: object, sensor_node_id=0):
+async def flowGraphFinishedIQ(component: object):
     """ 
     Called upon cancelling IQ recording. Changes the status and button text.
     """       
     # Change Status Label and Record Button Text
     component.frontend.ui.label2_iq_status_files.setText("Not Recording")
-    component.frontend.statusbar_text[sensor_node_id][4] = 'Not Recording'
+    # component.frontend.statusbar_text[sensor_node_id][4] = 'Not Recording'
     component.frontend.refreshStatusBarText()
 
     # Refresh File List
@@ -734,7 +682,7 @@ def call_async_function(component: object):
     loop.close()  # Close the loop when done
     
 
-async def flowGraphFinishedIQ_Inspection(component: object, sensor_node_id=0):
+async def flowGraphFinishedIQ_Inspection(component: object):
     """
     Inspection flow graph finished at sensor node.
     """
@@ -742,7 +690,7 @@ async def flowGraphFinishedIQ_Inspection(component: object, sensor_node_id=0):
     pass
 
 
-async def flowGraphFinishedIQ_Playback(component: object, sensor_node_id=0):
+async def flowGraphFinishedIQ_Playback(component: object):
     """ 
     Called upon cancelling IQ playback. Changes the status and button text.
     """
@@ -750,11 +698,11 @@ async def flowGraphFinishedIQ_Playback(component: object, sensor_node_id=0):
     component.frontend.ui.label2_iq_playback_status.setText("Not Running")
     component.frontend.ui.pushButton_iq_playback.setText("Play")
     component.frontend.ui.pushButton_iq_playback.setEnabled(True)
-    component.frontend.statusbar_text[sensor_node_id][4] = 'Not Recording'
+    # component.frontend.statusbar_text[sensor_node_id][4] = 'Not Recording'
     component.frontend.refreshStatusBarText()
 
 
-async def flowGraphFinishedSniffer(component: object, sensor_node_id=0, category=""):
+async def flowGraphFinishedSniffer(component: object, category=""):
     """ 
     Flow graph finished message returned from Sensor Node.
     """
@@ -767,7 +715,7 @@ async def flowGraphFinishedSniffer(component: object, sensor_node_id=0, category
     component.frontend.ui.pushButton_pd_sniffer_msg_pdu.setEnabled(True)
 
 
-async def multiStageAttackFinished(component: object, sensor_node_id=0):
+async def multiStageAttackFinished(component: object):
     """ 
     Changes the pushbuttons and labels upon receiving a message from the Sensor Node.
     """       
@@ -785,7 +733,7 @@ async def multiStageAttackFinished(component: object, sensor_node_id=0):
     component.frontend.ui.pushButton_attack_multi_stage_save.setEnabled(True)
 
 
-async def detectorFlowGraphError(component: object, sensor_node_id=0, error=""):
+async def detectorFlowGraphError(component: object, error=""):
     """ 
     Creates a message box with an error message upon Detector flow graph error.
     """
@@ -796,7 +744,7 @@ async def detectorFlowGraphError(component: object, sensor_node_id=0, error=""):
     fissure.Dashboard.UI_Components.Qt5.errorMessage("Flow Graph Error:\n" + error)
 
 
-async def flowGraphError(component: object, sensor_node_id=0, error=""):
+async def flowGraphError(component: object, error=""):
     """ 
     Creates a message box with an error message upon flow graph error.
     """
@@ -809,26 +757,26 @@ async def flowGraphError(component: object, sensor_node_id=0, error=""):
     fissure.Dashboard.UI_Components.Qt5.errorMessage("Flow Graph Error:\n" + error)
 
 
-async def autorunPlaylistFinished(component: object, sensor_node_id=0):
+async def autorunPlaylistFinished(component: object):
     """ 
     Updates the statusbar dialog.
     """
     # Update the Status Dialog
-    component.frontend.statusbar_text[sensor_node_id][6] = "Not Running"
+    # component.frontend.statusbar_text[sensor_node_id][6] = "Not Running"
     component.frontend.refreshStatusBarText()
 
 
-async def autorunPlaylistStarted(component: object, sensor_node_id=0):
+async def autorunPlaylistStarted(component: object):
     """ 
     Updates the statusbar dialog.
     """
     # Update the Status Dialog
-    component.frontend.statusbar_text[sensor_node_id][6] = "Running"
+    # component.frontend.statusbar_text[sensor_node_id][6] = "Running"
     component.frontend.refreshStatusBarText()
 
 
 async def refreshSensorNodeFilesResults(
-    component: object, sensor_node_id=0, filepaths=[], file_sizes=[], file_types=[], modified_dates=[]
+    component: object, filepaths=[], file_sizes=[], file_types=[], modified_dates=[]
 ):
     """ 
     Populates the table with the results of the remote sensor node folder scan.
@@ -854,7 +802,7 @@ async def refreshSensorNodeFilesResults(
     component.frontend.ui.tableWidget_sensor_nodes_fn_files.resizeRowsToContents()
 
 
-async def fileDownloaded(component: object, sensor_node_id=0):
+async def fileDownloaded(component: object):
     """ 
     Refreshes the local file list after downloading a file.
     """
@@ -1221,31 +1169,6 @@ async def findEntropyReturn(component: object, ents):
     plotBox.exec_()
 
 
-async def sensorNodeConnectTimeout(component: object, sensor_node_id=0):
-    """
-    Restores the connect buttons in the hardware select dialog.
-    """
-    # Gather Widgets
-    tab_index = int(sensor_node_id)
-    ip_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"textEdit_ip_addr_{tab_index + 1}")
-    hb_port_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"textEdit_hb_port_{tab_index + 1}")
-    msg_port_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"textEdit_msg_port_{tab_index + 1}")
-    recall_settings_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"checkBox_recall_settings_remote_{tab_index + 1}")
-    connect_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"pushButton_connect_{tab_index + 1}")
-    network_type_widget = getattr(component.frontend.popups["HardwareSelectDialog"], f"comboBox_network_type_{tab_index + 1}")
-
-    # Restore Widgets
-    ip_widget.setEnabled(True)
-    hb_port_widget.setEnabled(True)
-    msg_port_widget.setEnabled(True)
-    recall_settings_widget.setEnabled(True)
-    connect_widget.setEnabled(True)
-    network_type_widget.setEnabled(True)
-
-    # Warning
-    component.logger.warning("Timeout occurred establishing connection to remote sensor node")
-
-
 async def retrieveDatabaseCacheReturn(component: object, database_return={}, refresh_frontend_widgets=False):
     """
     Save the database cache return to the backend library variable.
@@ -1253,13 +1176,6 @@ async def retrieveDatabaseCacheReturn(component: object, database_return={}, ref
     # Save
     component.library = database_return
     component.logger.info("Updated backend database cache from HIPRFISR database")
-
-    # Enable Sensor Node Buttons
-    component.frontend.ui.pushButton_top_node1.setEnabled(True)
-    component.frontend.ui.pushButton_top_node2.setEnabled(True)
-    component.frontend.ui.pushButton_top_node3.setEnabled(True)
-    component.frontend.ui.pushButton_top_node4.setEnabled(True)
-    component.frontend.ui.pushButton_top_node5.setEnabled(True)
 
     # Enable Tabs
     component.frontend.ui.tabWidget.setEnabled(True)
@@ -1269,61 +1185,59 @@ async def retrieveDatabaseCacheReturn(component: object, database_return={}, ref
         await libraryUpdateFinished(component)
 
 
-async def checkSensorNodePluginResults(component: object, sensor_node_id: int, plugin_status: dict):
+async def checkSensorNodePluginResults(component: object, plugin_status: dict):
     """Update Based on Results of Sensor Node Plugin Status Response
 
     Parameters
     ----------
     component : object
         Dashboard Backend
-    sensor_node_id : int
-        Sensor node ID
     plugin_status : dict
         Status (values) of plugins (keys)
     """
-    if sensor_node_id == component.frontend.active_sensor_node:
-        # Update Row Items
-        table: QtWidgets.QTableWidget = component.frontend.ui.pluginsTable
-        items = [table.item(i,0).text() for i in range(table.rowCount())]
-        for plugin_name in plugin_status.keys():
-            status = plugin_status.get(plugin_name)
-            if plugin_name in items:
-                # Plugin Already on Table; Update
-                rowindex = items.index(plugin_name)
-                table.item(rowindex,0).setBackground(QtGui.QBrush(QtGui.QColor('white')))
-                table.item(rowindex,1).setText(str(status.get('deployed')))
-                table.item(rowindex,1).setBackground(QtGui.QBrush(QtGui.QColor('white')))
-                table.item(rowindex,2).setText(str(status.get('installed')))
-                table.item(rowindex,2).setBackground(QtGui.QBrush(QtGui.QColor('white')))
+    # if sensor_node_id == component.frontend.active_sensor_node:  #TODO
+    # Update Row Items
+    table: QtWidgets.QTableWidget = component.frontend.ui.pluginsTable
+    items = [table.item(i,0).text() for i in range(table.rowCount())]
+    for plugin_name in plugin_status.keys():
+        status = plugin_status.get(plugin_name)
+        if plugin_name in items:
+            # Plugin Already on Table; Update
+            rowindex = items.index(plugin_name)
+            table.item(rowindex,0).setBackground(QtGui.QBrush(QtGui.QColor('white')))
+            table.item(rowindex,1).setText(str(status.get('deployed')))
+            table.item(rowindex,1).setBackground(QtGui.QBrush(QtGui.QColor('white')))
+            table.item(rowindex,2).setText(str(status.get('installed')))
+            table.item(rowindex,2).setBackground(QtGui.QBrush(QtGui.QColor('white')))
 
-            else:
-                # New Plugin; add to table
-                rowindex = table.rowCount()
-                table.insertRow(rowindex)
-                table.setItem(rowindex, 0, QtWidgets.QTableWidgetItem(plugin_name))
-                table.setItem(rowindex, 1, QtWidgets.QTableWidgetItem(str(status.get('deployed'))))
-                table.setItem(rowindex, 2, QtWidgets.QTableWidgetItem(str(status.get('installed'))))
+        else:
+            # New Plugin; add to table
+            rowindex = table.rowCount()
+            table.insertRow(rowindex)
+            table.setItem(rowindex, 0, QtWidgets.QTableWidgetItem(plugin_name))
+            table.setItem(rowindex, 1, QtWidgets.QTableWidgetItem(str(status.get('deployed'))))
+            table.setItem(rowindex, 2, QtWidgets.QTableWidgetItem(str(status.get('installed'))))
 
-        # Check for Stale Items
-        for item in items:
-            if not item in plugin_status.keys():
-                # Item is no Longer in the Plugin List; Remove
-                table.removeRow(items.index(item))
+    # Check for Stale Items
+    for item in items:
+        if not item in plugin_status.keys():
+            # Item is no Longer in the Plugin List; Remove
+            table.removeRow(items.index(item))
 
 
-async def requestPluginsTransferInstall(component: object, sensor_node_id: int, plugin_names: str):
+async def requestPluginsTransferInstall(component: object, node_uid: str, plugin_names: str):
     """Transfer Plugin to Sensor Node by Request of Sensor Node
 
     Parameters
     ----------
     component : object
         Dashboard Backend
-    sensor_node_id : int
-        Sensor node ID
+    node_uid : str
+        Sensor node UID
     plugin_names : str
         Plugin name with file extension or no extension if folder
     """
-    await component.transferPlugin(sensor_node_id, plugin_names, True)
+    await component.transferPlugin(node_uid, plugin_names, True)
     await SensorNodesPluginsTabSlots._slotSensorNodesPluginsPluginsListRefresh(component.frontend)
 
 
@@ -1554,7 +1468,7 @@ async def responsePluginOperationStopped(component: object, node_uid: str, opera
     ----------
     component : object
         Component
-    sensor_node_id : str
+    node_uid : str
         Sensor node UID
     operation_id : str
         Operation ID
@@ -1843,35 +1757,35 @@ async def update_sensor_node_title(component: object, change: int):
     component.frontend.ui.tabWidget.tabBar().setTabText(6, new_text)
 
 
-async def alertReturn(component: object, sensor_node_id=0, alert_text=""):
-    """ 
+async def alertReturn(component: object, node_uid="", node_nickname="", alert_text=""):
+    """
     Updates the Sensor Nodes Alert tab with a new alert.
     """
-    # Get Sensor Node Nickname
-    if sensor_node_id == 0:
-        get_nickname = component.settings['sensor_node1']['nickname']
-    elif sensor_node_id == 1:
-        get_nickname = component.settings['sensor_node2']['nickname']
-    elif sensor_node_id == 2:
-        get_nickname = component.settings['sensor_node3']['nickname']
-    elif sensor_node_id == 3:
-        get_nickname = component.settings['sensor_node4']['nickname']
-    elif sensor_node_id == 4:
-        get_nickname = component.settings['sensor_node5']['nickname']
+    # Get Sensor Node Label
+    short_uid = str(node_uid or "").split("-")[0]
+
+    if node_nickname and short_uid:
+        node_label = f"{node_nickname} {short_uid}"
+    elif node_nickname:
+        node_label = node_nickname
+    elif short_uid:
+        node_label = short_uid
     else:
-        get_nickname = ""
+        node_label = "Unknown Node"
 
     # Generate a timestamp
     timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
-    sensor_node_text = "[" + get_nickname + "]"
+    sensor_node_text = f"[{node_label}]"
     formatted_message = f"{timestamp} {sensor_node_text} {alert_text}"
 
     # Append the message
     current_content = component.frontend.ui.textEdit2_sensor_nodes_alerts.toPlainText()
-    updated_content = current_content + '\n' + formatted_message if current_content else formatted_message
+    updated_content = current_content + "\n" + formatted_message if current_content else formatted_message
 
     component.frontend.ui.textEdit2_sensor_nodes_alerts.setPlainText(updated_content)
-    component.frontend.ui.textEdit2_sensor_nodes_alerts.verticalScrollBar().setValue(component.frontend.ui.textEdit2_sensor_nodes_alerts.verticalScrollBar().maximum())
+    component.frontend.ui.textEdit2_sensor_nodes_alerts.verticalScrollBar().setValue(
+        component.frontend.ui.textEdit2_sensor_nodes_alerts.verticalScrollBar().maximum()
+    )
 
     # Calculate Alert Total
     current_text = component.frontend.ui.tabWidget_sensor_nodes.tabBar().tabText(3)
@@ -1896,7 +1810,7 @@ async def alertReturn(component: object, sensor_node_id=0, alert_text=""):
     await update_sensor_node_title(component, 1)
 
 
-async def exploitReturn(component: object, sensor_node_id: str, protocol:str, modulation:str, hardware:str, type:str, attack:str, variables:str):
+async def exploitReturn(component: object, node_uid: str, protocol:str, modulation:str, hardware:str, type:str, attack:str, variables:str):
     """ 
     Updates the Sensor Nodes Exploit tab with a new alert.
     """
@@ -1937,7 +1851,7 @@ async def exploitReturn(component: object, sensor_node_id: str, protocol:str, mo
     await update_sensor_node_title(component, 1)
 
 
-async def snreport(component: object, sensor_node_id: str, text:str):
+async def snreport(component: object, node_uid: str, text:str):
     """
     Updates the Sensor Nodes Report tab with a new report.
     """
@@ -1970,29 +1884,15 @@ async def snreport(component: object, sensor_node_id: str, text:str):
     await update_sensor_node_title(component, 1)
 
 
-async def findGPS_CoordinatesResults(component: object, tab_index=0, coordinates=""):
+async def findGPS_CoordinatesResults(component: object, coordinates=""):
     """
-    Returns the GPS coordinate results to the HardwareSelectDialog.
+    Returns the GPS coordinate results to the NodeConfigureDialog.
     """
     # Populate Location
-    location_widget = [
-        component.frontend.popups["HardwareSelectDialog"].textEdit_location_1,
-        component.frontend.popups["HardwareSelectDialog"].textEdit_location_2,
-        component.frontend.popups["HardwareSelectDialog"].textEdit_location_3,
-        component.frontend.popups["HardwareSelectDialog"].textEdit_location_4,
-        component.frontend.popups["HardwareSelectDialog"].textEdit_location_5
-    ]
-    location_widget[int(tab_index)].setPlainText(str(coordinates))
+    component.frontend.popups["NodeConfigureDialog"].label2_lat_lon_alt.setText(str(coordinates))
 
     # Enable the Find Button
-    find_widgets = [
-        component.frontend.popups["HardwareSelectDialog"].pushButton_find_1,
-        component.frontend.popups["HardwareSelectDialog"].pushButton_find_2,
-        component.frontend.popups["HardwareSelectDialog"].pushButton_find_3,
-        component.frontend.popups["HardwareSelectDialog"].pushButton_find_4,
-        component.frontend.popups["HardwareSelectDialog"].pushButton_find_5
-    ]
-    find_widgets[int(tab_index)].setEnabled(True)
+    component.frontend.popups["NodeConfigureDialog"].pushButton_find.setEnabled(True)
 
 
 async def enableDisableListenerReturn(component: object, listener_name="", status=""):
@@ -2047,93 +1947,88 @@ async def deleteListenerReturn(component: object, listener_name=""):
         component.logger.error(f"No matching listener found in the table for name '{listener_name}'.")
 
 
-async def gpsBeaconEnableDisableIP_Return(component: object, sensor_node_id:str, gps_tak_beacon_status: bool):
+async def gpsBeaconEnableDisableIP_Return(component: object, gps_tak_beacon_status: bool):
     """
     Sets the state of the GPS TAK beacon enable/disable button for IP network connections.
     """
     # Populate Location
-    enable_disable_button = [
-        component.frontend.popups["HardwareSelectDialog"].pushButton_remote_actions_ip_gps_beacon_enable_disable_1,
-        component.frontend.popups["HardwareSelectDialog"].pushButton_remote_actions_ip_gps_beacon_enable_disable_2,
-        component.frontend.popups["HardwareSelectDialog"].pushButton_remote_actions_ip_gps_beacon_enable_disable_3,
-        component.frontend.popups["HardwareSelectDialog"].pushButton_remote_actions_ip_gps_beacon_enable_disable_4,
-        component.frontend.popups["HardwareSelectDialog"].pushButton_remote_actions_ip_gps_beacon_enable_disable_5
-    ]
+    enable_disable_button = component.frontend.popups["NodeConfigureDialog"].pushButton_remote_actions_ip_gps_beacon_enable_disable
+
     if gps_tak_beacon_status == True:
-        enable_disable_button[int(sensor_node_id)].setText("Disable")
+        enable_disable_button.setText("Disable")
     else:
-        enable_disable_button[int(sensor_node_id)].setText("Enable")
+        enable_disable_button.setText("Enable")
 
 
-async def uptimeIP_Return(component: object, sensor_node_id:str, uptime: str):
+async def uptimeIP_Return(component: object, uptime: str):
     """
-    Returns the uptime results to the HardwareSelectDialog.
-    """
-    # Open a Text Dialog
-    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], uptime)
-
-
-async def memoryIP_Return(component: object, sensor_node_id:str, memory: str):
-    """
-    Returns the memory results to the HardwareSelectDialog.
+    Returns the uptime results to the NodeConfigureDialog.
     """
     # Open a Text Dialog
-    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], memory)
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["NodeConfigureDialog"], uptime)
 
 
-async def diskIP_Return(component: object, sensor_node_id:str, disk: str):
+async def memoryIP_Return(component: object, memory: str):
     """
-    Returns the disk results to the HardwareSelectDialog.
-    """
-    # Open a Text Dialog
-    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], disk)
-
-
-async def cpuIP_Return(component: object, sensor_node_id:str, cpu: str):
-    """
-    Returns the CPU percentage results to the HardwareSelectDialog.
+    Returns the memory results to the NodeConfigureDialog.
     """
     # Open a Text Dialog
-    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], cpu)
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["NodeConfigureDialog"], memory)
 
 
-async def processesIP_Return(component: object, sensor_node_id:str, processes: str):
+async def diskIP_Return(component: object, disk: str):
     """
-    Returns the processes results to the HardwareSelectDialog.
-    """
-    # Open a Text Dialog
-    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], processes)
-
-
-async def ifconfigIP_Return(component: object, sensor_node_id:str, ifconfig: str):
-    """
-    Returns the ifconfig results to the HardwareSelectDialog.
+    Returns the disk results to the NodeConfigureDialog.
     """
     # Open a Text Dialog
-    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], ifconfig)
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["NodeConfigureDialog"], disk)
 
 
-async def iwconfigIP_Return(component: object, sensor_node_id:str, iwconfig: str):
+async def cpuIP_Return(component: object, cpu: str):
     """
-    Returns the iwconfig results to the HardwareSelectDialog.
-    """
-    # Open a Text Dialog
-    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], iwconfig)
-
-
-async def pingIP_Return(component: object, sensor_node_id:str, ping: str):
-    """
-    Returns the iwconfig results to the HardwareSelectDialog.
+    Returns the CPU percentage results to the NodeConfigureDialog.
     """
     # Open a Text Dialog
-    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["HardwareSelectDialog"], ping)
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["NodeConfigureDialog"], cpu)
 
 
-async def nodeRefreshReturn(component: object, dashboard_node_index:str, nodes):
+async def processesIP_Return(component: object, processes: str):
     """
-    .
+    Returns the processes results to the NodeConfigureDialog.
     """
-    component.frontend.popups["HardwareSelectDialog"].refreshNodes(dashboard_node_index=dashboard_node_index, nodes=nodes)
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["NodeConfigureDialog"], processes)
+
+
+async def ifconfigIP_Return(component: object, ifconfig: str):
+    """
+    Returns the ifconfig results to the NodeConfigureDialog.
+    """
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["NodeConfigureDialog"], ifconfig)
+
+
+async def iwconfigIP_Return(component: object, iwconfig: str):
+    """
+    Returns the iwconfig results to the NodeConfigureDialog.
+    """
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["NodeConfigureDialog"], iwconfig)
+
+
+async def pingIP_Return(component: object, ping: str):
+    """
+    Returns the iwconfig results to the NodeConfigureDialog.
+    """
+    # Open a Text Dialog
+    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(component.frontend.popups["NodeConfigureDialog"], ping)
+
+
+async def nodeRefreshReturn(component: object, nodes):
+    """
+    Returns the node information to the Node select dialog.
+    """
+    component.frontend.popups["NodeSelectDialog"].refreshNodes(nodes=nodes)
 
 
 async def dashboardCoT_Message(component: object, raw_xml:str):
@@ -2146,6 +2041,4 @@ async def dashboardCoT_Message(component: object, raw_xml:str):
         component.logger.error(f"Failed to parse Dashboard CoT message: {e}")
         return
 
-    print("HURRAY")
-    print(cot_message)
     fissure.utils.cot_utils.handle_tactical_cot_message(component, cot_message)

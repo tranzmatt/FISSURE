@@ -2964,7 +2964,7 @@ async def _slotTSI_UpdateTSI_Clicked(dashboard: QtCore.QObject):
         dwell_time.append(str(dashboard.ui.tableWidget_tsi_scan_options.item(3,col).text()))
 
     # Send the Message
-    await dashboard.backend.updateConfiguration(dashboard.active_sensor_node, start_frequency, end_frequency, step_size, dwell_time, detector_port)
+    await dashboard.backend.updateConfiguration(dashboard.selected_node_uid, start_frequency, end_frequency, step_size, dwell_time, detector_port)
 
 
 @qasync.asyncSlot(QtCore.QObject)
@@ -3020,9 +3020,9 @@ async def _slotTSI_DetectorStartClicked(dashboard: QtCore.QObject):
     # Turn off TSI Detector
     if dashboard.ui.pushButton_tsi_detector_start.text() == "Stop":
         # Send the Message
-        await dashboard.backend.stopTSI_Detector(dashboard.active_sensor_node)
-        if dashboard.active_sensor_node > -1:
-            dashboard.statusbar_text[dashboard.active_sensor_node][1] = "Not Running"
+        await dashboard.backend.stopTSI_Detector(dashboard.selected_node_uid)
+        if dashboard.selected_node_uid:
+            # dashboard.statusbar_text[dashboard.selected_node_uid][1] = "Not Running"  # TODO
             dashboard.refreshStatusBarText()
         dashboard.ui.label2_tsi_detector.setText("Detector - Not Running")
         dashboard.ui.label2_tsi_detector.raise_()
@@ -3054,9 +3054,7 @@ async def _slotTSI_DetectorStartClicked(dashboard: QtCore.QObject):
     # Turn on TSI Detector
     elif dashboard.ui.pushButton_tsi_detector_start.text() == "Start":
         # Get Sensor Node IP Address
-        sensor_nodes = ['sensor_node1','sensor_node2','sensor_node3','sensor_node4','sensor_node5']
-        get_sensor_node = sensor_nodes[dashboard.active_sensor_node]
-        get_sensor_node_ip = str(dashboard.backend.settings[get_sensor_node]['ip_address'])
+        get_sensor_node_ip = dashboard.selected_node_ip
         
         # Sensor Node Hardware Information
         get_current_hardware = str(dashboard.ui.comboBox_tsi_detector_sweep_hardware.currentText())
@@ -3177,9 +3175,9 @@ async def _slotTSI_DetectorStartClicked(dashboard: QtCore.QObject):
         dashboard.ui.comboBox_tsi_detector.setEnabled(False)
 
         # Send the Message
-        await dashboard.backend.startTSI_Detector(dashboard.active_sensor_node, get_detector, variable_names, variable_values, detector_port)
-        if dashboard.active_sensor_node > -1:
-            dashboard.statusbar_text[dashboard.active_sensor_node][1] = "Running TSI"
+        await dashboard.backend.startTSI_Detector(dashboard.selected_node_uid, get_detector, variable_names, variable_values, detector_port)
+        if dashboard.selected_node_uid:
+            # dashboard.statusbar_text[dashboard.selected_node_uid][1] = "Running TSI"  # TODO
             dashboard.refreshStatusBarText()
         dashboard.ui.label2_tsi_detector.setText("Detector - Running")
         dashboard.ui.label2_tsi_detector.raise_()
@@ -3273,9 +3271,9 @@ async def _slotTSI_DetectorFixedStartClicked(dashboard: QtCore.QObject):
     # Turn off TSI Detector
     if dashboard.ui.pushButton_tsi_detector_fixed_start.text() == "Stop":
         # Send the Message
-        await dashboard.backend.stopTSI_Detector(dashboard.active_sensor_node)
-        if dashboard.active_sensor_node > -1:
-            dashboard.statusbar_text[dashboard.active_sensor_node][1] = "Not Running"
+        await dashboard.backend.stopTSI_Detector(dashboard.selected_node_uid)
+        if dashboard.selected_node_uid:
+            # dashboard.statusbar_text[dashboard.selected_node_uid][1] = "Not Running"  # TODO
             dashboard.refreshStatusBarText()
         dashboard.ui.label2_tsi_detector.setText("Detector - Not Running")
         dashboard.ui.label2_tsi_detector.raise_()
@@ -3293,9 +3291,7 @@ async def _slotTSI_DetectorFixedStartClicked(dashboard: QtCore.QObject):
     # Turn on TSI Detector
     elif dashboard.ui.pushButton_tsi_detector_fixed_start.text() == "Start":
         # Get Sensor Node IP Address
-        sensor_nodes = ['sensor_node1','sensor_node2','sensor_node3','sensor_node4','sensor_node5']
-        get_sensor_node = sensor_nodes[dashboard.active_sensor_node]
-        get_sensor_node_ip = str(dashboard.backend.settings[get_sensor_node]['ip_address'])
+        get_sensor_node_ip = dashboard.selected_node_ip
         
         # Sensor Node Hardware Information
         get_current_hardware = str(dashboard.ui.comboBox_tsi_detector_fixed_hardware.currentText())
@@ -3376,9 +3372,9 @@ async def _slotTSI_DetectorFixedStartClicked(dashboard: QtCore.QObject):
         dashboard.ui.comboBox_tsi_detector_fixed.setEnabled(False)
 
         # Send the Message
-        await dashboard.backend.startTSI_Detector(dashboard.active_sensor_node, get_detector, variable_names, variable_values, detector_port)
-        if dashboard.active_sensor_node > -1:
-            dashboard.statusbar_text[dashboard.active_sensor_node][1] = "Running TSI"
+        await dashboard.backend.startTSI_Detector(dashboard.selected_node_uid, get_detector, variable_names, variable_values, detector_port)
+        if dashboard.selected_node_uid:
+            # dashboard.statusbar_text[dashboard.selected_node_uid][1] = "Running TSI"  #TODO
             dashboard.refreshStatusBarText()
         dashboard.ui.label2_tsi_detector.setText("Detector - Running")
         dashboard.ui.label2_tsi_detector.raise_()
@@ -3403,7 +3399,7 @@ async def _slotTSI_ConditionerOperationStartClicked(dashboard: QtCore.QObject):
     if dashboard.ui.pushButton_tsi_conditioner_operation_start.text() == "Stop":
         
         # Send the Message
-        await dashboard.backend.stopTSI_Conditioner(dashboard.active_sensor_node)
+        await dashboard.backend.stopTSI_Conditioner(dashboard.selected_node_uid)
 
         # Reset Progress Bar
         dashboard.ui.progressBar_tsi_conditioner_operation.setValue(0)
@@ -3572,7 +3568,7 @@ async def _slotTSI_ConditionerOperationStartClicked(dashboard: QtCore.QObject):
         dashboard.ui.progressBar_tsi_conditioner_operation.setValue(1)
         
         # Send the Message
-        await dashboard.backend.startTSI_Conditioner(dashboard.active_sensor_node, common_parameter_names, common_parameter_values, method_parameter_names, method_parameter_values, method_filepath)
+        await dashboard.backend.startTSI_Conditioner(dashboard.selected_node_uid, common_parameter_names, common_parameter_values, method_parameter_names, method_parameter_values, method_filepath)
 
 
 @qasync.asyncSlot(QtCore.QObject)

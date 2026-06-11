@@ -92,7 +92,7 @@ from fissure_geo import estimate_ce_from_samples
 class OperationMain(Operation):
     def __init__(
         self,
-        sensor_node_id: Union[int, str] = 0,
+        node_uid: str = "",
         logger: logging.Logger = logging.getLogger(__name__),
         alert_callback: Union[Callable, None] = None,
         tak_cot_callback: Union[Callable, None] = None,
@@ -101,7 +101,7 @@ class OperationMain(Operation):
         artifact_manager=None,
     ) -> None:
         super().__init__(
-            sensor_node_id=sensor_node_id,
+            node_uid=node_uid,
             logger=logger,
             alert_callback=alert_callback,
             tak_cot_callback=tak_cot_callback,
@@ -588,7 +588,7 @@ class OperationMain(Operation):
                                 recent = samples_ref[-min(50, len(samples_ref)) :]
                                 snapshot = {
                                     "target_id": target_id,
-                                    "sensor_node_id": self.sensor_node_id,
+                                    "node_uid": self.node_uid,
                                     "frequency_hz": float(st.get("detected_freq_hz") or f),
                                     "frequency_mhz": float((st.get("detected_freq_hz") or f) / 1e6),
                                     "created_time": now_iso,
@@ -614,7 +614,7 @@ class OperationMain(Operation):
                                     st["artifact_id"] = artifact_id
 
                                 await self._emit_target_update(
-                                    sensor_node_id=self.sensor_node_id,
+                                    node_uid=self.node_uid,
                                     target_id=target_id,
                                     source_soi_id=source_soi_id,
                                     frequency_mhz=float((st.get("detected_freq_hz") or f) / 1e6),

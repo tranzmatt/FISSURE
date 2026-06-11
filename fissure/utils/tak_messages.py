@@ -221,7 +221,7 @@ async def send(
         alert_summary = message.get("alert_summary")
         artifact_id = message.get("artifact_id")
         operation_id = message.get("operation_id")
-        sensor_node_id = message.get("sensor_node_id")
+        node_uid = message.get("node_uid")
 
         # Gate: only add fissure/alert if caller provided at least a kind or artifact_id
         if alert_kind or artifact_id:
@@ -240,8 +240,8 @@ async def send(
             if operation_id:
                 ET.SubElement(alert, "operation_id").text = str(operation_id)
 
-            if sensor_node_id:
-                ET.SubElement(alert, "sensor_node_id").text = str(sensor_node_id)
+            if node_uid:
+                ET.SubElement(alert, "node_uid").text = str(node_uid)
 
 
         _set_point_pin(msg, lat, lon, alt)
@@ -274,7 +274,7 @@ async def send(
         alert_summary = message.get("alert_summary")
         artifact_id = message.get("artifact_id")
         operation_id = message.get("operation_id")
-        sensor_node_id = message.get("sensor_node_id")
+        node_uid = message.get("node_uid")
 
         if alert_kind or artifact_id or alert_summary:
             alert = ET.SubElement(fiss, "alert")
@@ -291,8 +291,8 @@ async def send(
             if operation_id:
                 ET.SubElement(alert, "operation_id").text = str(operation_id)
 
-            if sensor_node_id:
-                ET.SubElement(alert, "sensor_node_id").text = str(sensor_node_id)
+            if node_uid:
+                ET.SubElement(alert, "node_uid").text = str(node_uid)
 
             # Optional fallback so summary looks nicer if WinTAK checks contact
             ET.SubElement(detail, "contact", {"callsign": str(alert_summary or alert_kind or uid)})

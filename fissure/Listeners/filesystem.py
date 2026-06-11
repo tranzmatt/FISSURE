@@ -131,9 +131,9 @@ class AlertFileHandler(FileSystemEventHandler):
         if line:
             try:
                 alert_data = json.loads(line)
-                sensor_node_id = alert_data.get("sensor_node_id", 0)
+                node_uid = alert_data.get("node_uid", 0)
                 alert_text = alert_data.get("alert_text", "")
-                # print(f"Alert found: {alert_text} (Sensor ID: {sensor_node_id})")
-                await self.alert_callback(self.component, sensor_node_id, alert_text)
+                # print(f"Alert found: {alert_text} (Node ID: {node_uid})")
+                await self.alert_callback(self.component, node_uid, alert_text)
             except json.JSONDecodeError as e:
                 print(f"Invalid JSON in file {file_path}: {e}")

@@ -57,7 +57,6 @@ class FissureStatusBar(QtWidgets.QStatusBar):
     hiprfisr: QtWidgets.QPushButton
     tsi: QtWidgets.QPushButton
     pd: QtWidgets.QPushButton
-    sensor_nodes: List[QtWidgets.QPushButton]
 
     # Sessions
     session_label: QtWidgets.QLabel
@@ -110,13 +109,6 @@ class FissureStatusBar(QtWidgets.QStatusBar):
         self.hiprfisr.setFlat(True)
         self.tsi.setFlat(True)
         self.pd.setFlat(True)
-
-        # Sensor Nodes
-        self.sensor_nodes = []
-        for idx in range(5):
-            sensor_node = QtWidgets.QPushButton(f"SN{idx+1}: --", objectName=f"pushButton_status{idx+5}")
-            sensor_node.setFlat(True)
-            self.sensor_nodes.append(sensor_node)
 
 
     def __init_session__(self):
@@ -172,11 +164,6 @@ class FissureStatusBar(QtWidgets.QStatusBar):
         self.addPermanentWidget(VLine())
         self.addPermanentWidget(self.pd)
         self.addPermanentWidget(VLine())
-
-        # Sensor Nodes (Permanent)
-        for sensor_node in self.sensor_nodes:
-            self.addPermanentWidget(sensor_node)
-        self.addPermanentWidget(VLine(self.parent))
 
         # Session Status (Dynamic)
         self.session_status = QtWidgets.QWidget(self.parent)

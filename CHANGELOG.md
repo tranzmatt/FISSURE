@@ -1,6 +1,44 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2026-6-10
+
+Node selection rework, selected-node configuration, Tactical tab integration, and hardware settings cleanup.
+
+### Added
+
+- Added global selected sensor node workflow for Dashboard operations
+- Added Select Sensor Node and Configure Selected Node controls to the top bar
+- Added selected-node settings recall and display for nickname, IP address, status, location, notes, GPS, and hardware
+- Added simplified selected node configuration dialog with GPS source controls and hardware defaults
+- Added selected-node helper utilities for local/remote status, network type, hardware settings, and Wi-Fi interfaces
+- Added selected-node hardware display support for SDRs and Wi-Fi adapters
+- Added Tactical tab integration for selecting nodes from map pins, tables, and node info panels
+- Added Tactical target parsing for node UID, SSID, BSSID, RSSI, observation time, SOI, and artifact metadata
+- Added support for action schema min, max, step, decimals, and options metadata in Dashboard parameter widgets
+- Added explicit HIPRFISR and node IP address settings with automatic node IP detection for selected node display
+
+### Changed
+
+- Replaced fixed 5-node Dashboard selection logic with selected-node UID routing
+- Updated tab operations to use selected node UID instead of fixed sensor node indexes
+- Updated hardware combo boxes to populate from selected node settings instead of legacy per-tab hardware lists
+- Updated Wi-Fi interface guess behavior to use selected node configuration instead of Dashboard-local iwconfig
+- Updated Dashboard hardware combo box refresh behavior after node selection/configuration
+- Updated selected node hardware display names to use hardware IDs with UID fallback when serial/IP/interface values are missing
+- Updated local sensor node launch and stop handling for the new top-bar workflow
+- Updated selected node configuration to use the new YAML hardware structure with SDR and Wi-Fi adapter defaults
+- Updated dummy CoT type action defaults to reduce message volume during testing
+- Updated parameter widget generation to support negative numbers and bounded numeric inputs
+- Updated Sensor Node heartbeats to report the node IP address separately from the HIPRFISR connection address
+
+### Fixed
+
+- Fixed blank Tactical target fields when metadata existed in raw CoT XML
+- Fixed target geolocation status parsing across geolocation_status and geolocate_status
+- Fixed alert display labels to include node nickname with shortened node UID fallback
+- Fixed script argument unpacking in Wi-Fi scan and alert flow graph after adding run_with_sudo
+
 ## 2026-5-29
 
 New Tactical tab, TAK alerts without pins, fixing target list imports.

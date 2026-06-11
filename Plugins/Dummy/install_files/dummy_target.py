@@ -57,7 +57,7 @@ class OperationMain(Operation):
         display_label: str = "Garage Door Opener",
         ce_m: float = 50.0,
         description: str = "Dummy Target",
-        sensor_node_id: Union[int, str] = 0,
+        node_uid: str = "",
         logger: logging.Logger = logging.getLogger(__name__),
         alert_callback: Union[Callable, None] = None,
         tak_cot_callback: Union[Callable, None] = None,
@@ -66,7 +66,7 @@ class OperationMain(Operation):
         artifact_manager=None,
     ) -> None:
         super().__init__(
-            sensor_node_id=sensor_node_id,
+            node_uid=node_uid,
             logger=logger,
             alert_callback=alert_callback,
             tak_cot_callback=tak_cot_callback,
@@ -199,7 +199,7 @@ class OperationMain(Operation):
             json.dump(
                 {
                     "target_id": target_id,
-                    "sensor_node_id": self.sensor_node_id,
+                    "node_uid": self.node_uid,
                     "frequency_mhz": self.frequency_mhz,
                     "classification": classification,
                     "location": location,
@@ -227,7 +227,7 @@ class OperationMain(Operation):
 
         patch = {
             "target_id": target_id,
-            "sensor_node_id": self.sensor_node_id,
+            "node_uid": self.node_uid,
             "source_soi_id": "",
 
             "created_time": now_iso,

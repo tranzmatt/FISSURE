@@ -33,7 +33,7 @@ dummy_artifact_schema = {
 async def dummy_artifact(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(f"Dummy Artifact action with parameters: {parameters}")
 
@@ -42,7 +42,7 @@ async def dummy_artifact(
         PLUGIN_NAME,
         "dummy_artifact.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -56,7 +56,7 @@ dummy_alert_schema = {
             "label": "Plot as Pin",
             "type": "string",
             "default": "true",
-            "option": ["true", "false"],
+            "options": ["true", "false"],
         },
     ]
 }
@@ -64,7 +64,7 @@ dummy_alert_schema = {
 async def dummy_alert(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(f"Dummy Alert action with parameters: {parameters}")
 
@@ -73,7 +73,7 @@ async def dummy_alert(
         PLUGIN_NAME,
         "dummy_alert.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -86,7 +86,7 @@ dummy_alert_burst_schema = {
             "label": "Plot as Pin",
             "type": "string",
             "default": "true",
-            "option": ["true", "false"],
+            "options": ["true", "false"],
         },
         {"name": "description", "label": "Description", "type": "string", "default": "Dummy alert burst"},
     ]
@@ -95,7 +95,7 @@ dummy_alert_burst_schema = {
 async def dummy_alert_burst(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(f"Dummy Alert Burst action with parameters: {parameters}")
 
@@ -104,7 +104,7 @@ async def dummy_alert_burst(
         PLUGIN_NAME,
         "dummy_alert_burst.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -120,7 +120,7 @@ dummy_detection_schema = {
 async def dummy_detection(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(f"Dummy Detection action with parameters: {parameters}")
 
@@ -129,7 +129,7 @@ async def dummy_detection(
         PLUGIN_NAME,
         "dummy_detection.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -145,7 +145,7 @@ dummy_soi_schema = {
 async def dummy_soi(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(f"Dummy SOI action with parameters: {parameters}")
 
@@ -154,7 +154,7 @@ async def dummy_soi(
         PLUGIN_NAME,
         "dummy_soi.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -166,7 +166,7 @@ dummy_target_schema = {
             "label": "Display Label",
             "type": "string",
             "default": "Garage Door Opener",
-            "option": [
+            "options": [
                 "Garage Door Opener",
                 "Key Fob",
                 "TPMS",
@@ -183,7 +183,7 @@ dummy_target_schema = {
 async def dummy_target(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(f"Dummy Target action with parameters: {parameters}")
 
@@ -192,7 +192,7 @@ async def dummy_target(
         PLUGIN_NAME,
         "dummy_target.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -203,7 +203,7 @@ dummy_status_schema = {
             "label": "Profile",
             "type": "string",
             "default": "phases",
-            "option": [
+            "options": [
                 "phases",
                 "processing",
                 "busy",
@@ -218,7 +218,7 @@ dummy_status_schema = {
 async def dummy_status(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(f"Dummy Status action with parameters: {parameters}")
 
@@ -227,7 +227,7 @@ async def dummy_status(
         PLUGIN_NAME,
         "dummy_status.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -237,28 +237,52 @@ dummy_cot_types_schema = {
             "name": "scope",
             "label": "Scope",
             "type": "string",
-            "default": "all",
-            "option": ["all", "a-*", "b-*"],
+            "default": "b-*",
+            "options": ["all", "a-*", "b-*"],
         },
         {
             "name": "limit_mode",
             "label": "Limit Mode",
             "type": "string",
-            "default": "all",
-            "option": ["all", "first_n"],
+            "default": "first_n",
+            "options": ["all", "first_n"],
         },
         {
             "name": "first_n",
             "label": "First N",
             "type": "number",
-            "default": 250,
+            "default": 5,
         },
         {
             "name": "expand_dots",
             "label": "Expand '.' Wildcards",
             "type": "string",
-            "default": "yes",
-            "option": ["yes", "no"],
+            "default": "no",
+            "options": ["yes", "no"],
+        },
+        {
+            "name": "base_lat",
+            "label": "Start Latitude",
+            "type": "number",
+            "default": 40.703052,
+        },
+        {
+            "name": "base_lat",
+            "label": "Base Latitude",
+            "type": "number",
+            "default": 42.0898,
+            "min": -90,
+            "max": 90,
+            "decimals": 6,
+        },
+        {
+            "name": "base_lon",
+            "label": "Base Longitude",
+            "type": "number",
+            "default": -76.8077,
+            "min": -180,
+            "max": 180,
+            "decimals": 6,
         },
         {
             "name": "description",
@@ -272,7 +296,7 @@ dummy_cot_types_schema = {
 async def dummy_cot_types(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(f"Dummy CoT Types action with parameters: {parameters}")
 
@@ -281,5 +305,5 @@ async def dummy_cot_types(
         PLUGIN_NAME,
         "dummy_cot_types.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )

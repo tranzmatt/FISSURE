@@ -146,113 +146,78 @@ def hardwareDisplayName(dashboard, hardware_type, sensor_node, component, index)
 
 def hardwareDisplayNameLookup(dashboard, display_name, component):
     """
-    Takes in a hardware display name and returns all the sensor node hardware information.
+    Takes in a hardware display name and returns all the selected sensor node
+    hardware information.
+
+    Returns:
+        [type, uid, radio_name, serial, interface, ip, daughterboard]
     """
-    # Return Saved Hardware Information
-    hardware_type = display_name.split(" - ")[0].strip()
+    blank = ["", "", "", "", "", "", ""]
+
+    if not display_name:
+        return blank
+
+    display_name = str(display_name).strip()
+
+    if display_name == "Computer":
+        return ["Computer", "", "", "", "", "", ""]
+
+    if display_name == "Open Sniffer":
+        return ["Open Sniffer", "", "", "", "", "", ""]
+
+    parts = display_name.split(" - ", 1)
+    hardware_type = parts[0].strip()
+
     try:
-        second_value = display_name.split(" - ")[1].strip()
-    except:
+        second_value = parts[1].strip()
+    except Exception:
         second_value = ""
 
-    if len(second_value) > 0:
-        get_sensor_node = ["sensor_node1", "sensor_node2", "sensor_node3", "sensor_node4", "sensor_node5"]
-        sensor_node = get_sensor_node[dashboard.active_sensor_node]
-        get_index = 0
-        get_column = hardwareID_Column(hardware_type)
-        for n in range(0, len(dashboard.backend.settings[sensor_node][component])):
-            if hardware_type == "Computer":
-                if second_value == "":  # todo
-                    get_index = n
-                    break
-            elif hardware_type == "USRP X3x0":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break
-            elif hardware_type == "USRP B2x0":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break
-            elif hardware_type == "HackRF":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break
-            elif hardware_type == "RTL2832U":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break
-            elif hardware_type == "802.11x Adapter":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break
-            elif hardware_type == "USRP B20xmini":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break
-            elif hardware_type == "LimeSDR":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break
-            elif hardware_type == "bladeRF":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break
-            elif hardware_type == "Open Sniffer":
-                if second_value == "":  # todo
-                    get_index = n
-                    break
-            elif hardware_type == "PlutoSDR":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break
-            elif hardware_type == "USRP2":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break
-            elif hardware_type == "USRP N2xx":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break
-            elif hardware_type == "bladeRF 2.0":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break
-            elif hardware_type == "USRP X410":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break
-            elif hardware_type == "RSPduo":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break
-            elif hardware_type == "RSPdx":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break                                
-            elif hardware_type == "RSPdx R2":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break
-            elif hardware_type == "CaribouLite":
-                if second_value == dashboard.backend.settings[sensor_node][component][n][get_column]:
-                    get_index = n
-                    break                                         
-            else:
-                pass
+    if not hardware_type:
+        return blank
 
-        # Return All Saved Values
-        ret_type = dashboard.backend.settings[sensor_node][component][get_index][0]
-        ret_uid = dashboard.backend.settings[sensor_node][component][get_index][1]
-        ret_radio_name = dashboard.backend.settings[sensor_node][component][get_index][2]
-        ret_serial = dashboard.backend.settings[sensor_node][component][get_index][3]
-        ret_interface = dashboard.backend.settings[sensor_node][component][get_index][4]
-        ret_ip = dashboard.backend.settings[sensor_node][component][get_index][5]
-        ret_daughterboard = dashboard.backend.settings[sensor_node][component][get_index][6]
+    hardware_settings = _get_selected_node_hardware_settings(dashboard)
+    sections = _get_hardware_sections_for_component(component)
 
-        return [ret_type, ret_uid, ret_radio_name, ret_serial, ret_interface, ret_ip, ret_daughterboard]
+    for section in sections:
+        entries = hardware_settings.get(section, {}) or {}
 
-    else:
-        return ["", "", "", "", "", "", ""]
+        if not isinstance(entries, dict):
+            continue
+
+        for uid, entry in entries.items():
+            values = _hardware_entry_to_values(uid, entry, section)
+
+            ret_type = values[0]
+            ret_uid = values[1]
+            ret_radio_name = values[2]
+            ret_serial = values[3]
+            ret_interface = values[4]
+            ret_ip = values[5]
+            ret_daughterboard = values[6]
+
+            if ret_type != hardware_type:
+                continue
+
+            # Exact display-name match is the safest check.
+            if hardwareDisplayNameFromValues(values) == display_name:
+                return values
+
+            # Fallback for legacy/odd display strings.
+            candidate_values = [
+                ret_uid,
+                f"UID {ret_uid}" if ret_uid else "",
+                ret_radio_name,
+                ret_serial,
+                ret_interface,
+                ret_ip,
+                ret_daughterboard,
+            ]
+
+            if second_value and second_value in candidate_values:
+                return values
+
+    return blank
         
 
 def checkFrequencyBounds(get_frequency, get_hardware, get_daughterboard):
@@ -2015,3 +1980,183 @@ def get_default_wifi_interface(settings):
     if not wifi:
         return None
     return wifi.get("interface")
+
+
+def _get_selected_node_hardware_settings(dashboard):
+    """
+    Returns the selected node hardware settings dictionary.
+
+    Expected format:
+        dashboard.selected_node_settings["Sensor Node"]["hardware"]
+    """
+    selected_settings = getattr(dashboard, "selected_node_settings", {}) or {}
+
+    if not isinstance(selected_settings, dict):
+        return {}
+
+    sensor_node_settings = selected_settings.get("Sensor Node", {}) or {}
+
+    if not isinstance(sensor_node_settings, dict):
+        return {}
+
+    hardware_settings = sensor_node_settings.get("hardware", {}) or {}
+
+    if not isinstance(hardware_settings, dict):
+        return {}
+
+    return hardware_settings
+
+
+def _get_hardware_sections_for_component(component):
+    """
+    Maps old component/category names to the new selected-node hardware sections.
+    """
+    component_key = str(component or "").strip().lower()
+
+    if component_key in ["sdr", "sdrs"]:
+        return ["sdrs"]
+
+    if component_key in [
+        "wifi",
+        "wi-fi",
+        "wifi_adapter",
+        "wifi_adapters",
+        "802.11x adapter",
+    ]:
+        return ["wifi_adapters"]
+
+    # Legacy callers may pass "tsi", "pd", "attack", or "archive".
+    # The new node config does not store hardware by tab anymore, so return all.
+    return ["sdrs", "wifi_adapters"]
+
+
+def _hardware_entry_to_values(uid, entry, section):
+    """
+    Converts a new selected-node hardware entry into the legacy return format:
+
+        [type, uid, radio_name, serial, interface, ip, daughterboard]
+    """
+    if not isinstance(entry, dict):
+        return ["", "", "", "", "", "", ""]
+
+    ret_uid = str(uid)
+
+    if section == "wifi_adapters":
+        ret_type = str(entry.get("type") or "802.11x Adapter")
+    else:
+        ret_type = str(entry.get("type") or "")
+
+    ret_radio_name = str(entry.get("radio_name", "") or "")
+    ret_serial = str(entry.get("serial", "") or "")
+
+    ret_interface = str(
+        entry.get("network_interface")
+        or entry.get("interface")
+        or ""
+    )
+
+    ret_ip = str(entry.get("ip_address", "") or "")
+    ret_daughterboard = str(entry.get("daughterboard", "") or "")
+
+    return [
+        ret_type,
+        ret_uid,
+        ret_radio_name,
+        ret_serial,
+        ret_interface,
+        ret_ip,
+        ret_daughterboard,
+    ]
+
+
+def hardwareDisplayNameFromValues(values):
+    """
+    Returns a combobox display name from legacy hardware values:
+
+        [type, uid, radio_name, serial, interface, ip, daughterboard]
+    """
+    if not values or len(values) < 7:
+        return ""
+
+    hardware_type = str(values[0] or "").strip()
+    uid = str(values[1] or "").strip()
+    radio_name = str(values[2] or "").strip()
+    serial = str(values[3] or "").strip()
+    interface = str(values[4] or "").strip()
+    ip_address = str(values[5] or "").strip()
+    daughterboard = str(values[6] or "").strip()
+
+    if not hardware_type:
+        return ""
+
+    if hardware_type in ["Computer", "Open Sniffer"]:
+        return hardware_type
+
+    hardware_id_column = hardwareID_Column(hardware_type)
+
+    if hardware_id_column == 1:
+        second_value = uid
+    elif hardware_id_column == 2:
+        second_value = radio_name
+    elif hardware_id_column == 3:
+        second_value = serial
+    elif hardware_id_column == 4:
+        second_value = interface
+    elif hardware_id_column == 5:
+        second_value = ip_address
+    elif hardware_id_column == 6:
+        second_value = daughterboard
+    else:
+        second_value = ""
+
+    if second_value:
+        return f"{hardware_type} - {second_value}"
+
+    # Clearly labeled fallback when the real hardware ID is missing.
+    if uid:
+        return f"{hardware_type} - UID {uid}"
+
+    if radio_name:
+        return f"{hardware_type} - {radio_name}"
+
+    return hardware_type
+
+
+def selectedNodeHardwareDisplayNames(
+    dashboard,
+    component="",
+    include_computer=False,
+):
+    """
+    Returns hardware display names for the currently selected node.
+
+    component may be:
+        "sdrs", "wifi_adapters", "tsi", "pd", "attack", "archive", etc.
+
+    Legacy tab component names return all selected-node hardware because the
+    new YAML stores hardware globally under Sensor Node -> hardware.
+    """
+    display_names = []
+
+    if include_computer:
+        display_names.append("Computer")
+
+    hardware_settings = _get_selected_node_hardware_settings(dashboard)
+    sections = _get_hardware_sections_for_component(component)
+
+    for section in sections:
+        entries = hardware_settings.get(section, {}) or {}
+
+        if not isinstance(entries, dict):
+            continue
+
+        for uid, entry in entries.items():
+            values = _hardware_entry_to_values(uid, entry, section)
+            display_name = hardwareDisplayNameFromValues(values)
+
+            if display_name:
+                display_names.append(display_name)
+
+    return display_names
+
+

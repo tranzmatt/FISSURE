@@ -47,10 +47,10 @@ class WebsitePollerListener:
                         for line in lines:
                             try:
                                 alert_data = json.loads(line)
-                                alert_key = f"{alert_data['sensor_node_id']}:{alert_data['alert_text']}"
+                                alert_key = f"{alert_data['node_uid']}:{alert_data['alert_text']}"
                                 if alert_key not in self.last_seen_alerts:
                                     print(f"New alert found: {alert_data['alert_text']}")
-                                    await self.alert_callback(self.component, sensor_node_id=alert_data['sensor_node_id'], alert_text=alert_data['alert_text'])
+                                    await self.alert_callback(self.component, node_uid=alert_data['node_uid'], alert_text=alert_data['alert_text'])
                                     new_alerts.append(alert_key)
                             except json.JSONDecodeError as e:
                                 print(f"Failed to parse JSON line: {e}")

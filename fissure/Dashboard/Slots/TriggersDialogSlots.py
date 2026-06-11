@@ -549,29 +549,11 @@ def _slotEnvironmentalSunriseValidateClicked(TriggersDlg: QtCore.QObject):
 
 @QtCore.pyqtSlot(QtCore.QObject)
 def _slotDataDetectSSID_GuessClicked(TriggersDlg: QtCore.QObject):
-    """ 
-    Populates the text edit with interface names selected for the current sensor node.
     """
-    # Look at Interfaces for the Proper Component
-    if (TriggersDlg.fissure_tab == "Single-Stage") or (TriggersDlg.fissure_tab == "Multi-Stage"):
-        component = "attack"
-    elif TriggersDlg.fissure_tab == "Archive Replay":
-        component = "archive"
-    elif TriggersDlg.fissure_tab == "Autorun Playlist":
-        component = "attack"
-    else:
-        component = "attack"
-    
-    # Track Guess
-    get_sensor_node = ['sensor_node1','sensor_node2','sensor_node3','sensor_node4','sensor_node5']
-    if TriggersDlg.guess_index >= len(TriggersDlg.dashboard.backend.settings[get_sensor_node[TriggersDlg.dashboard.active_sensor_node]][component]):
-        TriggersDlg.guess_index = 0
-        
-    # Get Interface Name
-    start_point = TriggersDlg.guess_index
-    for n in range(start_point,len(TriggersDlg.dashboard.backend.settings[get_sensor_node[TriggersDlg.dashboard.active_sensor_node]][component])):            
-        TriggersDlg.guess_index = TriggersDlg.guess_index + 1
-        get_interface = TriggersDlg.dashboard.backend.settings[get_sensor_node[TriggersDlg.dashboard.active_sensor_node]][component][n][4]
-        if len(get_interface) > 0:
-            TriggersDlg.textEdit_rf_detect_ssid_interface.setPlainText(get_interface)
-            break
+    Populates the interface field with a configured Wi-Fi interface from the
+    currently selected sensor node.
+    """
+    fissure.utils.selected_node_utils.cycleSelectedNodeWifiInterface(
+        TriggersDlg,
+        TriggersDlg.textEdit_rf_detect_ssid_interface,
+    )

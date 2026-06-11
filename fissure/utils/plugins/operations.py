@@ -14,29 +14,29 @@ from typing import Dict, Any, Union, Callable
 from fissure.Sensor_Node.utils.resources import Resource
 from fissure.utils.artifacts import ArtifactManager, get_artifact_manager
 
-_base_params = ['self', 'sensor_node_id', 'logger', 'alert_callback', 'tak_cot_callback', 'status_callback', 'target_callback', 'soi_callback', 'artifact_manager']
+_base_params = ['self', 'node_uid', 'logger', 'alert_callback', 'tak_cot_callback', 'status_callback', 'target_callback', 'soi_callback', 'artifact_manager']
 
-async def send_alert(sensor_node_id: Union[int, str], opid: str, message: str, logger=logging.getLogger(__name__)) -> None:
+async def send_alert(node_uid: str, opid: str, message: str, logger=logging.getLogger(__name__)) -> None:
     """Placeholder for alert callback if none is provided.
 
     Parameters
     ----------
-    sensor_node_id : Union[int, str]
-        The sensor node ID
+    node_uid : str
+        The sensor node UID
     opid : str
         The operation ID
     message : str
         The alert message.
     """
-    logger.info(f"Alert {sensor_node_id}, {opid}: {message}")
+    logger.info(f"Alert {node_uid}, {opid}: {message}")
 
-async def send_tak_cot(sensor_node_id: Union[int, str], opid: str, uid: str, remarks: str, lat: Union[float, bool] = True, lon: Union[float, bool] = True, alt: Union[float, bool] = True, time: Union[float, bool] = True, type: str="a-f-G-U-H", logger=logging.getLogger(__name__)) -> None:
+async def send_tak_cot(node_uid: str, opid: str, uid: str, remarks: str, lat: Union[float, bool] = True, lon: Union[float, bool] = True, alt: Union[float, bool] = True, time: Union[float, bool] = True, type: str="a-f-G-U-H", logger=logging.getLogger(__name__)) -> None:
     """Placeholder for TAK CoT callback if none is provided.
 
     Parameters
     ----------
-    sensor_node_id : Union[int, str]
-        The sensor node ID
+    node_uid : str
+        The sensor node UID
     opid : str
         The operation ID
     uid : str
@@ -54,19 +54,19 @@ async def send_tak_cot(sensor_node_id: Union[int, str], opid: str, uid: str, rem
     type : str, optional
         The type, by default "a-f-G-U-H"
     """
-    logger.info(f"TAK CoT {sensor_node_id}, {opid}: uid={uid}, lat={lat}, lon={lon}, alt={alt}, time={time}, type={type}, remarks={remarks}")
+    logger.info(f"TAK CoT {node_uid}, {opid}: uid={uid}, lat={lat}, lon={lon}, alt={alt}, time={time}, type={type}, remarks={remarks}")
 
-async def send_status(sensor_node_id, opid, status_text, logger=None):
+async def send_status(node_uid, opid, status_text, logger=None):
     if logger:
-        logger.info(f"[status] {sensor_node_id} {opid}: {status_text}")
+        logger.info(f"[status] {node_uid} {opid}: {status_text}")
 
-async def send_target(sensor_node_id, opid, target_dict, logger=None):
+async def send_target(node_uid, opid, target_dict, logger=None):
     if logger:
-        logger.info(f"[target] {sensor_node_id} {opid}: {target_dict}")
+        logger.info(f"[target] {node_uid} {opid}: {target_dict}")
 
-async def send_soi(sensor_node_id, opid, soi_dict, logger=None):
+async def send_soi(node_uid, opid, soi_dict, logger=None):
     if logger:
-        logger.info(f"[soi] {sensor_node_id} {opid}: {soi_dict}")
+        logger.info(f"[soi] {node_uid} {opid}: {soi_dict}")
 
 def setup_decorator(func):
     async def wrapper(self) -> bool:
@@ -175,7 +175,7 @@ def operation_class_decorator(cls):
         self.prepare_resources()
 
         # log initialization
-        self.logger.debug(f"Initialized operation {self.__class__.__name__} with sensor_node_id={self.sensor_node_id}, opid={self.opid}")
+        self.logger.debug(f"Initialized operation {self.__class__.__name__} with node_uid={self.node_uid}, opid={self.opid}")
 
     if not hasattr(cls, '__init_original'):
         cls.__init_original = cls.__init__
@@ -197,7 +197,7 @@ class Operation(object):
     """
     def __init__(
             self, 
-            sensor_node_id: Union[int, str] = 0, 
+            node_uid: str = "", 
             logger: logging.Logger = logging.getLogger(__name__), 
             alert_callback: Union[Callable, None] = None, 
             tak_cot_callback: Union[Callable, None] = None, 
@@ -210,8 +210,8 @@ class Operation(object):
 
         Parameters
         ----------
-        sensor_node_id : Union[int, str], optional
-            The ID of the sensor node, by default 0
+        node_uid : str, optional
+            The UID of the sensor node
         logger : logging.Logger, optional
             Logger instance for logging, by default logging.getLogger(__name__)
         alert_callback : Union[Callable, None], optional
@@ -228,7 +228,7 @@ class Operation(object):
             ArtifactManager instance for managing artifacts, by default None to use the global artifact manager
         """
         # input parameters
-        self.sensor_node_id = sensor_node_id
+        self.node_uid = node_uid
         self.logger = logger
         if alert_callback is None:
             alert_callback = send_alert
@@ -268,7 +268,7 @@ class Operation(object):
         for p in _base_params:
             if p in params:
                 params.remove(p)
-        return f"{self.__class__.__name__}(sensor_node_id={self.sensor_node_id}" + ''.join([f", {p}={getattr(self, p)}" for p in params]) + ")"
+        return f"{self.__class__.__name__}(node_uid={self.node_uid}" + ''.join([f", {p}={getattr(self, p)}" for p in params]) + ")"
 
     @classmethod
     def get_arguments(cls, logger: logging.Logger = logging.getLogger(__name__)) -> Dict[str, Any]:
@@ -474,7 +474,7 @@ class Operation(object):
         """
         try:
             return self.artifact_manager.create_artifact(
-                source_id=str(self.sensor_node_id),
+                source_id=str(self.node_uid),
                 operation_id=self.opid,
                 file_path=file_path,
                 name=name,

@@ -1140,7 +1140,7 @@ async def _slotPacketScapyStartClicked(dashboard: QtCore.QObject):
     # Start Transmitting
     if len(get_iface) > 0:
         # Send the Message
-        await dashboard.backend.startScapy(dashboard.active_sensor_node, get_iface, get_interval, get_loop, dashboard.backend.os_info)
+        await dashboard.backend.startScapy(dashboard.selected_node_uid, get_iface, get_interval, get_loop, dashboard.backend.os_info)
     else:
         ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(dashboard, "Specify wireless interface.", width=100, height=20)
 
@@ -1497,7 +1497,7 @@ async def _slotPacketScapyStopClicked(dashboard: QtCore.QObject):
     Kills all running Scapy processes.
     """
     # Send the Message
-    await dashboard.backend.stopScapy(dashboard.active_sensor_node)
+    await dashboard.backend.stopScapy(dashboard.selected_node_uid)
 
 
 @QtCore.pyqtSlot(QtCore.QObject, int, int)
@@ -2770,8 +2770,11 @@ def _slotSelectFilepath(dashboard: QtCore.QObject, table_index, get_row=-1, defa
 
 @QtCore.pyqtSlot(QtCore.QObject, int)
 def _slotGuessInterfaceTableClicked(dashboard: QtCore.QObject, table_index):
-    """ 
-    Automatically inserts the wireless interface name into the attack attack table.
+    """
+    Automatically inserts a configured wireless interface name into the attack table.
+
+    Uses the currently selected node's hardware settings instead of probing the
+    Dashboard machine with iwconfig.
     """
     # Single-Stage or Multi-Stage Table
     if table_index > -1:
@@ -2779,57 +2782,47 @@ def _slotGuessInterfaceTableClicked(dashboard: QtCore.QObject, table_index):
     else:
         get_table = dashboard.ui.tableWidget1_attack_flow_graph_current_values
 
-    # Find Row with "iface"
+    # Find row with "iface"
     get_row = -1
-    for rows in range(0,get_table.rowCount()):
-        if get_table.verticalHeaderItem(rows).text() == "iface":
-            get_row = rows
+    for row in range(get_table.rowCount()):
+        header_item = get_table.verticalHeaderItem(row)
+
+        if header_item is None:
+            continue
+
+        if header_item.text() == "iface":
+            get_row = row
             break
 
-    # Look for Existing Text
-    get_text = ""
-    if get_row != -1:
-        get_text = str(get_table.item(get_row,0).text())
+    if get_row == -1:
+        return
 
-        # Get the iwconfig Text
-        proc=subprocess.Popen("iwconfig &", shell=True, stdout=subprocess.PIPE, )
-        output=proc.communicate()[0].decode()
+    interfaces = fissure.utils.selected_node_utils.get_selected_node_wifi_interfaces(
+        dashboard,
+    )
 
-        # Reset Interface Index
-        if len(get_text) == 0:
-            dashboard.guess_index_table = 0
-        else:
-            dashboard.guess_index_table = dashboard.guess_index_table + 1
+    if not interfaces:
+        return
 
-        # Pull the Interfaces
-        lines = output.split('\n')
-        get_interface = ''
-        wifi_interfaces = []
-        for n in range(0,len(lines)):
-            if 'ESSID' in lines[n]:
-                wifi_interfaces.append(lines[n].split(' ',1)[0])
+    current_item = get_table.item(get_row, 0)
+    current_text = ""
 
-        # Found an Interface
-        if len(wifi_interfaces) > 0:
+    if current_item is not None:
+        current_text = str(current_item.text()).strip()
 
-            # Check Interface Index
-            if dashboard.guess_index_table > (len(wifi_interfaces)-1):
-                dashboard.guess_index_table = 0
+    # Match old behavior: empty field starts at first interface.
+    if not current_text:
+        dashboard.guess_index_table = 0
+    else:
+        dashboard.guess_index_table += 1
 
-            # Update the Table
-            get_interface = wifi_interfaces[dashboard.guess_index_table]
+    if dashboard.guess_index_table >= len(interfaces):
+        dashboard.guess_index_table = 0
 
-            # Find the Row
-            get_row = -1
-            for rows in range(0,get_table.rowCount()):
-                if get_table.verticalHeaderItem(rows).text() == "iface":
-                    get_row = rows
-                    break
+    get_interface = interfaces[dashboard.guess_index_table]
 
-            # Put it Back in the Table
-            if get_row != -1:
-                new_text_item = QtWidgets.QTableWidgetItem(get_interface)
-                get_table.setItem(get_row,0,new_text_item)
+    new_text_item = QtWidgets.QTableWidgetItem(get_interface)
+    get_table.setItem(get_row, 0, new_text_item)
 
 
 @QtCore.pyqtSlot(QtCore.QObject, str, str)
@@ -3429,14 +3422,14 @@ def _slotAttackLoadFromLibraryClicked(dashboard: QtCore.QObject, checked, fname=
         file_dialog_used = True
 
         # Update the Status Dialog
-        if dashboard.active_sensor_node > -1:
-            dashboard.statusbar_text[dashboard.active_sensor_node][3] = "Loaded: " + fname.split('/')[-1]
+        if dashboard.selected_node_uid:
+            # dashboard.statusbar_text[dashboard.selected_node_uid][3] = "Loaded: " + fname.split('/')[-1]  # TODO
             dashboard.refreshStatusBarText()
 
     else:
         # Update the Status Dialog
-        if dashboard.active_sensor_node > -1:
-            dashboard.statusbar_text[dashboard.active_sensor_node][3] = "Loaded: " + fname
+        if dashboard.selected_node_uid:
+            # dashboard.statusbar_text[dashboard.selected_node_uid][3] = "Loaded: " + fname  # TODO
             dashboard.refreshStatusBarText()
 
     # If a Valid File
@@ -4518,18 +4511,18 @@ async def _slotAttackStartStopAttack(dashboard: QtCore.QObject):
     Starts and stops the selected attack flow graph
     """
     # Check for Active Sensor Node
-    if dashboard.active_sensor_node <= -1:
+    if not dashboard.selected_node_uid:
         fissure.Dashboard.UI_Components.Qt5.errorMessage("Launch and select a sensor node prior to running attacks.")
         return
 
     # Stop Flow Graph
     if dashboard.ui.pushButton_attack_start_stop.text() == "Stop Attack":
         if str(dashboard.ui.label2_attack_single_stage_file_type.text()) == "Flow Graph":
-            await dashboard.backend.attackFlowGraphStop(dashboard.active_sensor_node, '', -1)
+            await dashboard.backend.attackFlowGraphStop(dashboard.selected_node_uid, '', -1)
         elif str(dashboard.ui.label2_attack_single_stage_file_type.text()) == "Flow Graph - GUI":
-            await dashboard.backend.attackFlowGraphStop(dashboard.active_sensor_node, 'Flow Graph - GUI', -1)
+            await dashboard.backend.attackFlowGraphStop(dashboard.selected_node_uid, 'Flow Graph - GUI', -1)
         else:
-            await dashboard.backend.attackFlowGraphStop(dashboard.active_sensor_node, 'Python Script', -1)
+            await dashboard.backend.attackFlowGraphStop(dashboard.selected_node_uid, 'Python Script', -1)
 
         # Toggle the Text
         dashboard.ui.pushButton_attack_start_stop.setText("Start Attack")
@@ -4604,7 +4597,7 @@ async def _slotAttackStartStopAttack(dashboard: QtCore.QObject):
         # Send "Run Attack Flow Graph" Message to the HIPRFISR
         fname = dashboard.ui.label2_selected_flow_graph.text()
         get_file_type = str(dashboard.ui.label2_attack_single_stage_file_type.text())
-        await dashboard.backend.attackFlowGraphStart(dashboard.active_sensor_node, str(fname), variable_names, variable_values, get_file_type, run_with_sudo, -1, trigger_values)
+        await dashboard.backend.attackFlowGraphStart(dashboard.selected_node_uid, str(fname), variable_names, variable_values, get_file_type, run_with_sudo, -1, trigger_values)
         
         # Toggle the Text
         dashboard.ui.pushButton_attack_start_stop.setText("Stop Attack")
@@ -4619,8 +4612,8 @@ async def _slotAttackStartStopAttack(dashboard: QtCore.QObject):
         dashboard.ui.comboBox_attack_hardware.setEnabled(False)
 
         # Update the Status Dialog
-        if dashboard.active_sensor_node > -1:
-            dashboard.statusbar_text[dashboard.active_sensor_node][3] = 'Starting... ' + fname.split('/')[-1]
+        if dashboard.selected_node_uid:
+            # dashboard.statusbar_text[dashboard.selected_node_uid][3] = 'Starting... ' + fname.split('/')[-1]  # TODO
             dashboard.refreshStatusBarText()
 
         # Update the Attack History Table
@@ -4690,13 +4683,13 @@ async def _slotAttackMultiStageStartClicked(dashboard: QtCore.QObject):
     Sends message to HIPRFISR/Sensor Node to both flow graphs with the specified durations.
     """
     # Check for Active Sensor Node
-    if dashboard.active_sensor_node <= -1:
+    if not dashboard.selected_node_uid:
         fissure.Dashboard.UI_Components.Qt5.errorMessage("Launch and select a sensor node prior to running attacks.")
         return
 
     # Send Stop Message to the HIPRFISR (Flow Graph Currently Running: Stopping)
     if dashboard.ui.pushButton_attack_multi_stage_start.text() == "Stop":
-        await dashboard.backend.multiStageAttackStop(dashboard.active_sensor_node, -1)
+        await dashboard.backend.multiStageAttackStop(dashboard.selected_node_uid, -1)
 
         # Toggle the Text
         dashboard.ui.pushButton_attack_multi_stage_start.setText("Start")
@@ -4705,8 +4698,8 @@ async def _slotAttackMultiStageStartClicked(dashboard: QtCore.QObject):
         dashboard.ui.label2_attack_multi_stage_status.setText("Not Running")
 
         # Update the Status Dialog
-        if dashboard.active_sensor_node > -1:
-            dashboard.statusbar_text[dashboard.active_sensor_node][3] = "Not Running"
+        if dashboard.selected_node_uid:
+            # dashboard.statusbar_text[dashboard.selected_node_uid][3] = "Not Running"  # TODO
             dashboard.refreshStatusBarText()
 
         # Enable Load/Save
@@ -4757,7 +4750,7 @@ async def _slotAttackMultiStageStartClicked(dashboard: QtCore.QObject):
             trigger_values.append([str(dashboard.ui.tableWidget1_attack_multi_stage_triggers.item(row,0).text()), str(dashboard.ui.tableWidget1_attack_multi_stage_triggers.item(row,1).text()), str(dashboard.ui.tableWidget1_attack_multi_stage_triggers.item(row,2).text()), str(dashboard.ui.tableWidget1_attack_multi_stage_triggers.item(row,3).text())])
 
         # Send "Start Multi-Stage Attack" Message to the HIPRFISR
-        await dashboard.backend.multiStageAttackStart(dashboard.active_sensor_node, all_fname_list, all_variable_names_list, all_variable_values_list, all_duration_list, get_repeat, all_file_types_list, -1, trigger_values)
+        await dashboard.backend.multiStageAttackStart(dashboard.selected_node_uid, all_fname_list, all_variable_names_list, all_variable_values_list, all_duration_list, get_repeat, all_file_types_list, -1, trigger_values)
 
         # Toggle the Text
         dashboard.ui.pushButton_attack_multi_stage_start.setText("Stop")
@@ -4766,8 +4759,8 @@ async def _slotAttackMultiStageStartClicked(dashboard: QtCore.QObject):
         dashboard.ui.label2_attack_multi_stage_status.setText("Running...")
 
         # Update the Status Dialog
-        if dashboard.active_sensor_node > -1:
-            dashboard.statusbar_text[dashboard.active_sensor_node][3] = "Running Multi-Stage Attack..."
+        if dashboard.selected_node_uid:
+            # dashboard.statusbar_text[dashboard.selected_node_uid][3] = "Running Multi-Stage Attack..."  # TODO
             dashboard.refreshStatusBarText()
 
         # Disable Load/Save
@@ -4790,7 +4783,7 @@ async def _slotAttackApplyChangesClicked(dashboard: QtCore.QObject):
         # Check and Send the "Set" Message if Value Changed
         if dashboard.attack_flow_graph_variables[str(variable_name)] != str(value):
             dashboard.attack_flow_graph_variables[str(variable_name)] = str(value)
-            await dashboard.backend.setVariable(dashboard.active_sensor_node, "Attack", str(variable_name), str(value))
+            await dashboard.backend.setVariable(dashboard.selected_node_uid, "Attack", str(variable_name), str(value))
 
     # Disable the Pushbutton
     dashboard.ui.pushButton_pd_flow_graphs_apply_changes.setEnabled(False)
@@ -4807,7 +4800,7 @@ async def _slotAttackFuzzingStartClicked(dashboard: QtCore.QObject):
     Signals to HIPRFISR/Sensor Node to load fuzzer flow graph
     """
     # Check for Active Sensor Node
-    if dashboard.active_sensor_node <= -1:
+    if not dashboard.selected_node_uid:
         fissure.Dashboard.UI_Components.Qt5.errorMessage("Launch and select a sensor node prior to running attacks.")
         return
 
@@ -4868,10 +4861,10 @@ async def _slotAttackFuzzingStartClicked(dashboard: QtCore.QObject):
 
         # Stop Physical/Variable Fuzzing
         if dashboard.ui.stackedWidget_fuzzing.currentIndex() == 1:
-            await dashboard.backend.physicalFuzzingStop(dashboard.active_sensor_node)  # Causes normal fuzzing to not stop if ran before attackFlowGraphStop
+            await dashboard.backend.physicalFuzzingStop(dashboard.selected_node_uid)  # Causes normal fuzzing to not stop if ran before attackFlowGraphStop
 
         # Stop Attack Flow Graph
-        await dashboard.backend.attackFlowGraphStop(dashboard.active_sensor_node, '', -1)
+        await dashboard.backend.attackFlowGraphStop(dashboard.selected_node_uid, '', -1)
 
         # Toggle the Text
         dashboard.ui.pushButton_attack_fuzzing_start.setText("Start Attack")
@@ -5025,16 +5018,16 @@ async def _slotAttackFuzzingStartClicked(dashboard: QtCore.QObject):
         # Send "Run Attack Flow Graph" Message to the HIPRFISR
         fname = dashboard.ui.label2_attack_fuzzing_selected_flow_graph.text()
         get_file_type = "Flow Graph"
-        await dashboard.backend.attackFlowGraphStart(dashboard.active_sensor_node, str(fname), variable_names, variable_values, get_file_type, False, -1, [])
+        await dashboard.backend.attackFlowGraphStart(dashboard.selected_node_uid, str(fname), variable_names, variable_values, get_file_type, False, -1, [])
 
         # Update the Status Dialog
-        if dashboard.active_sensor_node > -1:
-            dashboard.statusbar_text[dashboard.active_sensor_node][3] = 'Starting... "' + fname.split('/')[-1] + '"'
+        if dashboard.selected_node_uid:
+            # dashboard.statusbar_text[dashboard.selected_node_uid][3] = 'Starting... "' + fname.split('/')[-1] + '"'  # TODO
             dashboard.refreshStatusBarText()
 
         # Send "Start Physical Fuzzing" Message
         if physical_fuzzing_enabled == True:
-            await dashboard.backend.physicalFuzzingStart(dashboard.active_sensor_node, fuzzing_variables, fuzzing_type, fuzzing_min, fuzzing_max, fuzzing_update_period, fuzzing_seed_step)
+            await dashboard.backend.physicalFuzzingStart(dashboard.selected_node_uid, fuzzing_variables, fuzzing_type, fuzzing_min, fuzzing_max, fuzzing_update_period, fuzzing_seed_step)
 
         # Update the Attack History Table
         attack_name = str(dashboard.ui.label2_attack_fuzzing_selected_attack.text())
@@ -5062,7 +5055,7 @@ async def _slotAttackFuzzingApplyChangesClicked(dashboard: QtCore.QObject):
         # Check and Send the "Set" Message if Value Changed
         if dashboard.attack_flow_graph_variables[str(variable_name)] != str(value):
             dashboard.attack_flow_graph_variables[str(variable_name)] = str(value)
-            await dashboard.backend.setVariable(dashboard.active_sensor_node, "Attack", str(variable_name), str(value))
+            await dashboard.backend.setVariable(dashboard.selected_node_uid, "Attack", str(variable_name), str(value))
 
     #~ # Data Field Controls
     #~ if dashboard.ui.stackedWidget_fuzzing.currentIndex() == 0:

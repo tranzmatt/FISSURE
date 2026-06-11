@@ -98,7 +98,7 @@ class OperationMain(Operation):
         source_id: str = "",
         warmup_frames: int = 2,
         # --- framework plumbing ---
-        sensor_node_id: Union[int, str] = 0,
+        node_uid: str = "",
         logger: logging.Logger = logging.getLogger(__name__),
         alert_callback: Union[Callable, None] = None,
         tak_cot_callback: Union[Callable, None] = None,
@@ -106,7 +106,7 @@ class OperationMain(Operation):
         artifact_manager=None,
     ) -> None:
         super().__init__(
-            sensor_node_id=sensor_node_id,
+            node_uid=node_uid,
             logger=logger,
             alert_callback=alert_callback,
             tak_cot_callback=tak_cot_callback,
@@ -155,7 +155,7 @@ class OperationMain(Operation):
 
         meta = {
             "role": "photo_capture_v1",
-            "sensor_node_id": self.sensor_node_id,
+            "node_uid": self.node_uid,
             "operation_id": self.operation_id,
             "created_time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "camera_index": self.camera_index,
@@ -259,7 +259,7 @@ class OperationMain(Operation):
                     "alert_summary": f"Photo capture (count={len(photos)})",
                     "artifact_id": artifact_id,
                     "operation_id": self.operation_id,
-                    "sensor_node_id": self.sensor_node_id,
+                    "node_uid": self.node_uid,
                     "name": self.name,
                 }
                 await self.tak_cot_callback(tak_msg)
@@ -280,7 +280,7 @@ class OperationMain(Operation):
                 }
                 await asyncio.wait_for(
                     self.alert_callback(
-                        self.sensor_node_id,
+                        self.node_uid,
                         self.opid,
                         json.dumps(payload),
                         self.logger,

@@ -12,6 +12,12 @@ from fissure.Dashboard.UI_Components.Qt5 import MyMessageBox
 import struct
 import matplotlib.pyplot as plt
 import asyncio
+from fissure.utils.selected_node_utils import (
+    selected_node_is_local,
+    selected_node_is_remote,
+    selected_node_is_ip,
+    selected_node_is_meshtastic,
+)
 
 
 @QtCore.pyqtSlot(QtCore.QObject)
@@ -1354,7 +1360,7 @@ async def _slotArchiveReplayStartClicked(dashboard: QtCore.QObject):
     if dashboard.ui.pushButton_archive_replay_start.text() == "Stop":
 
         # Send Message to the Backend
-        await dashboard.backend.archivePlaylistStop(dashboard.active_sensor_node)
+        await dashboard.backend.archivePlaylistStop(dashboard.selected_node_uid)
 
         # Toggle the Text
         dashboard.ui.pushButton_archive_replay_start.setText("Start")
@@ -1368,7 +1374,7 @@ async def _slotArchiveReplayStartClicked(dashboard: QtCore.QObject):
     # Reset to Last Known Flow Graph Configuration (Flow Graph Currently Stopped: Starting)
     elif dashboard.ui.pushButton_archive_replay_start.text() == "Start":
         # Return if no Sensor Node Selected
-        if dashboard.active_sensor_node < 0:
+        if not dashboard.selected_node_uid:
             ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(dashboard, "Select a sensor node.")
             return
 
@@ -1469,21 +1475,17 @@ async def _slotArchiveReplayStartClicked(dashboard: QtCore.QObject):
             for row in range(0, dashboard.ui.tableWidget1_archive_replay_triggers.rowCount()):
                 trigger_values.append([str(dashboard.ui.tableWidget1_archive_replay_triggers.item(row,0).text()), str(dashboard.ui.tableWidget1_archive_replay_triggers.item(row,1).text()), str(dashboard.ui.tableWidget1_archive_replay_triggers.item(row,2).text()), str(dashboard.ui.tableWidget1_archive_replay_triggers.item(row,3).text())])
 
-            # Sensor Node Name
-            sensor_nodes = ['sensor_node1','sensor_node2','sensor_node3','sensor_node4','sensor_node5']
-            get_sensor_node = sensor_nodes[dashboard.active_sensor_node]
-
             # Transfer All IQ Files to Remote Sensor Node (Sensor Node Messages are Blocking)
-            if str(dashboard.backend.settings[get_sensor_node]['local_remote']) == 'remote':
+            if selected_node_is_remote(dashboard):
                 # Clear Folder
-                await dashboard.backend.deleteArchiveReplayFiles(dashboard.active_sensor_node)
+                await dashboard.backend.deleteArchiveReplayFiles(dashboard.selected_node_uid)
 
                 # Transfer
                 for n in all_file_list:
-                    await dashboard.backend.transferSensorNodeFile(dashboard.active_sensor_node, n, '/Archive_Replay', False)
+                    await dashboard.backend.transferSensorNodeFile(dashboard.selected_node_uid, n, '/Archive_Replay', False)
 
             # Send Message to Backend
-            await dashboard.backend.archivePlaylistStart(dashboard.active_sensor_node, flow_graph, all_file_list, all_frequency_list, all_sample_rate_list, all_format_list, all_channel_list, all_gain_list, all_duration_list, get_repeat, get_ip_address, get_serial, trigger_values)
+            await dashboard.backend.archivePlaylistStart(dashboard.selected_node_uid, flow_graph, all_file_list, all_frequency_list, all_sample_rate_list, all_format_list, all_channel_list, all_gain_list, all_duration_list, get_repeat, get_ip_address, get_serial, trigger_values)
 
             # Toggle the Text
             dashboard.ui.pushButton_archive_replay_start.setText("Stop")

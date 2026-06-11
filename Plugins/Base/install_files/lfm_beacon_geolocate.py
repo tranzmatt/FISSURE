@@ -21,7 +21,7 @@ class OperationMain(Operation):
 
     def __init__(
         self,
-        sensor_node_id: Union[int, str] = 0,
+        node_uid: str = "",
         logger: logging.Logger = logging.getLogger(__name__),
         alert_callback: Union[Callable, None] = None,
         tak_cot_callback: Union[Callable, None] = None,
@@ -31,7 +31,7 @@ class OperationMain(Operation):
         parameters: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(
-            sensor_node_id=sensor_node_id,
+            node_uid=node_uid,
             logger=logger,
             alert_callback=alert_callback,
             tak_cot_callback=tak_cot_callback,
@@ -154,7 +154,7 @@ class OperationMain(Operation):
             "event_type": "detection",
             "detection_kind": "lfm_beacon_geolocate",
             "target_id": self.target_id,
-            "sensor_node_id": str(self.sensor_node_id),
+            "node_uid": str(self.node_uid),
             "frequency_hz": int(frequency_hz),
             "frequency_mhz": float(frequency_hz) / 1e6,
             "power_dbm": float(metric_db),

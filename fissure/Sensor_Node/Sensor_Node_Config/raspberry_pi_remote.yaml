@@ -1,6 +1,4 @@
 Sensor Node:
-     archive: ''
-     attack: ''
      autorun: false
      autorun_delay_seconds: 3
      autorun_interval_seconds: 3
@@ -17,27 +15,58 @@ Sensor Node:
           gps_source: gpsd           # Options: gpsd, Meshtastic, saved, internet
           gps_update_interval_seconds: 5
           gpsd_serial_port: '/dev/gps_usb'
+
+     ############################################          
+     hardware:
+          defaults:
+               sdr: 0
+               wifi_adapter: 1
+          sdrs:
+               0:
+                    radio_name: 'USRP B205mini'
+                    type: 'USRP B20xmini'
+                    serial: ''
+                    daughterboard: ''
+                    ip_address: ''
+                    network_interface: ''
+          wifi_adapters:
+               0:
+                    radio_name: 'Integrated Wi-Fi'
+                    interface: 'wlan0'
+                    notes: ''
+               1:
+                    radio_name: 'USB Wi-Fi Adapter'
+                    interface: 'wlx00c0caafc930'
+                    notes: ''
+
+     #    sdrs:
+     #         0:
+     #              radio_name: 'USRP B205mini'       # Display name shown in Dashboard
+     #              type: 'USRP B20xmini'             # Hardware type
+     #              serial: '327A123'                 # Optional hardware serial number
+     #              daughterboard: 'CBX-120'          # Optional daughterboard name
+     #              ip_address: '192.168.10.2'        # Optional network SDR IP address
+     #              network_interface: 'usb0'         # Optional network interface
+     #              notes: 'Demo SDR'                 # Optional notes
+     #
+     #    wifi_adapters:
+     #         1:
+     #              radio_name: 'Alfa AWUS036ACH'     # Display name shown in Dashboard
+     #              interface: 'wlx00c0caafc930'      # Linux network interface
+     #              notes: 'Monitor mode capable'     # Optional notes
+     ############################################
+
      heartbeat_interval: 10
      hb_port: '6100'     
-     ip_address: '127.0.0.1'               # '127.0.0.1' for local, anything else for remote
-     iq:
-          0:
-               daughterboard: ''
-               ip_address: ''
-               network_interface: ''
-               radio_name: ''
-               serial: ''
-               type: ''
-               uid: ''
+     hiprfisr_ip_address: '127.0.0.1'  # HIPRFISR IP address the node connects to, '127.0.0.1' for local
      local_remote: remote                   # Does not need to be set, updated during init, "remote" or "local"
-     location: small payload
+     location_description: small payload
      msg_port: '6101'
      network_type: Meshtastic                      # "IP" or "Meshtastic"
      nickname: Pi Tactical Node           # "Local Sensor Node" for local, anything else for remote
+     node_ip_address: "auto"  # Node IP shown in Dashboard; "auto" detects route IP
      notes: Pi with Meshtastic
-     pd: ''
      meshtastic_serial_port: '/dev/meshtastic'  # Typically /dev/ttyACM0, /dev/tty/USB0 (make sure gpsd service does not grab port)
      meshtastic_serial_baud_rate: '115200'
-     tsi: ''
 
 

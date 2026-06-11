@@ -25,13 +25,13 @@ class OperationMain(Operation):
         count: int = 10,
         description: str = "Dummy alert burst",
         plot_pin: Union[bool, str] = True,
-        sensor_node_id: Union[int, str] = 0,
+        node_uid: str = "",
         logger: logging.Logger = logging.getLogger(__name__),
         alert_callback: Union[Callable, None] = None,
         tak_cot_callback: Union[Callable, None] = None,
     ) -> None:
         super().__init__(
-            sensor_node_id=sensor_node_id,
+            node_uid=node_uid,
             logger=logger,
             alert_callback=alert_callback,
             tak_cot_callback=tak_cot_callback
@@ -80,7 +80,7 @@ class OperationMain(Operation):
             try:
                 await asyncio.wait_for(
                     self.alert_callback(
-                        self.sensor_node_id,
+                        self.node_uid,
                         self.opid,
                         f"Dummy Alert Burst {i}: {timestamp}",
                         self.logger
@@ -120,7 +120,7 @@ class OperationMain(Operation):
                 # Structured alert fields
                 "alert_kind": "dummy_alert_burst",
                 "alert_summary": f"Dummy alert burst {i}/{self.count}",
-                "sensor_node_id": self.sensor_node_id,
+                "node_uid": self.node_uid,
 
                 "burst_index": i,
                 "burst_total": self.count,

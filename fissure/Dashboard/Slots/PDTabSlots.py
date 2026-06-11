@@ -1943,8 +1943,8 @@ def _slotPD_DemodulationLoadFlowGraphClicked(dashboard: QtCore.QObject, fname=''
             dashboard.ui.textEdit_pd_flow_graphs_filepath.setPlainText(fname)
 
             # Update the Status Dialog
-            if dashboard.active_sensor_node > -1:
-                dashboard.statusbar_text[dashboard.active_sensor_node][2] = "Loaded: " + str(fname.split('/')[-1]) 
+            if dashboard.selected_node_uid:
+                # dashboard.statusbar_text[dashboard.selected_node_uid][2] = "Loaded: " + str(fname.split('/')[-1])   # TODO
                 dashboard.refreshStatusBarText()
 
             # Update the Protocol Tab Labels
@@ -3827,11 +3827,11 @@ async def _slotPD_StatusStartClicked(dashboard: QtCore.QObject):
         dashboard.ui.pushButton_pd_status_start.setText("Stop")
 
         # Send Message to Turn on PD
-        await dashboard.backend.startPD(dashboard.active_sensor_node)
+        await dashboard.backend.startPD(dashboard.selected_node_uid)
 
         # Update the Labels
-        if dashboard.active_sensor_node > -1:
-            dashboard.statusbar_text[dashboard.active_sensor_node][2] = "Running"
+        if dashboard.selected_node_uid:
+            # dashboard.statusbar_text[dashboard.selected_node_uid][2] = "Running"  #TODO
             dashboard.refreshStatusBarText()
         dashboard.ui.label2_pd_status_pd.setText("Running")
 
@@ -3859,14 +3859,14 @@ async def _slotPD_StatusStartClicked(dashboard: QtCore.QObject):
         dashboard.ui.pushButton_pd_status_start.setText("Start")
 
         # Send Message to Turn off PD
-        await dashboard.backend.stopPD(dashboard.active_sensor_node)
+        await dashboard.backend.stopPD(dashboard.selected_node_uid)
 
         # Disable the Protocol Discovery Trigger
         await dashboard.backend.setAutoStartPD(False)
 
         # Update the Labels
-        if dashboard.active_sensor_node > -1:
-            dashboard.statusbar_text[dashboard.active_sensor_node][2] = "Not Running"
+        if dashboard.selected_node_uid:
+            # dashboard.statusbar_text[dashboard.selected_node_uid][2] = "Not Running"  #TODO
             dashboard.refreshStatusBarText()
         dashboard.ui.label2_pd_status_pd.setText("Not Running")
 
@@ -3924,8 +3924,8 @@ def unloadFlowGraph(dashboard: QtCore.QObject):
     dashboard.ui.textEdit_pd_flow_graphs_filepath.setPlainText("")
 
     # Update the Status Dialog
-    if dashboard.active_sensor_node > -1:
-        dashboard.statusbar_text[dashboard.active_sensor_node][2] = "Flow Graph Not Loaded"
+    if dashboard.selected_node_uid:
+        # dashboard.statusbar_text[dashboard.selected_node_uid][2] = "Flow Graph Not Loaded"  #TODO
         dashboard.refreshStatusBarText()
 
     # Update the Protocol Tab Labels
@@ -4035,7 +4035,7 @@ async def _slotPD_DemodulationStartStopClicked(dashboard: QtCore.QObject):
     """
     # Send Stop Message to the HIPRFISR
     if dashboard.ui.pushButton_pd_flow_graphs_start_stop.text() == "Stop":
-        await dashboard.backend.protocolDiscoveryFG_Stop(dashboard.active_sensor_node)
+        await dashboard.backend.protocolDiscoveryFG_Stop(dashboard.selected_node_uid)
 
         # Toggle the Text
         dashboard.ui.pushButton_pd_flow_graphs_start_stop.setText("Start")
@@ -4049,8 +4049,8 @@ async def _slotPD_DemodulationStartStopClicked(dashboard: QtCore.QObject):
         dashboard.ui.label2_pd_status_flow_graph_status.setText("Stopped")
 
         # Update the Status Dialog
-        if dashboard.active_sensor_node > -1:
-            dashboard.statusbar_text[dashboard.active_sensor_node][2] = "Flow Graph Stopped"
+        if dashboard.selected_node_uid:
+            dashboard.statusbar_text[dashboard.selected_node_uid][2] = "Flow Graph Stopped"  #TODO
             dashboard.refreshStatusBarText()
 
     # Reset to Last Known Flow Graph Configuration
@@ -4076,11 +4076,11 @@ async def _slotPD_DemodulationStartStopClicked(dashboard: QtCore.QObject):
 
         # Send "Run PD Flow Graph" Message to the HIPRFISR
         fname = dashboard.ui.textEdit_pd_flow_graphs_filepath.toPlainText()
-        await dashboard.backend.protocolDiscoveryFG_Start(dashboard.active_sensor_node, str(fname.split('/')[-1]), variable_names, variable_values)
+        await dashboard.backend.protocolDiscoveryFG_Start(dashboard.selected_node_uid, str(fname.split('/')[-1]), variable_names, variable_values)
 
         # Update the Status Dialog
-        if dashboard.active_sensor_node > -1:
-            dashboard.statusbar_text[dashboard.active_sensor_node][2] = 'Starting... ' + fname.split('/')[-1]
+        if dashboard.selected_node_uid:
+            # dashboard.statusbar_text[dashboard.selected_node_uid][2] = 'Starting... ' + fname.split('/')[-1]  #TODO
             dashboard.refreshStatusBarText()
 
 
@@ -4099,7 +4099,7 @@ async def _slotPD_DemodulationApplyChangesClicked(dashboard: QtCore.QObject):
         # Check and Send the "Set" Message if Value Changed
         if dashboard.flow_graph_variables[str(variable_name)] != str(value):
             dashboard.flow_graph_variables[str(variable_name)] = str(value)
-            await dashboard.backend.setVariable(dashboard.active_sensor_node, 'Protocol Discovery', str(variable_name), str(value))
+            await dashboard.backend.setVariable(dashboard.selected_node_uid, 'Protocol Discovery', str(variable_name), str(value))
 
     # Disable the Pushbutton
     dashboard.ui.pushButton_pd_flow_graphs_apply_changes.setEnabled(False)
@@ -4369,7 +4369,7 @@ async def _slotPD_SnifferStreamClicked(dashboard: QtCore.QObject):
                 return
 
             # Send the Message
-            await dashboard.backend.snifferFlowGraphStart(dashboard.active_sensor_node, flow_graph_filepath, variable_names, variable_values)
+            await dashboard.backend.snifferFlowGraphStart(dashboard.selected_node_uid, flow_graph_filepath, variable_names, variable_values)
 
             # Disable the Buttons
             dashboard.ui.pushButton_pd_sniffer_stream.setEnabled(False)
@@ -4384,7 +4384,7 @@ async def _slotPD_SnifferStreamClicked(dashboard: QtCore.QObject):
     else:
         try:
             # Send the Message
-            await dashboard.backend.snifferFlowGraphStop(dashboard.active_sensor_node, 'Stream')
+            await dashboard.backend.snifferFlowGraphStop(dashboard.selected_node_uid, 'Stream')
 
             # Disable the Buttons
             dashboard.ui.pushButton_pd_sniffer_stream.setEnabled(False)
@@ -4418,7 +4418,7 @@ async def _slotPD_SnifferTaggedStreamClicked(dashboard: QtCore.QObject):
                 return
 
             # Send the Message
-            await dashboard.backend.snifferFlowGraphStart(dashboard.active_sensor_node, flow_graph_filepath, variable_names, variable_values)
+            await dashboard.backend.snifferFlowGraphStart(dashboard.selected_node_uid, flow_graph_filepath, variable_names, variable_values)
 
             # Disable the Buttons
             dashboard.ui.pushButton_pd_sniffer_stream.setEnabled(False)
@@ -4433,7 +4433,7 @@ async def _slotPD_SnifferTaggedStreamClicked(dashboard: QtCore.QObject):
     else:
         try:
             # Send the Message
-            await dashboard.backend.snifferFlowGraphStop(dashboard.active_sensor_node, 'TaggedStream')
+            await dashboard.backend.snifferFlowGraphStop(dashboard.selected_node_uid, 'TaggedStream')
 
             # Disable the Buttons
             dashboard.ui.pushButton_pd_sniffer_stream.setEnabled(False)
@@ -4466,7 +4466,7 @@ async def _slotPD_SnifferMsgPduClicked(dashboard: QtCore.QObject):
                 return
 
             # Send the Message
-            await dashboard.backend.snifferFlowGraphStart(dashboard.active_sensor_node, flow_graph_filepath, variable_names, variable_values)
+            await dashboard.backend.snifferFlowGraphStart(dashboard.selected_node_uid, flow_graph_filepath, variable_names, variable_values)
 
             # Disable the Buttons
             dashboard.ui.pushButton_pd_sniffer_stream.setEnabled(False)
@@ -4481,7 +4481,7 @@ async def _slotPD_SnifferMsgPduClicked(dashboard: QtCore.QObject):
     else:
         try:
             # Send the Message
-            await dashboard.backend.snifferFlowGraphStop(dashboard.active_sensor_node, 'Message/PDU')
+            await dashboard.backend.snifferFlowGraphStop(dashboard.selected_node_uid, 'Message/PDU')
 
             # Disable the Buttons
             dashboard.ui.pushButton_pd_sniffer_stream.setEnabled(False)

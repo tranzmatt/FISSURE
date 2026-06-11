@@ -29,13 +29,13 @@ class OperationMain(Operation):
         uid: str = "dummy_alert",
         description: str = "Periodic dummy alert",
         plot_pin: Union[bool, str] = True,
-        sensor_node_id: Union[int, str] = 0,
+        node_uid: str = "",
         logger: logging.Logger = logging.getLogger(__name__),
         alert_callback: Union[Callable, None] = None,
         tak_cot_callback: Union[Callable, None] = None,
     ) -> None:
         super().__init__(
-            sensor_node_id=sensor_node_id,
+            node_uid=node_uid,
             logger=logger,
             alert_callback=alert_callback,
             tak_cot_callback=tak_cot_callback,
@@ -69,7 +69,7 @@ class OperationMain(Operation):
             now_text = str(time.time())
             alert_text = f"Dummy Alert: {now_text}"
 
-            await self.alert_callback(self.sensor_node_id, self.opid, alert_text, self.logger)
+            await self.alert_callback(self.node_uid, self.opid, alert_text, self.logger)
 
             if self.plot_pin:
                 msg_type = "pin"

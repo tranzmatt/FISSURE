@@ -75,7 +75,7 @@ def _to_bool(v: Any, default: bool = False) -> bool:
 class OperationMain(Operation):
     def __init__(
         self,
-        sensor_node_id: Union[int, str] = 0,
+        node_uid: str = "",
         logger: logging.Logger = logging.getLogger(__name__),
         alert_callback: Union[Callable, None] = None,
         tak_cot_callback: Union[Callable, None] = None,
@@ -85,7 +85,7 @@ class OperationMain(Operation):
         parameters: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(
-            sensor_node_id=sensor_node_id,
+            node_uid=node_uid,
             logger=logger,
             alert_callback=alert_callback,
             tak_cot_callback=tak_cot_callback,
@@ -176,7 +176,7 @@ class OperationMain(Operation):
     ) -> None:
         if self.alert_callback:
             try:
-                await self.alert_callback(self.sensor_node_id, self.opid, message, self.logger)
+                await self.alert_callback(self.node_uid, self.opid, message, self.logger)
             except Exception as e:
                 self.logger.warning(f"alert_callback failed: {e}")
 
@@ -196,7 +196,7 @@ class OperationMain(Operation):
                 "opid": self.opid,
                 "alert_kind": alert_kind,
                 "alert_summary": alert_summary or message,
-                "sensor_node_id": self.sensor_node_id,
+                "node_uid": self.node_uid,
                 "lat": True,
                 "lon": True,
                 "alt": True,
@@ -457,7 +457,7 @@ class OperationMain(Operation):
             "first_seen_epoch",
             "last_seen_iso",
             "last_seen_epoch",
-            "sensor_node_id",
+            "node_uid",
             "last_lat",
             "last_lon",
             "last_alt_m",
@@ -498,7 +498,7 @@ class OperationMain(Operation):
                 {
                     "run_id": self._run_id,
                     "batch_index": batch_index,
-                    "sensor_node_id": self.sensor_node_id,
+                    "node_uid": self.node_uid,
                     "row_count": len(rows),
                     "unique_bssid_count_batch": len(rows),
                     "unique_bssid_count_total": len(self._seen_bssids_total),
@@ -517,7 +517,7 @@ class OperationMain(Operation):
                 "role": "wifi_urban_logger_batch_v2",
                 "run_id": self._run_id,
                 "batch_index": batch_index,
-                "sensor_node_id": self.sensor_node_id,
+                "node_uid": self.node_uid,
                 "row_count": len(rows),
             },
             arc_prefix=f"wifi_logger_{operation_id}",
@@ -636,7 +636,7 @@ class OperationMain(Operation):
                             "first_seen_epoch": now_epoch,
                             "last_seen_iso": now_iso,
                             "last_seen_epoch": now_epoch,
-                            "sensor_node_id": self.sensor_node_id,
+                            "node_uid": self.node_uid,
                             "last_lat": float(lat),
                             "last_lon": float(lon),
                             "last_alt_m": float(alt or 0.0),

@@ -6,6 +6,12 @@ import fissure
 from fissure.utils import plugin
 from fissure.utils.common import PLUGIN_DIR
 from fissure.Dashboard.Slots.LibraryTabSlots import _slotAttackImportProtocolChanged
+from fissure.utils.selected_node_utils import (
+    selected_node_is_local,
+    selected_node_is_remote,
+    selected_node_is_ip,
+    selected_node_is_meshtastic,
+)
 
 def connect_plugins_slots(dashboard: QtCore.QObject):
     """Connect Plugins Slots
@@ -50,7 +56,7 @@ async def _slotSensorNodesPluginsPluginsListRefresh(dashboard: QtCore.QObject):
         table.item(i, 2).setBackground(QtGui.QBrush(QtGui.QColor('gray')))
 
     # request update
-    await dashboard.backend.checkPluginStatus(dashboard.active_sensor_node)
+    await dashboard.backend.checkPluginStatus(dashboard.selected_node_uid)
 
 
 @qasync.asyncSlot(QtCore.QObject)
@@ -63,9 +69,8 @@ async def _slotSensorNodesPluginsDeploy(dashboard: QtCore.QObject):
         FISSURE dashboard
     """
     table: QtWidgets.QTableWidget = dashboard.ui.pluginsTable
-    get_sensor_node = ['sensor_node1','sensor_node2','sensor_node3','sensor_node4','sensor_node5']
     transfer_plugins = []
-    if dashboard.active_sensor_node > -1 and dashboard.backend.settings[get_sensor_node[dashboard.active_sensor_node]]['local_remote'] == 'remote':
+    if dashboard.selected_node_uid and selected_node_is_remote(dashboard):
         # get plugin names to transfer
         for item in [table.item(i,0) for i in range(table.rowCount())]:
             if item.isSelected():
@@ -73,7 +78,7 @@ async def _slotSensorNodesPluginsDeploy(dashboard: QtCore.QObject):
 
         if len(transfer_plugins) > 0:
             # plugins exist to transfer
-            await dashboard.backend.transferPlugins(dashboard.active_sensor_node, transfer_plugins)
+            await dashboard.backend.transferPlugins(dashboard.selected_node_uid, transfer_plugins)
 
             # refresh plugin table (transferred plugins may be installed on sensor node)
             await _slotSensorNodesPluginsPluginsListRefresh(dashboard)
@@ -89,13 +94,12 @@ async def _slotSensorNodesPluginsRemove(dashboard: QtCore.QObject):
         FISSURE dashboard
     """
     table: QtWidgets.QTableWidget = dashboard.ui.pluginsTable
-    get_sensor_node = ['sensor_node1','sensor_node2','sensor_node3','sensor_node4','sensor_node5']
     update = False
-    if dashboard.active_sensor_node > -1 and dashboard.backend.settings[get_sensor_node[dashboard.active_sensor_node]]['local_remote'] == 'remote':
+    if dashboard.selected_node_uid and selected_node_is_remote(dashboard):
         # sensor node is remote, allow removal
         for item in [table.item(i,0) for i in range(table.rowCount())]:
             if item.isSelected():
-                await dashboard.backend.removePlugin(dashboard.active_sensor_node, item.text())
+                await dashboard.backend.removePlugin(dashboard.selected_node_uid, item.text())
                 update = True
         if update:
             await _slotSensorNodesPluginsPluginsListRefresh(dashboard)
@@ -118,7 +122,7 @@ async def _slotSensorNodesPluginsInstall(dashboard: QtCore.QObject):
     if len(plugin_names) > 0:
         if dashboard.backend.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": dashboard.active_sensor_node,
+                "node_uid": dashboard.selected_node_uid,
                 "plugin_names": plugin_names
             }
             msg = {
@@ -146,7 +150,7 @@ async def _slotSensorNodesPluginsUninstall(dashboard: QtCore.QObject):
     if len(plugin_names) > 0:
         if dashboard.backend.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": dashboard.active_sensor_node,
+                "node_uid": dashboard.selected_node_uid,
                 "plugin_names": plugin_names
             }
             msg = {

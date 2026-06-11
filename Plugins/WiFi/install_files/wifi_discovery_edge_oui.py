@@ -58,7 +58,7 @@ MON_SUFFIX_DEFAULT = "mon"
 class OperationMain(Operation):
     def __init__(
         self,
-        sensor_node_id: Union[int, str] = 0,
+        node_uid: str = "",
         logger: logging.Logger = logging.getLogger(__name__),
         alert_callback: Union[Callable, None] = None,
         tak_cot_callback: Union[Callable, None] = None,
@@ -68,7 +68,7 @@ class OperationMain(Operation):
         parameters: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(
-            sensor_node_id=sensor_node_id,
+            node_uid=node_uid,
             logger=logger,
             alert_callback=alert_callback,
             tak_cot_callback=tak_cot_callback,
@@ -202,7 +202,7 @@ class OperationMain(Operation):
         # keep the local alert callback
         if self.alert_callback:
             try:
-                await self.alert_callback(self.sensor_node_id, self.opid, message, self.logger)
+                await self.alert_callback(self.node_uid, self.opid, message, self.logger)
             except Exception as e:
                 self.logger.warning(f"alert_callback failed: {e}")
 
@@ -618,7 +618,7 @@ class OperationMain(Operation):
 
                     patch = {
                         "target_id": ap["target_id"],
-                        "sensor_node_id": self.sensor_node_id,
+                        "node_uid": self.node_uid,
                         "source_soi_id": "",
                         "frequency_mhz": float(frequency_mhz) if frequency_mhz is not None else None,
                         "classification": classification,

@@ -17,339 +17,6 @@
    <iconset>
     <normaloff>../../../../../../../../../../../../../../.designer/backup/fissure_icon.png</normaloff>../../../../../../../../../../../../../../.designer/backup/fissure_icon.png</iconset>
   </property>
-  <widget class="QFrame" name="frame4_top">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>10</y>
-     <width>1220</width>
-     <height>75</height>
-    </rect>
-   </property>
-   <property name="minimumSize">
-    <size>
-     <width>0</width>
-     <height>75</height>
-    </size>
-   </property>
-   <property name="maximumSize">
-    <size>
-     <width>16777215</width>
-     <height>75</height>
-    </size>
-   </property>
-   <property name="styleSheet">
-    <string notr="true"/>
-   </property>
-   <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
-   </property>
-   <property name="frameShadow">
-    <enum>QFrame::Raised</enum>
-   </property>
-   <widget class="QLabel" name="label_diagram">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>350</width>
-      <height>75</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_top_node3">
-    <property name="geometry">
-     <rect>
-      <x>625</x>
-      <y>5</y>
-      <width>130</width>
-      <height>64</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
-      <underline>false</underline>
-     </font>
-    </property>
-    <property name="focusPolicy">
-     <enum>Qt::NoFocus</enum>
-    </property>
-    <property name="contextMenuPolicy">
-     <enum>Qt::CustomContextMenu</enum>
-    </property>
-    <property name="toolTip">
-     <string>Right-Click to Select</string>
-    </property>
-    <property name="text">
-     <string>New Sensor Node</string>
-    </property>
-    <property name="autoDefault">
-     <bool>false</bool>
-    </property>
-    <property name="default">
-     <bool>false</bool>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_top_node4">
-    <property name="geometry">
-     <rect>
-      <x>765</x>
-      <y>5</y>
-      <width>130</width>
-      <height>64</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
-      <underline>false</underline>
-     </font>
-    </property>
-    <property name="focusPolicy">
-     <enum>Qt::NoFocus</enum>
-    </property>
-    <property name="contextMenuPolicy">
-     <enum>Qt::CustomContextMenu</enum>
-    </property>
-    <property name="toolTip">
-     <string>Right-Click to Select</string>
-    </property>
-    <property name="text">
-     <string>New Sensor Node</string>
-    </property>
-    <property name="autoDefault">
-     <bool>false</bool>
-    </property>
-    <property name="default">
-     <bool>false</bool>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_top_node5_picture">
-    <property name="geometry">
-     <rect>
-      <x>905</x>
-      <y>5</y>
-      <width>130</width>
-      <height>64</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_top_node5">
-    <property name="geometry">
-     <rect>
-      <x>905</x>
-      <y>5</y>
-      <width>130</width>
-      <height>64</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
-      <underline>false</underline>
-     </font>
-    </property>
-    <property name="focusPolicy">
-     <enum>Qt::NoFocus</enum>
-    </property>
-    <property name="contextMenuPolicy">
-     <enum>Qt::CustomContextMenu</enum>
-    </property>
-    <property name="toolTip">
-     <string>Right-Click to Select</string>
-    </property>
-    <property name="text">
-     <string>New Sensor Node</string>
-    </property>
-    <property name="autoDefault">
-     <bool>false</bool>
-    </property>
-    <property name="default">
-     <bool>false</bool>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_top_node1">
-    <property name="geometry">
-     <rect>
-      <x>345</x>
-      <y>5</y>
-      <width>130</width>
-      <height>64</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
-      <underline>false</underline>
-      <kerning>true</kerning>
-     </font>
-    </property>
-    <property name="focusPolicy">
-     <enum>Qt::NoFocus</enum>
-    </property>
-    <property name="contextMenuPolicy">
-     <enum>Qt::CustomContextMenu</enum>
-    </property>
-    <property name="toolTip">
-     <string>Right-Click to Select</string>
-    </property>
-    <property name="text">
-     <string>New Sensor Node</string>
-    </property>
-    <property name="autoDefault">
-     <bool>false</bool>
-    </property>
-    <property name="flat">
-     <bool>false</bool>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_top_node3_picture">
-    <property name="geometry">
-     <rect>
-      <x>625</x>
-      <y>5</y>
-      <width>130</width>
-      <height>64</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_top_node1_picture">
-    <property name="geometry">
-     <rect>
-      <x>345</x>
-      <y>5</y>
-      <width>130</width>
-      <height>64</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_top_node4_picture">
-    <property name="geometry">
-     <rect>
-      <x>765</x>
-      <y>5</y>
-      <width>130</width>
-      <height>64</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_top_node2_picture">
-    <property name="geometry">
-     <rect>
-      <x>485</x>
-      <y>5</y>
-      <width>130</width>
-      <height>64</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_top_node2">
-    <property name="geometry">
-     <rect>
-      <x>485</x>
-      <y>5</y>
-      <width>130</width>
-      <height>64</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
-      <underline>false</underline>
-     </font>
-    </property>
-    <property name="focusPolicy">
-     <enum>Qt::NoFocus</enum>
-    </property>
-    <property name="contextMenuPolicy">
-     <enum>Qt::CustomContextMenu</enum>
-    </property>
-    <property name="toolTip">
-     <string>Right-Click to Select</string>
-    </property>
-    <property name="text">
-     <string>New Sensor Node</string>
-    </property>
-    <property name="autoDefault">
-     <bool>false</bool>
-    </property>
-    <property name="default">
-     <bool>false</bool>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_demo">
-    <property name="geometry">
-     <rect>
-      <x>5</x>
-      <y>5</y>
-      <width>300</width>
-      <height>65</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Stop Demo Mode</string>
-    </property>
-   </widget>
-   <zorder>label_diagram</zorder>
-   <zorder>label_top_node1_picture</zorder>
-   <zorder>label_top_node5_picture</zorder>
-   <zorder>label_top_node2_picture</zorder>
-   <zorder>label_top_node3_picture</zorder>
-   <zorder>label_top_node4_picture</zorder>
-   <zorder>pushButton_top_node1</zorder>
-   <zorder>pushButton_top_node5</zorder>
-   <zorder>pushButton_top_node4</zorder>
-   <zorder>pushButton_top_node2</zorder>
-   <zorder>pushButton_top_node3</zorder>
-   <zorder>pushButton_demo</zorder>
-  </widget>
   <widget class="QTabWidget" name="tabWidget">
    <property name="enabled">
     <bool>true</bool>
@@ -546,6 +213,9 @@
          <width>304</width>
          <height>65</height>
         </rect>
+       </property>
+       <property name="toolTip">
+        <string>Set this Tactical node as the dashboard-selected sensor node.</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
@@ -44453,6 +44123,259 @@ p, li { white-space: pre-wrap; }
       </property>
       <property name="text">
        <string>Options</string>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QPushButton" name="pushButton_demo">
+   <property name="geometry">
+    <rect>
+     <x>35</x>
+     <y>15</y>
+     <width>300</width>
+     <height>65</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Stop Demo Mode</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_diagram">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>10</y>
+     <width>350</width>
+     <height>75</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QFrame" name="frame_top_launch_local_node">
+   <property name="geometry">
+    <rect>
+     <x>350</x>
+     <y>15</y>
+     <width>290</width>
+     <height>64</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Raised</enum>
+   </property>
+   <widget class="QLabel" name="label_top_launch_local_node_image">
+    <property name="geometry">
+     <rect>
+      <x>8</x>
+      <y>10</y>
+      <width>64</width>
+      <height>48</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Image</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_top_launch_local_node_title">
+    <property name="geometry">
+     <rect>
+      <x>75</x>
+      <y>10</y>
+      <width>180</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Launch Local Node</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_top_launch_local_node_subtitle">
+    <property name="geometry">
+     <rect>
+      <x>75</x>
+      <y>35</y>
+      <width>180</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Start a local sensor node</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QFrame" name="frame_top_select_sensor_node">
+   <property name="geometry">
+    <rect>
+     <x>655</x>
+     <y>15</y>
+     <width>290</width>
+     <height>64</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Raised</enum>
+   </property>
+   <widget class="QLabel" name="label_top_select_sensor_node_image">
+    <property name="geometry">
+     <rect>
+      <x>8</x>
+      <y>10</y>
+      <width>64</width>
+      <height>48</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Image</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_top_select_sensor_node_title">
+    <property name="geometry">
+     <rect>
+      <x>75</x>
+      <y>10</y>
+      <width>200</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Select Sensor Node</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_top_select_sensor_node_subtitle">
+    <property name="geometry">
+     <rect>
+      <x>75</x>
+      <y>35</y>
+      <width>200</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Choose from available nodes</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QFrame" name="frame_top_configure_node">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>960</x>
+     <y>15</y>
+     <width>290</width>
+     <height>64</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Raised</enum>
+   </property>
+   <widget class="QLabel" name="label_top_configure_node_image">
+    <property name="geometry">
+     <rect>
+      <x>8</x>
+      <y>10</y>
+      <width>64</width>
+      <height>48</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Image</string>
+    </property>
+   </widget>
+   <widget class="QStackedWidget" name="stackedWidget_top_configure_node">
+    <property name="geometry">
+     <rect>
+      <x>85</x>
+      <y>1</y>
+      <width>200</width>
+      <height>60</height>
+     </rect>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <widget class="QWidget" name="page_31">
+     <widget class="QLabel" name="label_top_configure_node_title_not_connected">
+      <property name="geometry">
+       <rect>
+        <x>5</x>
+        <y>9</y>
+        <width>200</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>No Node Selected</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_top_configure_node_subtitle_not_connected">
+      <property name="geometry">
+       <rect>
+        <x>5</x>
+        <y>34</y>
+        <width>200</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Click Select Sensor Node</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="page_32">
+     <widget class="QLabel" name="label_top_configure_node_title">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>6</y>
+        <width>200</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Node Selected</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_top_configure_node_subtitle">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>25</y>
+        <width>200</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>IP Address</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_top_configure_node_subtitle2">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>40</y>
+        <width>200</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Click to view and configure this node</string>
       </property>
      </widget>
     </widget>

@@ -45,7 +45,7 @@ ACTION_HARDWARE = {
 async def signal_geolocate(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(
         f"Signal geolocation with parameters: {parameters}"
@@ -58,7 +58,7 @@ async def signal_geolocate(
         PLUGIN_NAME,
         "signal_geolocate.py",
         {"parameters": op_params},
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -88,7 +88,7 @@ fixed_detection_schema = {
 async def fixed_detection(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(
         f"Fixed Detection action with parameters: {parameters}"
@@ -99,7 +99,7 @@ async def fixed_detection(
         PLUGIN_NAME,
         "fixed_detection.py",
         parameters,
-        sensor_node_id,
+        node_uid,
         wait=True,
     )
 
@@ -130,7 +130,7 @@ scan_detection_schema = {
 async def scan_detection(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(
         f"Scan Detection action with parameters: {parameters}"
@@ -141,7 +141,7 @@ async def scan_detection(
         PLUGIN_NAME,
         "scan_detection.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -152,7 +152,7 @@ hackrf_sweep_detection_schema = {
             "label": "Band Range (MHz)",
             "type": "string",
             "default": "300-600",
-            "option": [
+            "options": [
                 "1-300",
                 "300-600",
                 "600-900",
@@ -186,7 +186,7 @@ hackrf_sweep_detection_schema = {
 async def hackrf_sweep_detection(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(
         f"HackRF sweep detection action with parameters: {parameters}"
@@ -197,7 +197,7 @@ async def hackrf_sweep_detection(
         PLUGIN_NAME,
         "hackrf_sweep_detection.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -208,7 +208,7 @@ rtl_power_detection_schema = {
             "label": "Segment Range (MHz)",
             "type": "string",
             "default": "300-600",
-            "option": [
+            "options": [
                 "24-300",
                 "300-600",
                 "600-900",
@@ -241,7 +241,7 @@ rtl_power_detection_schema = {
 async def rtl_power_detection(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(
         f"rtl_power detection action with parameters: {parameters}"
@@ -252,7 +252,7 @@ async def rtl_power_detection(
         PLUGIN_NAME,
         "rtl_power_detection.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -282,7 +282,7 @@ lfm_beacon_detection_schema = {
 async def lfm_beacon_detection(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(
         f"LFM Beacon Detection action with parameters: {parameters}"
@@ -293,7 +293,7 @@ async def lfm_beacon_detection(
         PLUGIN_NAME,
         "lfm_beacon_detection.py",
         parameters,
-        sensor_node_id,
+        node_uid,
         wait=True,
     )
 
@@ -301,7 +301,7 @@ async def lfm_beacon_detection(
 async def lfm_beacon_geolocate(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(
         f"LFM beacon geolocation with parameters: {parameters}"
@@ -314,7 +314,7 @@ async def lfm_beacon_geolocate(
         PLUGIN_NAME,
         "lfm_beacon_geolocate.py",
         {"parameters": op_params},
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -338,7 +338,7 @@ promote_to_soi_schema = {
 async def promote_to_soi(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
 
     component.logger.info(
@@ -396,7 +396,7 @@ async def promote_to_soi(
 
         try:
             await component.send_soi_update(
-                sensor_node_id=sensor_node_id,
+                node_uid=node_uid,
                 soi_id=soi_id,
                 frequency_mhz=freq,
                 status=status,
@@ -458,7 +458,7 @@ async def promote_to_soi(
             PLUGIN_NAME,
             "signal_conditioning.py",
             op1_params,
-            sensor_node_id,
+            node_uid,
             wait=True,
         )
 
@@ -511,7 +511,7 @@ async def promote_to_soi(
             PLUGIN_NAME,
             "feature_extraction.py",
             op2_params,
-            sensor_node_id,
+            node_uid,
             wait=True,
         )
 
@@ -560,7 +560,7 @@ async def promote_to_soi(
             PLUGIN_NAME,
             "classify_features_dt.py",
             op3_params,
-            sensor_node_id,
+            node_uid,
             wait=True,
         )
 
@@ -706,7 +706,7 @@ take_photo_schema = {
 async def take_photo(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
 
     component.logger.info(
@@ -725,7 +725,7 @@ async def take_photo(
         PLUGIN_NAME,
         "take_photo.py",
         op_params,
-        sensor_node_id,
+        node_uid,
         wait=True,
     )
 
@@ -737,7 +737,7 @@ motion_detector_schema = {
             "label": "Sensitivity",
             "type": "string",
             "default": "medium",
-            "option": ["low", "medium", "high"],
+            "options": ["low", "medium", "high"],
         },
         {
             "name": "max_watch_s",
@@ -757,7 +757,7 @@ motion_detector_schema = {
 async def motion_detector(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
 
     component.logger.info(
@@ -776,7 +776,7 @@ async def motion_detector(
         PLUGIN_NAME,
         "motion_detector.py",
         op_params,
-        sensor_node_id,
+        node_uid,
         wait=True,
     )
 
@@ -807,7 +807,7 @@ take_video_schema = {
 async def take_video(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
 
     component.logger.info(
@@ -826,6 +826,6 @@ async def take_video(
         PLUGIN_NAME,
         "take_video.py",
         op_params,
-        sensor_node_id,
+        node_uid,
         wait=True,
     )

@@ -1,6 +1,6 @@
 tgt-00000000-0000-4000-8000-000000000001:
   target_id: tgt-00000000-0000-4000-8000-000000000001
-  sensor_node_id: node-bravo-01
+  node_uid: node-bravo-01
   source_soi_id: soi-demo-123
   created_time: '2026-02-02T18:32:11Z'
   last_update_time: '2026-02-02T18:32:11Z'
@@ -32,7 +32,7 @@ tgt-00000000-0000-4000-8000-000000000001:
   history: []
 wifiap-0284B31AF167:
   target_id: wifiap-0284B31AF167
-  sensor_node_id: node-bravo-01
+  node_uid: node-bravo-01
   source_soi_id: ''
   created_time: '2026-03-18T18:32:11Z'
   last_update_time: '2026-03-18T18:32:11Z'
@@ -72,7 +72,7 @@ wifiap-0284B31AF167:
   history: []
 wifiap-06BE8705E024:
   target_id: wifiap-06BE8705E024
-  sensor_node_id: node-charlie-02
+  node_uid: node-charlie-02
   source_soi_id: ''
   created_time: '2026-03-18T19:05:44Z'
   last_update_time: '2026-03-18T19:05:44Z'
@@ -112,7 +112,7 @@ wifiap-06BE8705E024:
   history: []
 lfmbeacon-433920000:
   target_id: lfmbeacon-433920000
-  sensor_node_id: node-bravo-01
+  node_uid: node-bravo-01
   source_soi_id: ''
   created_time: '2026-03-23T13:00:00Z'
   last_update_time: '2026-03-23T13:00:00Z'
@@ -146,7 +146,7 @@ lfmbeacon-433920000:
   history: []
 signal-2436mhz-demo:
   target_id: signal-2436mhz-demo
-  sensor_node_id: node-bravo-01
+  node_uid: node-bravo-01
   source_soi_id: ''
   created_time: '2026-03-23T19:10:00Z'
   last_update_time: '2026-03-23T19:10:00Z'
@@ -182,7 +182,7 @@ signal-2436mhz-demo:
   history: []
 wifiap-0AEAB3155CBB:
   target_id: wifiap-0AEAB3155CBB
-  sensor_node_id: node-bravo-01
+  node_uid: node-bravo-01
   source_soi_id: ''
   created_time: '2026-03-30T21:49:47Z'
   last_update_time: '2026-03-30T21:49:47Z'
@@ -222,7 +222,7 @@ wifiap-0AEAB3155CBB:
   history: []
 wifiap-0E21F31A7E15:
   target_id: wifiap-0E21F31A7E15
-  sensor_node_id: node-bravo-01
+  node_uid: node-bravo-01
   source_soi_id: ''
   created_time: '2026-03-30T21:51:34Z'
   last_update_time: '2026-03-30T21:51:34Z'
@@ -262,7 +262,7 @@ wifiap-0E21F31A7E15:
   history: []
 wifiap-1224F94FEA34:
   target_id: wifiap-1224F94FEA34
-  sensor_node_id: node-bravo-01
+  node_uid: node-bravo-01
   source_soi_id: ''
   created_time: '2026-03-30T21:52:09Z'
   last_update_time: '2026-03-30T21:52:09Z'
@@ -302,7 +302,7 @@ wifiap-1224F94FEA34:
   history: []
 wifiap-164CA97C6A00:
   target_id: wifiap-164CA97C6A00
-  sensor_node_id: node-bravo-01
+  node_uid: node-bravo-01
   source_soi_id: ''
   created_time: '2026-03-30T21:52:28Z'
   last_update_time: '2026-03-30T21:52:28Z'
@@ -342,7 +342,7 @@ wifiap-164CA97C6A00:
   history: []
 wifiap-1A2F9E043EC8:
   target_id: wifiap-1A2F9E043EC8
-  sensor_node_id: node-bravo-01
+  node_uid: node-bravo-01
   source_soi_id: ''
   created_time: '2026-03-30T21:52:57Z'
   last_update_time: '2026-03-30T21:52:57Z'
@@ -382,7 +382,7 @@ wifiap-1A2F9E043EC8:
   history: []
 wifiap-1E6D68D28ACB:
   target_id: wifiap-1E6D68D28ACB
-  sensor_node_id: node-bravo-01
+  node_uid: node-bravo-01
   source_soi_id: ''
   created_time: '2026-03-30T21:53:33Z'
   last_update_time: '2026-03-30T21:53:33Z'
@@ -422,7 +422,7 @@ wifiap-1E6D68D28ACB:
   history: []
 wifiap-220E5C10EF07:
   target_id: wifiap-220E5C10EF07
-  sensor_node_id: node-bravo-01
+  node_uid: node-bravo-01
   source_soi_id: ''
   created_time: '2026-03-30T21:55:06Z'
   last_update_time: '2026-03-30T21:55:06Z'
@@ -462,7 +462,7 @@ wifiap-220E5C10EF07:
   history: []
 wifiap-26478CCE1038:
   target_id: wifiap-26478CCE1038
-  sensor_node_id: node-bravo-01
+  node_uid: node-bravo-01
   source_soi_id: ''
   created_time: '2026-03-30T21:55:39Z'
   last_update_time: '2026-03-30T21:55:39Z'
@@ -502,7 +502,7 @@ wifiap-26478CCE1038:
   history: []
 wifiap-2A24014603C4:
   target_id: wifiap-2A24014603C4
-  sensor_node_id: node-bravo-01
+  node_uid: node-bravo-01
   source_soi_id: ''
   created_time: '2026-03-30T21:56:09Z'
   last_update_time: '2026-03-30T21:56:09Z'
@@ -542,7 +542,7 @@ wifiap-2A24014603C4:
   history: []
 wifiap-2EEB5E3E245E:
   target_id: wifiap-2EEB5E3E245E
-  sensor_node_id: node-bravo-01
+  node_uid: node-bravo-01
   source_soi_id: ''
   created_time: '2026-03-30T21:57:17Z'
   last_update_time: '2026-03-30T21:57:17Z'

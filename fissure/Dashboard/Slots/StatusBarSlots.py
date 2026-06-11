@@ -181,13 +181,6 @@ async def disconnect_hiprfisr(dashboard: QtCore.QObject):
     # Update Status Bar
     status_bar.update_session_status(connected=False)
 
-    # Disable Dashboard Buttons
-    dashboard.ui.pushButton_top_node1.setEnabled(False)
-    dashboard.ui.pushButton_top_node2.setEnabled(False)
-    dashboard.ui.pushButton_top_node3.setEnabled(False)
-    dashboard.ui.pushButton_top_node4.setEnabled(False)
-    dashboard.ui.pushButton_top_node5.setEnabled(False)
-
     # Disable Tabs
     # dashboard.ui.tabWidget.setEnabled(False)
 
@@ -238,7 +231,4 @@ def update_component_status(componentName: str, online: bool, statusBar: QtCore.
         statusBar.tsi.setText(f"TSI: {status}")
     elif componentName.lower() == fissure.comms.Identifiers.PD.lower():
         statusBar.pd.setText(f"PD: {status}")
-    elif componentName.lower().startswith(fissure.comms.Identifiers.SENSOR_NODE.lower()):
-        node_idx = int(componentName[-1])
-        statusBar.sensor_nodes[node_idx].setText(f"SN{node_idx+1}: {status}")
         

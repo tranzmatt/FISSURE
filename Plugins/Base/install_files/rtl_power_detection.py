@@ -122,13 +122,13 @@ class OperationMain(Operation):
         alert_interval_s: float = 5.0,
         detection_threshold_db: float = 8.0,
         description: str = "RTL-SDR rtl_power detection",
-        sensor_node_id: Union[int, str] = 0,
+        node_uid: str = "",
         logger: logging.Logger = logging.getLogger(__name__),
         alert_callback: Callable = None,
         tak_cot_callback: Callable = None,
     ):
         super().__init__(
-            sensor_node_id=sensor_node_id,
+            node_uid=node_uid,
             logger=logger,
             alert_callback=alert_callback,
             tak_cot_callback=tak_cot_callback
@@ -334,7 +334,7 @@ class OperationMain(Operation):
 
         if self.alert_callback:
             await self.alert_callback(
-                self.sensor_node_id,
+                self.node_uid,
                 self.opid,
                 alert_text,
                 self.logger

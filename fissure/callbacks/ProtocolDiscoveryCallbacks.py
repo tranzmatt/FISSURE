@@ -20,7 +20,7 @@ async def retrieveDatabaseCacheReturnPD(component: object, database_return={}):
     component.logger.info("Updated Protocol Discovery database cache from HIPRFISR database")
 
 
-async def startPD(component: object, sensor_node_id=0):
+async def startPD(component: object):
     """
     Starts protocol discovery and bit listener.
     """
@@ -29,7 +29,7 @@ async def startPD(component: object, sensor_node_id=0):
     loop.run_in_executor(None, component.startPD)
 
 
-async def stopPD(component: object, sensor_node_id=0):
+async def stopPD(component: object):
     """
     Stops the protocol discovery bit listener and processing.
     """

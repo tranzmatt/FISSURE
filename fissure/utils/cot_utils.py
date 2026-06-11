@@ -54,8 +54,14 @@ def parse_cot_xml(raw_xml):
         "target_state": None,
         "target_frequency_mhz": None,
         "target_geolocation_status": None,
+        "node_uid": None,
+        "ssid": None,
+        "bssid": None,
+        "rssi_dbm": None,
+        "last_observation_time": None,
+        "source_soi_id": None,
 
-        "soi_sensor_node_id": None,
+        "soi_node_uid": None,
         "soi_id": None,
         "soi_frequency_mhz": None,
         "soi_status": None,
@@ -153,41 +159,31 @@ def parse_cot_xml(raw_xml):
         if fissure_target is not None:
             cot_message["kind"] = "target"
 
-            cot_message["target_id"] = (
-                fissure_target.findtext("target_id")
-            )
+            cot_message["target_id"] = fissure_target.findtext("target_id")
+            cot_message["target_label"] = fissure_target.findtext("display_label")
+            cot_message["target_state"] = fissure_target.findtext("state")
 
-            cot_message["target_label"] = (
-                fissure_target.findtext("display_label")
-            )
-
-            cot_message["target_state"] = (
-                fissure_target.findtext("state")
-            )
+            cot_message["node_uid"] = fissure_target.findtext("node_uid")
+            cot_message["ssid"] = fissure_target.findtext("ssid")
+            cot_message["bssid"] = fissure_target.findtext("bssid")
+            cot_message["rssi_dbm"] = fissure_target.findtext("rssi_dbm")
+            cot_message["last_observation_time"] = fissure_target.findtext("last_observation_time")
+            cot_message["source_soi_id"] = fissure_target.findtext("source_soi_id")
 
             cot_message["target_geolocation_status"] = (
                 fissure_target.findtext("geolocation_status")
+                or fissure_target.findtext("geolocate_status")
             )
 
             cot_message["target_frequency_mhz"] = (
                 fissure_target.findtext("frequency_mhz")
+                or fissure_target.findtext("target_frequency_mhz")
             )
 
-            target_lat = _safe_float(
-                fissure_target.findtext("lat")
-            )
-
-            target_lon = _safe_float(
-                fissure_target.findtext("lon")
-            )
-
-            target_hae = _safe_float(
-                fissure_target.findtext("hae_m")
-            )
-
-            target_ce = _safe_float(
-                fissure_target.findtext("ce_m")
-            )
+            target_lat = _safe_float(fissure_target.findtext("lat"))
+            target_lon = _safe_float(fissure_target.findtext("lon"))
+            target_hae = _safe_float(fissure_target.findtext("hae_m"))
+            target_ce = _safe_float(fissure_target.findtext("ce_m"))
 
             if target_lat is not None:
                 cot_message["lat"] = target_lat
@@ -208,8 +204,8 @@ def parse_cot_xml(raw_xml):
         if fissure_soi is not None:
             cot_message["kind"] = "soi"
 
-            cot_message["soi_sensor_node_id"] = (
-                fissure_soi.findtext("sensor_node_id")
+            cot_message["soi_node_uid"] = (
+                fissure_soi.findtext("node_uid")
             )
 
             cot_message["soi_id"] = (
@@ -525,7 +521,7 @@ def cot_to_tactical_target_record(cot_message):
         "ce_m": cot_message.get("ce"),
         "hae_m": cot_message.get("hae"),
 
-        "sensor_node_id": cot_message.get("sensor_node_id", ""),
+        "node_uid": cot_message.get("node_uid", ""),
         "ssid": cot_message.get("ssid", ""),
         "bssid": cot_message.get("bssid", ""),
         "rssi_dbm": cot_message.get("rssi_dbm", ""),
@@ -935,13 +931,13 @@ def handle_tactical_soi_message(dashboard, cot_message):
 
 
 def cot_to_tactical_soi_record(cot_message):
-    sensor_node_id = cot_message.get("soi_sensor_node_id", "")
+    node_uid = cot_message.get("soi_node_uid", "")
     soi_id = cot_message.get("soi_id", "")
 
     if not soi_id:
         return None
 
-    soi_key = f"{sensor_node_id}:{soi_id}"
+    soi_key = f"{node_uid}:{soi_id}"
 
     frequency_mhz = cot_message.get("soi_frequency_mhz")
 
@@ -964,7 +960,7 @@ def cot_to_tactical_soi_record(cot_message):
         "uid": cot_message.get("uid"),
         "event_id": cot_message.get("uid"),
 
-        "sensor_node_id": sensor_node_id,
+        "node_uid": node_uid,
         "soi_id": soi_id,
         "operation_id": cot_message.get("soi_operation_id", ""),
         "artifact_id": cot_message.get("soi_artifact_id", ""),

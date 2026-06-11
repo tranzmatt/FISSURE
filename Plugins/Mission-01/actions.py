@@ -83,7 +83,7 @@ async def _run_operation(
     plugin_name: str,
     filename: str,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str],
+    node_uid: str = "",
     *,
     wrap_parameters: bool = False,
     wait: bool = False,
@@ -99,7 +99,7 @@ async def _run_operation(
         plugin_name,
         filename,
         payload,
-        sensor_node_id,
+        node_uid,
         wait=wait,
     )
 
@@ -117,14 +117,14 @@ wifi_discovery_edge_light_schema = {
 async def wifi_discovery_edge_light(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         WIFI_PLUGIN,
         "wifi_discovery_edge_light.py",
         parameters,
-        sensor_node_id,
+        node_uid,
         wrap_parameters=True,
     )
 
@@ -142,7 +142,7 @@ wifi_discovery_edge_oui_schema = {
             "label": "Alert on New Target",
             "type": "string",
             "default": "true",
-            "option": ["true", "false"],
+            "options": ["true", "false"],
         },
     ]
 }
@@ -150,14 +150,14 @@ wifi_discovery_edge_oui_schema = {
 async def wifi_discovery_edge_oui(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         WIFI_PLUGIN,
         "wifi_discovery_edge_oui.py",
         parameters,
-        sensor_node_id,
+        node_uid,
         wrap_parameters=True,
     )
 
@@ -187,7 +187,7 @@ wifi_discovery_edge_logger_schema = {
             "label": "Create Artifacts",
             "type": "string",
             "default": "true",
-            "option": ["true", "false"],
+            "options": ["true", "false"],
         },
         {
             "name": "artifact_name_prefix",
@@ -201,14 +201,14 @@ wifi_discovery_edge_logger_schema = {
 async def wifi_discovery_edge_logger(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         WIFI_PLUGIN,
         "wifi_discovery_edge_logger.py",
         parameters,
-        sensor_node_id,
+        node_uid,
         wrap_parameters=True,
     )
 
@@ -216,14 +216,14 @@ async def wifi_discovery_edge_logger(
 async def wifi_geolocate_target(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         WIFI_PLUGIN,
         "wifi_geolocate_target.py",
         parameters,
-        sensor_node_id,
+        node_uid,
         wrap_parameters=True,
     )
 
@@ -231,14 +231,14 @@ async def wifi_geolocate_target(
 async def wifi_geolocate_all(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         WIFI_PLUGIN,
         "wifi_geolocate_all.py",
         parameters,
-        sensor_node_id,
+        node_uid,
         wrap_parameters=True,
     )
 
@@ -250,14 +250,14 @@ async def wifi_geolocate_all(
 async def signal_geolocate(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         BASE_PLUGIN,
         "signal_geolocate.py",
         parameters,
-        sensor_node_id,
+        node_uid,
         wrap_parameters=True,
     )
 
@@ -265,14 +265,14 @@ async def signal_geolocate(
 async def lfm_beacon_geolocate(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         BASE_PLUGIN,
         "lfm_beacon_geolocate.py",
         parameters,
-        sensor_node_id,
+        node_uid,
         wrap_parameters=True,
     )
 
@@ -288,14 +288,14 @@ fixed_detection_schema = {
 async def fixed_detection(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         BASE_PLUGIN,
         "fixed_detection.py",
         parameters,
-        sensor_node_id,
+        node_uid,
         wait=True,
     )
 
@@ -311,14 +311,14 @@ scan_detection_schema = {
 async def scan_detection(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         BASE_PLUGIN,
         "scan_detection.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -329,7 +329,7 @@ hackrf_sweep_detection_schema = {
             "label": "Band Range (MHz)",
             "type": "string",
             "default": "300-600",
-            "option": [
+            "options": [
                 "1-300",
                 "300-600",
                 "600-900",
@@ -348,14 +348,14 @@ hackrf_sweep_detection_schema = {
 async def hackrf_sweep_detection(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         BASE_PLUGIN,
         "hackrf_sweep_detection.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -366,7 +366,7 @@ rtl_power_detection_schema = {
             "label": "Segment Range (MHz)",
             "type": "string",
             "default": "300-600",
-            "option": [
+            "options": [
                 "24-300",
                 "300-600",
                 "600-900",
@@ -384,14 +384,14 @@ rtl_power_detection_schema = {
 async def rtl_power_detection(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         BASE_PLUGIN,
         "rtl_power_detection.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -406,14 +406,14 @@ lfm_beacon_detection_schema = {
 async def lfm_beacon_detection(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         BASE_PLUGIN,
         "lfm_beacon_detection.py",
         parameters,
-        sensor_node_id,
+        node_uid,
         wait=True,
     )
 
@@ -432,14 +432,14 @@ promote_to_soi_schema = {
 async def promote_to_soi(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         BASE_PLUGIN,
         "promote_to_soi.py",
         parameters,
-        sensor_node_id,
+        node_uid,
         wait=True,
     )
 
@@ -459,14 +459,14 @@ dummy_artifact_schema = {
 async def dummy_artifact(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         DUMMY_PLUGIN,
         "dummy_artifact.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -480,7 +480,7 @@ dummy_alert_schema = {
             "label": "Plot as Pin",
             "type": "string",
             "default": "true",
-            "option": ["true", "false"],
+            "options": ["true", "false"],
         },
     ]
 }
@@ -488,14 +488,14 @@ dummy_alert_schema = {
 async def dummy_alert(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         DUMMY_PLUGIN,
         "dummy_alert.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -508,7 +508,7 @@ dummy_alert_burst_schema = {
             "label": "Plot as Pin",
             "type": "string",
             "default": "true",
-            "option": ["true", "false"],
+            "options": ["true", "false"],
         },
         {"name": "description", "label": "Description", "type": "string", "default": "Dummy alert burst"},
     ]
@@ -517,14 +517,14 @@ dummy_alert_burst_schema = {
 async def dummy_alert_burst(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         DUMMY_PLUGIN,
         "dummy_alert_burst.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -540,14 +540,14 @@ dummy_detection_schema = {
 async def dummy_detection(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         DUMMY_PLUGIN,
         "dummy_detection.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -563,14 +563,14 @@ dummy_soi_schema = {
 async def dummy_soi(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         DUMMY_PLUGIN,
         "dummy_soi.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -582,7 +582,7 @@ dummy_target_schema = {
             "label": "Display Label",
             "type": "string",
             "default": "Garage Door Opener",
-            "option": [
+            "options": [
                 "Garage Door Opener",
                 "Key Fob",
                 "TPMS",
@@ -599,14 +599,14 @@ dummy_target_schema = {
 async def dummy_target(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         DUMMY_PLUGIN,
         "dummy_target.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -617,7 +617,7 @@ dummy_status_schema = {
             "label": "Profile",
             "type": "string",
             "default": "phases",
-            "option": ["phases", "processing", "busy", "idle"],
+            "options": ["phases", "processing", "busy", "idle"],
         },
         {"name": "step_s", "label": "Step Duration (s)", "type": "number", "default": 2.0},
         {"name": "description", "label": "Description", "type": "string", "default": "Dummy Status"},
@@ -627,14 +627,14 @@ dummy_status_schema = {
 async def dummy_status(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         DUMMY_PLUGIN,
         "dummy_status.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -645,14 +645,14 @@ dummy_cot_types_schema = {
             "label": "Scope",
             "type": "string",
             "default": "all",
-            "option": ["all", "a-*", "b-*"],
+            "options": ["all", "a-*", "b-*"],
         },
         {
             "name": "limit_mode",
             "label": "Limit Mode",
             "type": "string",
             "default": "all",
-            "option": ["all", "first_n"],
+            "options": ["all", "first_n"],
         },
         {"name": "first_n", "label": "First N", "type": "number", "default": 250},
         {
@@ -660,7 +660,7 @@ dummy_cot_types_schema = {
             "label": "Expand '.' Wildcards",
             "type": "string",
             "default": "yes",
-            "option": ["yes", "no"],
+            "options": ["yes", "no"],
         },
         {"name": "description", "label": "Description", "type": "string", "default": "Dummy CoT Types"},
     ]
@@ -669,14 +669,14 @@ dummy_cot_types_schema = {
 async def dummy_cot_types(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         DUMMY_PLUGIN,
         "dummy_cot_types.py",
         parameters,
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -694,14 +694,14 @@ take_photo_schema = {
             "label": "Emit TAK Pin",
             "type": "string",
             "default": "yes",
-            "option": ["yes", "no"],
+            "options": ["yes", "no"],
         },
         {
             "name": "emit_alert",
             "label": "Emit Alert",
             "type": "string",
             "default": "yes",
-            "option": ["yes", "no"],
+            "options": ["yes", "no"],
         },
         {"name": "description", "label": "Description", "type": "string", "default": "Take Photo"},
     ]
@@ -710,14 +710,14 @@ take_photo_schema = {
 async def take_photo(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         BASE_PLUGIN,
         "take_photo.py",
         parameters,
-        sensor_node_id,
+        node_uid,
         wait=True,
     )
 
@@ -729,7 +729,7 @@ motion_detector_schema = {
             "label": "Sensitivity",
             "type": "string",
             "default": "medium",
-            "option": ["low", "medium", "high"],
+            "options": ["low", "medium", "high"],
         },
         {"name": "max_watch_s", "label": "Max Watch (s)", "type": "number", "default": 300.0},
         {"name": "consecutive_frames", "label": "Consecutive Frames", "type": "number", "default": 3},
@@ -741,14 +741,14 @@ motion_detector_schema = {
             "label": "Emit TAK Pin",
             "type": "string",
             "default": "yes",
-            "option": ["yes", "no"],
+            "options": ["yes", "no"],
         },
         {
             "name": "emit_alert",
             "label": "Emit Alert",
             "type": "string",
             "default": "yes",
-            "option": ["yes", "no"],
+            "options": ["yes", "no"],
         },
         {"name": "description", "label": "Description", "type": "string", "default": "Motion Detector"},
     ]
@@ -757,14 +757,14 @@ motion_detector_schema = {
 async def motion_detector(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         BASE_PLUGIN,
         "motion_detector.py",
         parameters,
-        sensor_node_id,
+        node_uid,
         wait=True,
     )
 
@@ -779,14 +779,14 @@ take_video_schema = {
             "label": "Emit TAK Pin",
             "type": "string",
             "default": "yes",
-            "option": ["yes", "no"],
+            "options": ["yes", "no"],
         },
         {
             "name": "emit_alert",
             "label": "Emit Alert",
             "type": "string",
             "default": "yes",
-            "option": ["yes", "no"],
+            "options": ["yes", "no"],
         },
         {"name": "description", "label": "Description", "type": "string", "default": "Take Video"},
     ]
@@ -795,13 +795,13 @@ take_video_schema = {
 async def take_video(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     await _run_operation(
         component,
         BASE_PLUGIN,
         "take_video.py",
         parameters,
-        sensor_node_id,
+        node_uid,
         wait=True,
     )

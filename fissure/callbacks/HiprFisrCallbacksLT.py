@@ -32,25 +32,18 @@ from fissure.Listeners import (
 
 # DELAY_SHORT = 0.25  # seconds
 
-async def findGPS_CoordinatesLT(component: object, tab_index=0, gps_source="", format=""):
+async def findGPS_CoordinatesLT(component: object, node_uid="", gps_source="", format=""):
     """
     Queries the remote sensor node for its GPS coordinates. 
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(tab_index)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
     PARAMETERS = {
-        "tab_index": tab_index,
         "gps_source": gps_source,
         "format": format
     }
@@ -63,11 +56,13 @@ async def findGPS_CoordinatesLT(component: object, tab_index=0, gps_source="", f
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def findGPS_CoordinatesResultsLT(component: object, tab_index=0, coordinates=""):
+async def findGPS_CoordinatesResultsLT(component: object, node_uid="", coordinates=""):
     """
     Forwards the GPS coordinate results message to the Dashboard.
     """
-    PARAMETERS = {"tab_index": tab_index, "coordinates": coordinates}
+    PARAMETERS = {
+        "coordinates": coordinates
+    }
     msg = {
         fissure.comms.MessageFields.IDENTIFIER: component.identifier,
         fissure.comms.MessageFields.MESSAGE_NAME: "findGPS_CoordinatesResultsLT",
@@ -76,13 +71,12 @@ async def findGPS_CoordinatesResultsLT(component: object, tab_index=0, coordinat
     await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def recallInfoMeshtasticReturnLT(component: object, tab_index="", nickname="", location="", notes="", source_id=None):
+async def recallInfoMeshtasticReturnLT(component: object, node_uid="", nickname="", location="", notes="", source_id=None):
     """
     Returns the recalled sensor node settings to the Dashboard.
     """
     # Send the Message
     PARAMETERS = {
-        "tab_index": tab_index,
         "nickname": nickname,
         "location": location,
         "notes": notes
@@ -96,14 +90,11 @@ async def recallInfoMeshtasticReturnLT(component: object, tab_index="", nickname
 
     # Send First Connected Message
     node_uuid, node = component.resolve_uuid_from_assigned_id(source_id)
-    component.dashboard_node_map[int(tab_index)] = node_uuid
     component.nodes[node_uuid]["connected"] = True
 
-    PARAMETERS = {"component_name": tab_index}
     msg2 = {
         fissure.comms.MessageFields.IDENTIFIER: component.identifier,
         fissure.comms.MessageFields.MESSAGE_NAME: "componentConnected",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS
     }
     await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg2)
 
@@ -122,94 +113,69 @@ async def recallHardwareMeshtasticReturnLT(component: object, tsi={}):
     await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)  # To Do
 
 
-async def recallInfoMeshtasticLT(component: object, tab_index=""):
+async def recallInfoMeshtasticLT(component: object, node_uid=""):
     """
     Recalls information from the sensor node config file.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(tab_index)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
-    PARAMETERS = {"tab_index": tab_index}
     msg = {
         fissure.comms.MessageFields.SOURCE: component.identifierLT,
         fissure.comms.MessageFields.DESTINATION: assigned_id,                
         fissure.comms.MessageFields.MESSAGE_NAME: "recallInfoMeshtasticLT",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def recallHardwareMeshtasticLT(component: object, tab_index=""):
+async def recallHardwareMeshtasticLT(component: object, node_uid=""):
     """
     Recalls information from the sensor node config file.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(tab_index)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
-    PARAMETERS = {"sensor_node_id": tab_index}
     msg = {
         fissure.comms.MessageFields.SOURCE: component.identifierLT,
         fissure.comms.MessageFields.DESTINATION: assigned_id,                
         fissure.comms.MessageFields.MESSAGE_NAME: "recallHardwareMeshtasticLT",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def recallStatusMeshtasticLT(component: object, tab_index=""):
+async def recallStatusMeshtasticLT(component: object, node_uid=""):
     """
     Recalls information from the sensor node config file.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(tab_index)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
-    PARAMETERS = {"tab_index": tab_index}
     msg = {
         fissure.comms.MessageFields.SOURCE: component.identifierLT,
         fissure.comms.MessageFields.DESTINATION: assigned_id,                
         fissure.comms.MessageFields.MESSAGE_NAME: "recallStatusMeshtasticLT",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def recallStatusMeshtasticReturnLT(component: object, tab_index="", status=""):
+async def recallStatusMeshtasticReturnLT(component: object, node_uid="", status=""):
     """
     Returns the recalled sensor node settings to the Dashboard.
     """
     # Send the Message
     PARAMETERS = {
-        "tab_index": tab_index,
         "status": status,
     }
     msg = {
@@ -220,25 +186,18 @@ async def recallStatusMeshtasticReturnLT(component: object, tab_index="", status
     await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def scanHardwareLT(component: object, tab_index=0, hardware_list=[]):
+async def scanHardwareLT(component: object, node_uid="", hardware_list=[]):
     """
     Sends a message to a sensor node to scan for hardware information.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(tab_index)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
     PARAMETERS = {
-        "tab_index": tab_index, 
         "hardware_list": hardware_list
     }
     msg = {
@@ -250,25 +209,18 @@ async def scanHardwareLT(component: object, tab_index=0, hardware_list=[]):
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def probeHardwareLT(component: object, tab_index, table_row_text):
+async def probeHardwareLT(component: object, node_uid, table_row_text):
     """
     Sends a message to a sensor node to probe select hardware.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(tab_index)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
     PARAMETERS = {
-        "tab_index": tab_index, 
         "table_row_text": table_row_text
     }
     msg = {
@@ -280,12 +232,14 @@ async def probeHardwareLT(component: object, tab_index, table_row_text):
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def hardwareProbeResultsLT(component: object, tab_index=0, output="", height_width=[]):
+async def hardwareProbeResultsLT(component: object, node_uid="", output="", height_width=[]):
     """
     Forwards the hardware probe results message to the Dashboard.
     """
-    # PARAMETERS = {"tab_index": tab_index, "output": eval(f'"{output}"'), "height_width": height_width}
-    PARAMETERS = {"tab_index": tab_index, "output": output, "height_width": height_width}
+    PARAMETERS = {
+        "output": output, 
+        "height_width": height_width
+    }
     msg = {
         fissure.comms.MessageFields.IDENTIFIER: component.identifier,
         fissure.comms.MessageFields.MESSAGE_NAME: "hardwareProbeResultsLT",
@@ -294,11 +248,13 @@ async def hardwareProbeResultsLT(component: object, tab_index=0, output="", heig
     await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def hardwareScanResultsLT(component: object, tab_index=0, hardware_scan_results=[]):
+async def hardwareScanResultsLT(component: object, node_uid="", hardware_scan_results=[]):
     """
     Forwards the hardware scan results message to the Dashboard.
     """
-    PARAMETERS = {"tab_index": tab_index, "hardware_scan_results": hardware_scan_results}
+    PARAMETERS = {
+        "hardware_scan_results": hardware_scan_results
+    }
     msg = {
         fissure.comms.MessageFields.IDENTIFIER: component.identifier,
         fissure.comms.MessageFields.MESSAGE_NAME: "hardwareScanResultsLT",
@@ -307,25 +263,18 @@ async def hardwareScanResultsLT(component: object, tab_index=0, hardware_scan_re
     await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def guessHardwareLT(component: object, tab_index=0, table_row=0, table_row_text=[], guess_index=0):
+async def guessHardwareLT(component: object, node_uid="", table_row=0, table_row_text=[], guess_index=0):
     """
     Sends a message to a sensor node to guess details for select hardware.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(tab_index)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
     PARAMETERS = {
-        "tab_index": tab_index,
         "table_row": table_row,
         "table_row_text": table_row_text,
         "guess_index": guess_index,
@@ -344,11 +293,10 @@ async def hardwareGuessResultsLT(component: object, results=[]):
     Forwards sensnor node hardware guess results from HIPRFISR to Dashboard.
     """
     PARAMETERS = {
-        "tab_index": results[0],
-        "table_row": results[1],
-        "hardware_type": results[2],
-        "scan_results": results[3],
-        "new_guess_index": results[4],
+        "table_row": results[0],
+        "hardware_type": results[1],
+        "scan_results": results[2],
+        "new_guess_index": results[3],
     }
     msg = {
         fissure.comms.MessageFields.IDENTIFIER: component.identifier,
@@ -358,25 +306,18 @@ async def hardwareGuessResultsLT(component: object, results=[]):
     await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def autorunPlaylistExecuteLT(component: object, sensor_node_id=0, playlist_filename=""):
+async def autorunPlaylistExecuteLT(component: object, node_uid="", playlist_filename=""):
     """
     Signals to sensor node to start autorun playlist already located on the sensor node.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(sensor_node_id)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id, 
         "playlist_filename": playlist_filename
     }
     msg = {
@@ -388,34 +329,26 @@ async def autorunPlaylistExecuteLT(component: object, sensor_node_id=0, playlist
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def autorunPlaylistStopLT(component: object, sensor_node_id=0):
+async def autorunPlaylistStopLT(component: object, node_uid=""):
     """
     Signals to sensor node to stop autorun playlist.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(sensor_node_id)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
-    PARAMETERS = {"sensor_node_id": sensor_node_id}
     msg = {
         fissure.comms.MessageFields.SOURCE: component.identifierLT,
         fissure.comms.MessageFields.DESTINATION: assigned_id,                
         fissure.comms.MessageFields.MESSAGE_NAME: "autorunPlaylistStopLT",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
     
 
-async def alertReturnLT(component: object, sensor_node_id=0, alert_text=""):
+async def alertReturnLT(component: object, node_uid="", alert_text=""):
     """
     Forwards alertReturn Message to the Dashboard.
     """
@@ -427,7 +360,7 @@ async def alertReturnLT(component: object, sensor_node_id=0, alert_text=""):
 
     # Forward to Dashboard
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
+        "node_uid": node_uid,
         "alert_text": alert_text,
     }
     msg = {
@@ -506,7 +439,7 @@ async def exploitLT(component: object, msg=[]):
     Forwards the necesarry information to the proper exploit flow graph.
     """
     PARAMETERS = {
-        "sensor_node_id": str(msg[0]),
+        "node_uid": str(msg[0]),
         "protocol": str(msg[1]),
         "modulation": str(msg[2]),
         "hardware": str(msg[3]),
@@ -651,20 +584,14 @@ async def takReturnLT(component: object, msg=[]):
 #     await fissure.utils.tak_messages.send(component, msg)
 
 
-async def gpsBeaconEnableMeshtasticLT(component: object, sensor_node_id: str):
+async def gpsBeaconEnableMeshtasticLT(component: object, node_uid: str):
     """
     Signals to sensor node to enable the GPS TAK beacon.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(sensor_node_id)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
@@ -678,20 +605,14 @@ async def gpsBeaconEnableMeshtasticLT(component: object, sensor_node_id: str):
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def gpsBeaconDisableMeshtasticLT(component: object, sensor_node_id: str):
+async def gpsBeaconDisableMeshtasticLT(component: object, node_uid: str):
     """
     Signals to sensor node to disable the GPS TAK beacon.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(sensor_node_id)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
@@ -705,20 +626,14 @@ async def gpsBeaconDisableMeshtasticLT(component: object, sensor_node_id: str):
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def rebootMeshtasticLT(component: object, sensor_node_id: str):
+async def rebootMeshtasticLT(component: object, node_uid: str):
     """
     Signals sensor node to reboot the computer.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(sensor_node_id)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
@@ -732,40 +647,31 @@ async def rebootMeshtasticLT(component: object, sensor_node_id: str):
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def uptimeMeshtasticLT(component: object, sensor_node_id: str):
+async def uptimeMeshtasticLT(component: object, node_uid: str):
     """
     Signals sensor node to retrieve the uptime of the computer.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(sensor_node_id)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
-    PARAMETERS = {"sensor_node_id": sensor_node_id}
     msg = {
         fissure.comms.MessageFields.SOURCE: component.identifierLT,
         fissure.comms.MessageFields.DESTINATION: assigned_id,                
         fissure.comms.MessageFields.MESSAGE_NAME: "uptimeMeshtasticLT",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def uptimeMeshtasticReturnLT(component: object, sensor_node_id: str, uptime: str):
+async def uptimeMeshtasticReturnLT(component: object, node_uid: str, uptime: str):
     """
     Forwards uptimeMeshtasticReturnLT message to the Dashboard.
     """
     # Forward to Dashboard
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "uptime": uptime,
     }
     msg = {
@@ -776,40 +682,31 @@ async def uptimeMeshtasticReturnLT(component: object, sensor_node_id: str, uptim
     await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def memoryMeshtasticLT(component: object, sensor_node_id: str):
+async def memoryMeshtasticLT(component: object, node_uid: str):
     """
     Signals sensor node to retrieve the memory usage of the computer.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(sensor_node_id)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
-    PARAMETERS = {"sensor_node_id": sensor_node_id}
     msg = {
         fissure.comms.MessageFields.SOURCE: component.identifierLT,
         fissure.comms.MessageFields.DESTINATION: assigned_id,                
         fissure.comms.MessageFields.MESSAGE_NAME: "memoryMeshtasticLT",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def memoryMeshtasticReturnLT(component: object, sensor_node_id: str, memory: list):
+async def memoryMeshtasticReturnLT(component: object, node_uid: str, memory: list):
     """
     Forwards memoryMeshtasticReturnLT message to the Dashboard.
     """
     # Forward to Dashboard
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "memory": memory,
     }
     msg = {
@@ -820,40 +717,31 @@ async def memoryMeshtasticReturnLT(component: object, sensor_node_id: str, memor
     await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def diskMeshtasticLT(component: object, sensor_node_id: str):
+async def diskMeshtasticLT(component: object, node_uid: str):
     """
     Signals sensor node to retrieve the disk usage of the computer.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(sensor_node_id)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
-    PARAMETERS = {"sensor_node_id": sensor_node_id}
     msg = {
         fissure.comms.MessageFields.SOURCE: component.identifierLT,
         fissure.comms.MessageFields.DESTINATION: assigned_id,                
         fissure.comms.MessageFields.MESSAGE_NAME: "diskMeshtasticLT",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def diskMeshtasticReturnLT(component: object, sensor_node_id: str, disk: dict):
+async def diskMeshtasticReturnLT(component: object, node_uid: str, disk: dict):
     """
     Forwards diskMeshtasticReturnLT message to the Dashboard.
     """
     # Forward to Dashboard
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "disk": disk,
     }
     msg = {
@@ -864,40 +752,31 @@ async def diskMeshtasticReturnLT(component: object, sensor_node_id: str, disk: d
     await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def cpuMeshtasticLT(component: object, sensor_node_id: str):
+async def cpuMeshtasticLT(component: object, node_uid: str):
     """
     Signals sensor node to retrieve the CPU percentage of the computer.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(sensor_node_id)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
-    PARAMETERS = {"sensor_node_id": sensor_node_id}
     msg = {
         fissure.comms.MessageFields.SOURCE: component.identifierLT,
         fissure.comms.MessageFields.DESTINATION: assigned_id,                
         fissure.comms.MessageFields.MESSAGE_NAME: "cpuMeshtasticLT",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def cpuMeshtasticReturnLT(component: object, sensor_node_id: str, cpu: str):
+async def cpuMeshtasticReturnLT(component: object, node_uid: str, cpu: str):
     """
     Forwards cpuMeshtasticReturnLT message to the Dashboard.
     """
     # Forward to Dashboard
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "cpu": cpu,
     }
     msg = {
@@ -908,40 +787,31 @@ async def cpuMeshtasticReturnLT(component: object, sensor_node_id: str, cpu: str
     await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def processesMeshtasticLT(component: object, sensor_node_id: str):
+async def processesMeshtasticLT(component: object, node_uid: str):
     """
     Signals sensor node to retrieve the processes on the computer.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(sensor_node_id)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
-    PARAMETERS = {"sensor_node_id": sensor_node_id}
     msg = {
         fissure.comms.MessageFields.SOURCE: component.identifierLT,
         fissure.comms.MessageFields.DESTINATION: assigned_id,                
         fissure.comms.MessageFields.MESSAGE_NAME: "processesMeshtasticLT",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def processesMeshtasticReturnLT(component: object, sensor_node_id: str, processes: str):
+async def processesMeshtasticReturnLT(component: object, node_uid: str, processes: str):
     """
     Forwards processesMeshtasticReturnLT message to the Dashboard.
     """
     # Forward to Dashboard
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "processes": processes,
     }
     msg = {
@@ -952,40 +822,31 @@ async def processesMeshtasticReturnLT(component: object, sensor_node_id: str, pr
     await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def ifconfigMeshtasticLT(component: object, sensor_node_id: str):
+async def ifconfigMeshtasticLT(component: object, node_uid: str):
     """
     Signals sensor node to retrieve the ifconfig output on the computer.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(sensor_node_id)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
-    PARAMETERS = {"sensor_node_id": sensor_node_id}
     msg = {
         fissure.comms.MessageFields.SOURCE: component.identifierLT,
         fissure.comms.MessageFields.DESTINATION: assigned_id,                
         fissure.comms.MessageFields.MESSAGE_NAME: "ifconfigMeshtasticLT",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def ifconfigMeshtasticReturnLT(component: object, sensor_node_id: str, ifconfig: str):
+async def ifconfigMeshtasticReturnLT(component: object, node_uid: str, ifconfig: str):
     """
     Forwards ifconfigMeshtasticReturnLT message to the Dashboard.
     """
     # Forward to Dashboard
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "ifconfig": ifconfig,
     }
     msg = {
@@ -996,40 +857,31 @@ async def ifconfigMeshtasticReturnLT(component: object, sensor_node_id: str, ifc
     await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def iwconfigMeshtasticLT(component: object, sensor_node_id: str):
+async def iwconfigMeshtasticLT(component: object, node_uid: str):
     """
     Signals sensor node to retrieve the iwconfig output on the computer.
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(sensor_node_id)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node
-    PARAMETERS = {"sensor_node_id": sensor_node_id}
     msg = {
         fissure.comms.MessageFields.SOURCE: component.identifierLT,
         fissure.comms.MessageFields.DESTINATION: assigned_id,                
         fissure.comms.MessageFields.MESSAGE_NAME: "iwconfigMeshtasticLT",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def iwconfigMeshtasticReturnLT(component: object, sensor_node_id: str, iwconfig: str):
+async def iwconfigMeshtasticReturnLT(component: object, node_uid: str, iwconfig: str):
     """
     Forwards iwconfigMeshtasticReturnLT message to the Dashboard.
     """
     # Forward to Dashboard
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "iwconfig": iwconfig,
     }
     msg = {
@@ -1095,16 +947,10 @@ async def nodeSelectLT(component: object, dashboard_node_index, node_uuid):
 async def nodeReconnectLT(component: object, dashboard_node_index: int):
     """
     """
-    # Resolve UUID
-    node_uuid = component.dashboard_node_map[int(dashboard_node_index)]
-    if not node_uuid:
-        return
-
-    assigned_id = component.nodes[node_uuid]["assigned_id"]
-    try:
-        if not assigned_id or assigned_id <= 0:
-            return
-    except:
+    # Resolve Assigned ID
+    assigned_id = component.nodes[node_uid].get("assigned_id", None)
+    if not assigned_id or assigned_id <= 0:
+        component.logger.error(f"Could not resolve identity for sensor node UUID {node_uid}")
         return
 
     # Send Message to Node

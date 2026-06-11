@@ -57,7 +57,7 @@ wifi_discovery_edge_light_schema = {
 async def wifi_discovery_edge_light(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(
         f"WiFi light discovery action with parameters: {parameters}"
@@ -74,7 +74,7 @@ async def wifi_discovery_edge_light(
         PLUGIN_NAME,
         "wifi_discovery_edge_light.py",
         {"parameters": op_params},
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -91,7 +91,7 @@ wifi_discovery_edge_oui_schema = {
             "label": "Alert on New Target",
             "type": "string",
             "default": "true",
-            "option": ["true", "false"],
+            "options": ["true", "false"],
         },
     ]
 }
@@ -99,7 +99,7 @@ wifi_discovery_edge_oui_schema = {
 async def wifi_discovery_edge_oui(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(
         f"WiFi OUI discovery action with parameters: {parameters}"
@@ -116,7 +116,7 @@ async def wifi_discovery_edge_oui(
         PLUGIN_NAME,
         "wifi_discovery_edge_oui.py",
         {"parameters": op_params},
-        sensor_node_id,
+        node_uid,
     )
 
 
@@ -145,7 +145,7 @@ wifi_discovery_edge_logger_schema = {
             "label": "Create Artifacts",
             "type": "string",
             "default": "true",
-            "option": ["true", "false"],
+            "options": ["true", "false"],
         },
         {
             "name": "artifact_name_prefix",
@@ -159,7 +159,7 @@ wifi_discovery_edge_logger_schema = {
 async def wifi_discovery_edge_logger(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(
         f"WiFi urban logger action with parameters: {parameters}"
@@ -176,14 +176,14 @@ async def wifi_discovery_edge_logger(
         PLUGIN_NAME,
         "wifi_discovery_edge_logger.py",
         {"parameters": op_params},
-        sensor_node_id,
+        node_uid,
     )
 
 
 async def wifi_geolocate_target(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(
         f"WiFi target geolocation action with parameters: {parameters}"
@@ -200,14 +200,14 @@ async def wifi_geolocate_target(
         PLUGIN_NAME,
         "wifi_geolocate_target.py",
         {"parameters": op_params},
-        sensor_node_id,
+        node_uid,
     )
 
 
 async def wifi_geolocate_all(
     component: SensorNode,
     parameters: Dict[str, Any],
-    sensor_node_id: Union[int, str] = 0,
+    node_uid: str = "",
 ) -> None:
     component.logger.info(
         f"WiFi geolocate all action with parameters: {parameters}"
@@ -224,5 +224,5 @@ async def wifi_geolocate_all(
         PLUGIN_NAME,
         "wifi_geolocate_all.py",
         {"parameters": op_params},
-        sensor_node_id,
+        node_uid,
     )

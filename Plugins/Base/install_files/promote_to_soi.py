@@ -118,14 +118,14 @@ class OperationMain(Operation):
 
     def __init__(
         self,
-        sensor_node_id: str = "",
+        node_uid: str = "",
         logger: logging.Logger = logging.getLogger(__name__),
         alert_callback=None,
         tak_cot_callback=None,
         frequency_mhz: Optional[float] = None,
     ):
         super().__init__(
-            sensor_node_id=sensor_node_id,
+            node_uid=node_uid,
             logger=logger,
             alert_callback=alert_callback,
             tak_cot_callback=tak_cot_callback,
@@ -328,7 +328,7 @@ class OperationMain(Operation):
 if __name__ == "__main__":
     async def _main():
         op = OperationMain(
-            sensor_node_id="test-node",
+            node_uid="test-node",
             logger=logging.getLogger("promote_to_soi_test"),
         )
         await op.run()

@@ -431,33 +431,7 @@ QPushButton[objectName^="pushButton2_"]{
     height:27px;
     margin-top: 3px;
 }
-QPushButton[objectName^="pushButton_top"]{
-    color: rgb(0, 0, 0);
-    background-color: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4, radius: 1.35, stop: 0 rgba(255, 255, 255,50), stop: 1 rgba(100, 100, 100,50));
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    /*border-color: #152947;*/
-    border-color: @color3;
-}
-QPushButton[objectName^="pushButton_top"]:hover{
-    color: @color4;
-    background-color: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4, radius: 1.35, stop: 0 rgba(255, 255, 255,50), stop: 1 rgba(170, 170, 170,50));
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: @color3;
-}
-QPushButton[objectName^="pushButton_top"]:pressed{
-    background-color: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4, radius: 1.35, stop: 0 rgba(255, 255, 255,50), stop: 1 rgba(100, 100, 100,50));
-    padding: 2px -2px 0px 0px;
-}
-/*QPushButton#pushButton_top_tsi{padding: 45px 0px 0px 92px;}
-QPushButton#pushButton_top_pd{padding: 45px 0px 0px 94px;}
-QPushButton#pushButton_top_attack{padding: 45px 0px 0px 65px;}
-QPushButton#pushButton_top_iq{padding: 45px 0px 0px 94px;}
-QPushButton#pushButton_top_archive{padding: 45px 0px 0px 60px;}
-*/
+
 QFrame[objectName^="frame1_"]{
     background-color: @color2;
     border: 1px solid @color3;
@@ -629,6 +603,310 @@ QPushButton#pushButton_status9{
     border: none;
     background-color: none;
 }
+
+
+
+
+
+
+
+
+
+/* ==========================================================
+   Launch Local Node Card
+   ========================================================== */
+
+QFrame#frame_top_launch_local_node {
+    border: 1px solid @color3;
+    border-radius: 8px;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #e7eaee,
+        stop:0.12 #455e7d,
+        stop:0.30 #2e4a6d,
+        stop:0.85 @color3,
+        stop:1 @color3
+    );
+}
+
+QFrame#frame_top_launch_local_node:hover {
+    border: 1px solid #4F83B6;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #f5f7fa,
+        stop:0.12 #56749a,
+        stop:0.30 #3a5d87,
+        stop:0.85 #23446a,
+        stop:1 #23446a
+    );
+}
+
+QFrame#frame_top_launch_local_node[pressed="true"] {
+    border: 1px solid #10243d;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #1b324f,
+        stop:1 #10243d
+    );
+}
+
+QLabel#label_top_launch_local_node_image {
+    background: transparent;
+}
+
+QLabel#label_top_launch_local_node_title {
+    color: rgb(255,255,255);
+    font: bold 10pt "Ubuntu";
+    background: transparent;
+}
+
+QLabel#label_top_launch_local_node_subtitle {
+    color: rgb(230,235,240);
+    font: 8pt "Ubuntu";
+    background: transparent;
+}
+
+
+/* ==========================================================
+   Select Sensor Node Card
+   ========================================================== */
+
+QFrame#frame_top_select_sensor_node {
+    border: 1px solid @color3;
+    border-radius: 8px;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #e7eaee,
+        stop:0.12 #455e7d,
+        stop:0.30 #2e4a6d,
+        stop:0.85 @color3,
+        stop:1 @color3
+    );
+}
+
+QFrame#frame_top_select_sensor_node:hover {
+    border: 1px solid #4F83B6;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #f5f7fa,
+        stop:0.12 #56749a,
+        stop:0.30 #3a5d87,
+        stop:0.85 #23446a,
+        stop:1 #23446a
+    );
+}
+
+QFrame#frame_top_select_sensor_node[pressed="true"] {
+    border: 1px solid #10243d;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #1b324f,
+        stop:1 #10243d
+    );
+}
+
+QLabel#label_top_select_sensor_node_image {
+    background: transparent;
+}
+
+QLabel#label_top_select_sensor_node_title {
+    color: rgb(255,255,255);
+    font: bold 10pt "Ubuntu";
+    background: transparent;
+}
+
+QLabel#label_top_select_sensor_node_subtitle {
+    color: rgb(230,235,240);
+    font: 8pt "Ubuntu";
+    background: transparent;
+}
+
+
+/* ==========================================================
+   Configure / Selected Node Card
+   ========================================================== */
+
+QFrame#frame_top_configure_node {
+    border-radius: 8px;
+}
+
+/* Node Selected */
+
+QFrame#frame_top_configure_node[selected="true"] {
+    border: 1px solid rgb(90,180,90);
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 rgb(255,255,255),
+        stop:1 rgb(215,225,215)
+    );
+}
+
+QFrame#frame_top_configure_node[selected="true"]:hover {
+    border: 1px solid rgb(90,180,90);
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 rgb(255,255,255),
+        stop:1 rgb(205,220,205)
+    );
+}
+
+/* No Node Selected */
+
+QFrame#frame_top_configure_node[selected="false"] {
+    border: 1px solid @color3;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 rgb(255,255,255),
+        stop:1 rgb(225,225,225)
+    );
+}
+
+/* Pressed - only when node is selected */
+
+QFrame#frame_top_configure_node[selected="true"][pressed="true"] {
+    border: 1px solid rgb(70,140,70);
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 rgb(210,225,210),
+        stop:1 rgb(190,210,190)
+    );
+}
+
+QLabel#label_top_configure_node_image {
+    background: transparent;
+}
+
+
+/* Connected State */
+
+QLabel#label_top_configure_node_title {
+    color: @color3;
+    /* color: rgb(0,0,0); */
+    font: bold 10pt "Ubuntu";
+    background: transparent;
+}
+
+QLabel#label_top_configure_node_subtitle {
+    color: @color3;
+    /* color: rgb(60,60,60); */
+    font: 8pt "Ubuntu";
+    background: transparent;
+}
+
+QLabel#label_top_configure_node_subtitle2 {
+    color: @color3;
+    /* color: rgb(60,60,60); */
+    font: 8pt "Ubuntu";
+    background: transparent;
+}
+
+
+/* No Node Selected State */
+
+QLabel#label_top_configure_node_title_not_connected {
+    color: @color3;
+    /* color: rgb(120,120,120); */
+    font: bold 10pt "Ubuntu";
+    background: transparent;
+}
+
+QLabel#label_top_configure_node_subtitle_not_connected {
+    color: @color3;
+    /* color: rgb(120,120,120); */
+    font: 8pt "Ubuntu";
+    background: transparent;
+}
+
+/* ========================================================== */
+
+
+/* ==========================================================
+   Tactical Selected Node Info Header
+   ========================================================== */
+
+QFrame#frame5_tactical1 {
+    border: 1px solid #aeb7c1;
+    border-radius: 0px;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #ffffff,
+        stop:0.08 #f7f8fa,
+        stop:0.50 #edf0f3,
+        stop:1 #dfe4e9
+    );
+}
+
+QFrame#frame5_tactical1[clickable="true"]:hover {
+    border: 1px solid #6f8fad;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #ffffff,
+        stop:0.08 #f9fbfd,
+        stop:0.50 #eef4fa,
+        stop:1 #dbeaf7
+    );
+}
+
+QFrame#frame5_tactical1[active="true"] {
+    border: 1px solid #6fa66f;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #ffffff,
+        stop:0.08 #f8fbf8,
+        stop:0.50 #eef7ee,
+        stop:1 #dceedd
+    );
+}
+
+QFrame#frame5_tactical1[pressed="true"] {
+    border: 1px solid #58728b;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #d5dde5,
+        stop:0.50 #c7d1dc,
+        stop:1 #b8c5d1
+    );
+}
+
+QFrame#frame5_tactical1:disabled {
+    border: 1px solid #c8c8c8;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #f2f2f2,
+        stop:1 #e4e4e4
+    );
+}
+
+QFrame#frame5_tactical1 QLabel {
+    background: transparent;
+    color: rgb(0, 0, 0);
+}
+
+QLabel#label2_tactical_node_callsign {
+    color: rgb(0, 0, 0);
+    font: bold 9pt "Ubuntu";
+    background: transparent;
+}
+
+QLabel#label2_tactical_node_uuid {
+    color: rgb(30, 30, 30);
+    font: 8pt "Ubuntu";
+    background: transparent;
+}
+
+QLabel#label2_node_tactical_status {
+    color: rgb(30, 30, 30);
+    font: 8pt "Ubuntu";
+    background: transparent;
+}
+
+/* ========================================================== */
+
+
+
+
+
+
 
 QStackedWidget[objectName^="stackedWidget1_"]{
     background-color: @color2;

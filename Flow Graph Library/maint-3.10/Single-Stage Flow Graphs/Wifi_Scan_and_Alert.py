@@ -209,7 +209,7 @@ def getArguments():
 
 if __name__ == '__main__':
     # get default values
-    (iface, duration, dwell, power, channels, notes) = getArguments()[1]
+    (iface, duration, dwell, power, channels, run_with_sudo, notes) = getArguments()[1]
 
     # handle input
     nargs = len(sys.argv)

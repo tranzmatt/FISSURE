@@ -18,7 +18,7 @@ def _alert_sender(
     cmd: str,
     c2: Connection,
     identifier: str,
-    sensor_node_id: any,
+    node_uid: any,
     hiprfisr_socket: fissure.comms.Server,
     gps_position: dict,
     logger: logging.Logger,
@@ -37,7 +37,7 @@ def _alert_sender(
         Pipe for shutdown signaling.
     identifier : str
         Node identifier.
-    sensor_node_id : any
+    node_uid : any
         Unique node ID.
     hiprfisr_socket : fissure.comms.Server
         Socket to HIPRFISR.
@@ -114,13 +114,13 @@ def _alert_sender(
 
             if msg_type == 'alert':
                 PARAMETERS = {
-                    "sensor_node_id": sensor_node_id,
+                    "node_uid": node_uid,
                     "alert_text": data.get('text')
                 }
                 msg = {
                     fissure.comms.MessageFields.IDENTIFIER if network_type == "IP" else fissure.comms.MessageFields.SOURCE: identifier,
                     fissure.comms.MessageFields.MESSAGE_NAME: "alertReturn" if network_type == "IP" else "alertReturnLT",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS if network_type == "IP" else { "sensor_node_id": sensor_node_id, "alert_text": PARAMETERS["alert_text"][:100] },
+                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS if network_type == "IP" else { "node_uid": node_uid, "alert_text": PARAMETERS["alert_text"][:100] },
                 }
                 asyncio.run(hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg))
 
@@ -164,7 +164,7 @@ def _alert_sender(
 
             elif msg_type == 'exploit':
                 PARAMETERS = {
-                    "sensor_node_id": sensor_node_id,
+                    "node_uid": node_uid,
                     "protocol": data.get('protocol'),
                     "modulation": data.get('modulation'),
                     "hardware": data.get('hardware'),
@@ -189,7 +189,7 @@ def _alert_sender(
 
             elif msg_type == 'snreport':
                 PARAMETERS = {
-                    "sensor_node_id": sensor_node_id,
+                    "node_uid": node_uid,
                     "text": data.get('text')
                 }
                 msg = {
@@ -226,7 +226,7 @@ def _alert_sender(
 
 
 class alertSender(object):
-    def __init__(self, cmd: str, identifier: str, sensor_node_id: any, hiprfisr_socket: fissure.comms.Server, gps_position: dict, logger: logging.Logger, network_type: str):
+    def __init__(self, cmd: str, identifier: str, node_uid: any, hiprfisr_socket: fissure.comms.Server, gps_position: dict, logger: logging.Logger, network_type: str):
         """Run Command and Capture stdout for Alerts
 
         Run command, capture stdout and send by to HIPRFISR as alertReturn command
@@ -237,7 +237,7 @@ class alertSender(object):
             System command to run
         identifier : str
             Sensor node identifier
-        sensor_node_id : any
+        node_uid : any
             Sensor node ID
         hiprfisr_socket : fissure.comms.Server
             HIPRFISR socker
@@ -250,7 +250,7 @@ class alertSender(object):
         self.logger = logger
         self.cmd = cmd
         self.identifier = identifier
-        self.sensor_node_id = sensor_node_id
+        self.node_uid = node_uid
         self.hiprfisr_socket = hiprfisr_socket
         self.gps_position = gps_position
         self.network_type = network_type
@@ -260,7 +260,7 @@ class alertSender(object):
         # Launch _alert_sender in its own thread
         self.thread = threading.Thread(
             target=_alert_sender,
-            args=(self, cmd, conn2, identifier, sensor_node_id, hiprfisr_socket, gps_position, logger, network_type),
+            args=(self, cmd, conn2, identifier, node_uid, hiprfisr_socket, gps_position, logger, network_type),
             daemon=True
         )
         self.thread.start()

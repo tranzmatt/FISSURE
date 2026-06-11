@@ -287,7 +287,7 @@ def resolve_files_from_folder(folder: str, extensions: List[str]) -> List[str]:
 class OperationMain(Operation):
     def __init__(
         self,
-        sensor_node_id: str = "",
+        node_uid: str = "",
         logger: logging.Logger = logging.getLogger(__name__),
         alert_callback=None,
         tak_cot_callback=None,
@@ -300,7 +300,7 @@ class OperationMain(Operation):
         selection_sidecar: str = DEFAULTS["selection_sidecar"],
     ):
         super().__init__(
-            sensor_node_id=sensor_node_id,
+            node_uid=node_uid,
             logger=logger,
             alert_callback=alert_callback,
             tak_cot_callback=tak_cot_callback,
@@ -412,7 +412,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     async def _main():
-        op = OperationMain(sensor_node_id="test-node", logger=logging.getLogger("tsi_fe_test"))
+        op = OperationMain(node_uid="test-node", logger=logging.getLogger("tsi_fe_test"))
         op.parameters = {
             "folder": "/tmp/some_artifact_folder",
             "data_type": "Complex Float 32",

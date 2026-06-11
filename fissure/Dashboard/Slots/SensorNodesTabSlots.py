@@ -12,6 +12,12 @@ from fissure.Dashboard.Slots import AttackTabSlots
 import json
 import csv
 import re
+from fissure.utils.selected_node_utils import (
+    selected_node_is_local,
+    selected_node_is_remote,
+    selected_node_is_ip,
+    selected_node_is_meshtastic,
+)
 
 @QtCore.pyqtSlot(QtCore.QObject)
 def _slotSensorNodeAutorunTableDelayChecked(state: int, dashboard: QtCore.QObject):
@@ -74,7 +80,7 @@ def _slotSensorNodesFileNavigationFolderChanged(dashboard: QtCore.QObject):
     Refreshes the files listed for the remote folder and disables the Transfer button. 
     """
     # Active Sensor Nodes Only
-    if dashboard.active_sensor_node > -1:
+    if dashboard.selected_node_uid:
         # Disable/Enable the Transfer Button
         get_folder = str(dashboard.ui.comboBox_sensor_nodes_fn_folder.currentText())
         if (get_folder == '/IQ_Data_Playback') or (get_folder == '/Archive_Replay'):
@@ -542,12 +548,11 @@ async def _slotSensorNodesAutorunStartClicked(dashboard: QtCore.QObject):
     Sends a message to the sensor node to start/stop autorun playlist.
     """
     # Error with no Sensor Node Selected
-    if dashboard.active_sensor_node == -1:
+    if not dashboard.selected_node_uid:
         ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(dashboard, "Select an active sensor node.")
         return
 
     # Run As Stored
-    get_sensor_node = ['sensor_node1','sensor_node2','sensor_node3','sensor_node4','sensor_node5']
     if dashboard.ui.checkBox_sensor_nodes_autorun_run_as_stored.isChecked() == True:
         get_filename = str(dashboard.ui.textEdit_sensor_nodes_autorun_playlist_filename.toPlainText())
         if get_filename.strip() == "":
@@ -555,10 +560,10 @@ async def _slotSensorNodesAutorunStartClicked(dashboard: QtCore.QObject):
             return
         
         # Send the Message
-        if dashboard.backend.settings[get_sensor_node[dashboard.active_sensor_node]]["network_type"] == "IP":
-            await dashboard.backend.autorunPlaylistExecute(dashboard.active_sensor_node, get_filename)
-        if dashboard.backend.settings[get_sensor_node[dashboard.active_sensor_node]]["network_type"] == "Meshtastic":
-            await dashboard.backend.autorunPlaylistExecuteLT(dashboard.active_sensor_node, get_filename) 
+        if selected_node_is_ip(dashboard):
+            await dashboard.backend.autorunPlaylistExecute(dashboard.selected_node_uid, get_filename)
+        if selected_node_is_meshtastic(dashboard):
+            await dashboard.backend.autorunPlaylistExecuteLT(dashboard.selected_node_uid, get_filename) 
 
     # Transfer Playlist to Sensor Node
     else:
@@ -617,10 +622,10 @@ async def _slotSensorNodesAutorunStartClicked(dashboard: QtCore.QObject):
             trigger_values.append([str(dashboard.ui.tableWidget1_sensor_nodes_autorun_triggers.item(row,0).text()), str(dashboard.ui.tableWidget1_sensor_nodes_autorun_triggers.item(row,1).text()), str(dashboard.ui.tableWidget1_sensor_nodes_autorun_triggers.item(row,2).text()), str(dashboard.ui.tableWidget1_sensor_nodes_autorun_triggers.item(row,3).text())])
     
         # Send the Message
-        await dashboard.backend.autorunPlaylistStart(dashboard.active_sensor_node, playlist_dict, trigger_values)
+        await dashboard.backend.autorunPlaylistStart(dashboard.selected_node_uid, playlist_dict, trigger_values)
 
     # Toggle the Text
-    if dashboard.backend.settings[get_sensor_node[dashboard.active_sensor_node]]["network_type"] == "IP":
+    if selected_node_is_ip(dashboard):
         dashboard.ui.pushButton_sensor_nodes_autorun_start.setEnabled(False)
         dashboard.ui.pushButton_sensor_nodes_autorun_stop.setEnabled(True)
 
@@ -630,18 +635,17 @@ async def _slotSensorNodesAutorunStopClicked(dashboard: QtCore.QObject):
     """ 
     Sends a message to the sensor node to stop the autorun playlist.
     """
-    get_sensor_node = ['sensor_node1','sensor_node2','sensor_node3','sensor_node4','sensor_node5']
-    if dashboard.backend.settings[get_sensor_node[dashboard.active_sensor_node]]["network_type"] == "IP":
+    if selected_node_is_ip(dashboard):
         # Send the Message
-        await dashboard.backend.autorunPlaylistStop(dashboard.active_sensor_node)
+        await dashboard.backend.autorunPlaylistStop(dashboard.selected_node_uid)
         
         # Swap Buttons
         dashboard.ui.pushButton_sensor_nodes_autorun_start.setEnabled(True)
         dashboard.ui.pushButton_sensor_nodes_autorun_stop.setEnabled(False)
 
-    elif dashboard.backend.settings[get_sensor_node[dashboard.active_sensor_node]]["network_type"] == "Meshtastic":
+    elif selected_node_is_meshtastic(dashboard):
         # Send the Message
-        await dashboard.backend.autorunPlaylistStopLT(dashboard.active_sensor_node)
+        await dashboard.backend.autorunPlaylistStopLT(dashboard.selected_node_uid)
 
 
 @qasync.asyncSlot(QtCore.QObject)
@@ -650,7 +654,7 @@ async def _slotSensorNodesAutorunOverwriteClicked(dashboard: QtCore.QObject):
     Sends a message to the sensor node to overwrite the default autorun playlist.
     """
     # Error with no Sensor Node Selected
-    if dashboard.active_sensor_node == -1:
+    if not dashboard.selected_node_uid:
         fissure.Dashboard.UI_Components.Qt5.errorMessage("Select an active sensor node.")
         return
 
@@ -710,7 +714,7 @@ async def _slotSensorNodesAutorunOverwriteClicked(dashboard: QtCore.QObject):
     playlist_dict['trigger_values'] = trigger_values
 
     # Send the Message
-    await dashboard.backend.overwriteDefaultAutorunPlaylist(dashboard.active_sensor_node, playlist_dict)
+    await dashboard.backend.overwriteDefaultAutorunPlaylist(dashboard.selected_node_uid, playlist_dict)
 
 
 @qasync.asyncSlot(QtCore.QObject)
@@ -720,13 +724,12 @@ async def _slotSensorNodesFileNavigationRefreshClicked(dashboard: QtCore.QObject
     """
     # Update the Tree Widget
     get_folder = str(dashboard.ui.comboBox_sensor_nodes_fn_folder.currentText())
-    if (dashboard.active_sensor_node > -1) and (len(get_folder) > 0):
-        get_sensor_node = ['sensor_node1','sensor_node2','sensor_node3','sensor_node4','sensor_node5']
-        dashboard.ui.label1_sensor_nodes_fn_sensor_node.setText("Sensor Node " + str(dashboard.active_sensor_node+1))
+    if (dashboard.selected_node_uid) and (len(get_folder) > 0):
+        dashboard.ui.label1_sensor_nodes_fn_sensor_node.setText(dashboard.selected_node_uid)
         dashboard.ui.tableWidget_sensor_nodes_fn_files.setRowCount(0)
         
         # Local
-        if dashboard.backend.settings[get_sensor_node[dashboard.active_sensor_node]]['nickname'] == 'Local Sensor Node':
+        if selected_node_is_local(dashboard):
             folder_path = os.path.join(fissure.utils.SENSOR_NODE_DIR, get_folder.replace("/",""))
             
             for fname in os.listdir(folder_path):
@@ -755,7 +758,7 @@ async def _slotSensorNodesFileNavigationRefreshClicked(dashboard: QtCore.QObject
         # Remote
         else:
             # Send the Message
-            await dashboard.backend.refreshSensorNodeFiles(dashboard.active_sensor_node, get_folder)
+            await dashboard.backend.refreshSensorNodeFiles(dashboard.selected_node_uid, get_folder)
 
 
 @qasync.asyncSlot(QtCore.QObject)
@@ -771,18 +774,17 @@ async def _slotSensorNodesFileNavigationDeleteClicked(dashboard: QtCore.QObject)
         return
     
     # Delete the Folder/File
-    if (dashboard.active_sensor_node > -1) and (len(get_item_path) > 0):            
+    if (dashboard.selected_node_uid) and (len(get_item_path) > 0):            
         ret = await fissure.Dashboard.UI_Components.Qt5.async_yes_no_dialog(dashboard, "Are you sure?")
         if ret == QtWidgets.QMessageBox.Yes:
             # Local
-            get_sensor_node = ['sensor_node1','sensor_node2','sensor_node3','sensor_node4','sensor_node5']
-            if dashboard.backend.settings[get_sensor_node[dashboard.active_sensor_node]]['nickname'] == 'Local Sensor Node':
+            if selected_node_is_local(dashboard):
                 os.system('rm -Rf "' + get_item_path + '"')
                 
             # Remote
             else:
                 # Send the Message
-                await dashboard.backend.deleteSensorNodeFile(dashboard.active_sensor_node, get_item_path)
+                await dashboard.backend.deleteSensorNodeFile(dashboard.selected_node_uid, get_item_path)
 
             dashboard.ui.tableWidget_sensor_nodes_fn_files.removeRow(dashboard.ui.tableWidget_sensor_nodes_fn_files.currentRow())
             await _slotSensorNodesFileNavigationRefreshClicked(dashboard)
@@ -803,10 +805,9 @@ async def _slotSensorNodesFileNavigationDownloadClicked(dashboard: QtCore.QObjec
         return            
     
     # Download the Folder/File
-    if (dashboard.active_sensor_node > -1) and (len(get_item_path) > 0):
+    if (dashboard.selected_node_uid) and (len(get_item_path) > 0):
         # Local
-        get_sensor_node = ['sensor_node1','sensor_node2','sensor_node3','sensor_node4','sensor_node5']
-        if dashboard.backend.settings[get_sensor_node[dashboard.active_sensor_node]]['nickname'] == 'Local Sensor Node':
+        if selected_node_is_local(dashboard):
             get_new_path = str(dashboard.ui.comboBox_sensor_nodes_fn_local_folder.currentText()) + '/' + get_item_path.split('/')[-1]
             os.system('cp -r "' + get_item_path + '" "' + get_new_path + '"')
             
@@ -814,7 +815,7 @@ async def _slotSensorNodesFileNavigationDownloadClicked(dashboard: QtCore.QObjec
         else:
             # Send the Message
             get_new_path = str(dashboard.ui.comboBox_sensor_nodes_fn_local_folder.currentText())
-            await dashboard.backend.downloadSensorNodeFile(dashboard.active_sensor_node, get_item_path, get_new_path)
+            await dashboard.backend.downloadSensorNodeFile(dashboard.selected_node_uid, get_item_path, get_new_path)
 
 
 @qasync.asyncSlot(QtCore.QObject)
@@ -822,7 +823,7 @@ async def _slotSensorNodesFileNavigationLocalTransferClicked(dashboard: QtCore.Q
     """ 
     Transfers a local file to the selected sensor node folder.
     """
-    if dashboard.active_sensor_node > -1:
+    if dashboard.selected_node_uid:
         # Obtain File Information
         get_local_file = str(dashboard.ui.treeView_sensor_nodes_fn_local_files.model().filePath(dashboard.ui.treeView_sensor_nodes_fn_local_files.currentIndex()))
         if os.path.isfile(get_local_file):
@@ -830,7 +831,7 @@ async def _slotSensorNodesFileNavigationLocalTransferClicked(dashboard: QtCore.Q
             refresh_file_list = True
             
             # Send the Message
-            await dashboard.backend.transferSensorNodeFile(dashboard.active_sensor_node, get_local_file, get_remote_folder, refresh_file_list)
+            await dashboard.backend.transferSensorNodeFile(dashboard.selected_node_uid, get_local_file, get_remote_folder, refresh_file_list)
 
 
 @QtCore.pyqtSlot(QtCore.QObject)
@@ -1497,7 +1498,7 @@ async def _slotSensorNodesOperationRun(dashboard: QtCore.QObject):
     combobox_plugin: QtWidgets.QComboBox = dashboard.ui.comboBox_select_plugin
     combobox_op: QtWidgets.QComboBox = dashboard.ui.comboBox_select_plugin_op
     PARAMETERS = {
-        "sensor_node_id": dashboard.active_sensor_node,
+        "node_uid": dashboard.selected_node_uid,
         "plugin": combobox_plugin.currentText(),
         "operation": combobox_op.currentText(),
         "parameters": parameters
@@ -1529,7 +1530,7 @@ async def _slotSensorNodesOperationStop(dashboard: QtCore.QObject):
         return
 
     PARAMETERS = {
-        "sensor_node_id": dashboard.active_sensor_node,
+        "node_uid": dashboard.selected_node_uid,
         "operation_id": operation_id,
     }
     msg = {

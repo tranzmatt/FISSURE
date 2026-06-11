@@ -17,6 +17,12 @@ import datetime
 import qasync
 from ..UI_Components import DemodDialog
 from typing import List
+from fissure.utils.selected_node_utils import (
+    selected_node_is_local,
+    selected_node_is_remote,
+    selected_node_is_ip,
+    selected_node_is_meshtastic,
+)
 
 
 @QtCore.pyqtSlot(QtCore.QObject)
@@ -6114,7 +6120,7 @@ async def _slotIQ_RecordClicked(dashboard: QtCore.QObject, called_from_thread=Fa
     # Stop Recording
     if (dashboard.ui.pushButton_iq_record.text() == "Stop") and (called_from_thread == False):
         # Send Message to Sensor Node/HIPRFISR
-        await dashboard.backend.iqFlowGraphStop(dashboard.active_sensor_node, '')
+        await dashboard.backend.iqFlowGraphStop(dashboard.selected_node_uid, '')
         dashboard.iq_file_counter = "abort"
 
     else:
@@ -6272,14 +6278,14 @@ async def _slotIQ_RecordClicked(dashboard: QtCore.QObject, called_from_thread=Fa
             # Send the Parameters to Sensor Node
                 #If no errors entering parameters...
             get_file_type = "Flow Graph"
-            await dashboard.backend.iqFlowGraphStart(dashboard.active_sensor_node, str(fname), variable_names, variable_values, get_file_type)
+            await dashboard.backend.iqFlowGraphStart(dashboard.selected_node_uid, str(fname), variable_names, variable_values, get_file_type)
 
             # Change Status Label and Record Button Text
             dashboard.ui.label2_iq_status_files.setText("Starting...")
             dashboard.ui.pushButton_iq_record.setText("Stop")
             dashboard.ui.pushButton_iq_record.setEnabled(False)
-            if dashboard.active_sensor_node > -1:
-                dashboard.statusbar_text[dashboard.active_sensor_node][4] = 'Starting...'
+            if dashboard.selected_node_uid:
+                # dashboard.statusbar_text[dashboard.selected_node_uid][4] = 'Starting...' #TODO
                 dashboard.refreshStatusBarText()
 
             # Get Record Timestamp
@@ -6296,7 +6302,7 @@ async def _slotIQ_PlaybackClicked(dashboard: QtCore.QObject):
     # Play
     if dashboard.ui.pushButton_iq_playback.text() == "Play":
         # Return if no Sensor Node Selected
-        if dashboard.active_sensor_node < 0:
+        if not dashboard.selected_node_uid:
             ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(dashboard, "Select a sensor node.")
             return
 
@@ -6304,13 +6310,9 @@ async def _slotIQ_PlaybackClicked(dashboard: QtCore.QObject):
         dashboard.ui.label2_iq_playback_status.setText("Starting...")
         dashboard.ui.pushButton_iq_playback.setText("Stop")
         dashboard.ui.pushButton_iq_playback.setEnabled(False)
-        dashboard.statusbar_text[dashboard.active_sensor_node][4] = 'Starting...'
+        # dashboard.statusbar_text[dashboard.selected_node_uid][4] = 'Starting...'  # TODO
         dashboard.refreshStatusBarText()
         QtWidgets.QApplication.processEvents()
-        
-        # Sensor Node Name
-        sensor_nodes = ['sensor_node1','sensor_node2','sensor_node3','sensor_node4','sensor_node5']
-        get_sensor_node = sensor_nodes[dashboard.active_sensor_node]
 
         # Sensor Node Hardware Information
         get_current_hardware = str(dashboard.ui.comboBox_iq_playback_hardware.currentText())
@@ -6349,13 +6351,13 @@ async def _slotIQ_PlaybackClicked(dashboard: QtCore.QObject):
             dashboard.ui.label2_iq_playback_status.setText('')
             dashboard.ui.pushButton_iq_playback.setText("Play")
             dashboard.ui.pushButton_iq_playback.setEnabled(True)
-            dashboard.statusbar_text[dashboard.active_sensor_node][4] = ''
+            # dashboard.statusbar_text[dashboard.selected_node_uid][4] = ''  # TODO
             dashboard.refreshStatusBarText()
             return
 
         # Transfer IQ File on Remote Playback (Sensor Node Messages are Blocking)
-        if str(dashboard.backend.settings[get_sensor_node]['local_remote']) == 'remote':
-            await dashboard.backend.transferSensorNodeFile(dashboard.active_sensor_node, get_filepath, '/IQ_Data_Playback', False)
+        if selected_node_is_remote(dashboard):
+            await dashboard.backend.transferSensorNodeFile(dashboard.selected_node_uid, get_filepath, '/IQ_Data_Playback', False)
 
         # Get Flow Graph from Hardware
         if get_hardware_type == "Computer":
@@ -6472,7 +6474,7 @@ async def _slotIQ_PlaybackClicked(dashboard: QtCore.QObject):
 
         # Send the Parameters to TSI
         get_file_type = "Flow Graph"
-        await dashboard.backend.iqFlowGraphStart(dashboard.active_sensor_node, str(fname), variable_names, variable_values, get_file_type)
+        await dashboard.backend.iqFlowGraphStart(dashboard.selected_node_uid, str(fname), variable_names, variable_values, get_file_type)
 
     # Stop Playing
     elif dashboard.ui.pushButton_iq_playback.text() == "Stop":
@@ -6481,7 +6483,7 @@ async def _slotIQ_PlaybackClicked(dashboard: QtCore.QObject):
         QtWidgets.QApplication.processEvents()
         
         # Send Message to TSI/HIPRFISR
-        await dashboard.backend.iqFlowGraphStop(dashboard.active_sensor_node, '')
+        await dashboard.backend.iqFlowGraphStop(dashboard.selected_node_uid, '')
 
 
 @qasync.asyncSlot(QtCore.QObject)
@@ -6492,7 +6494,7 @@ async def _slotIQ_InspectionFG_StartClicked(dashboard: QtCore.QObject):
     # Stop Flow Graph
     if dashboard.ui.pushButton_iq_inspection_fg_start.text() == "Stop":
         # Send Message
-        await dashboard.backend.inspectionFlowGraphStop(dashboard.active_sensor_node, 'Flow Graph - GUI')
+        await dashboard.backend.inspectionFlowGraphStop(dashboard.selected_node_uid, 'Flow Graph - GUI')
 
         # Toggle the Text
         dashboard.ui.pushButton_iq_inspection_fg_start.setText("Start")
@@ -6522,7 +6524,7 @@ async def _slotIQ_InspectionFG_StartClicked(dashboard: QtCore.QObject):
 
         # Send "Run Inspection Flow Graph" Message to the HIPRFISR
         get_file_type = "Flow Graph - GUI"
-        await dashboard.backend.inspectionFlowGraphStart(dashboard.active_sensor_node, fname, variable_names, variable_values, get_file_type)
+        await dashboard.backend.inspectionFlowGraphStart(dashboard.selected_node_uid, fname, variable_names, variable_values, get_file_type)
 
         # Toggle the Text
         dashboard.ui.pushButton_iq_inspection_fg_start.setText("Stop")
@@ -6540,7 +6542,7 @@ async def _slotIQ_InspectionFG_FileStartClicked(dashboard: QtCore.QObject):
     # Stop Flow Graph
     if dashboard.ui.pushButton_iq_inspection_fg_file_start.text() == "Stop":
         # Send Message
-        await dashboard.backend.inspectionFlowGraphStop(dashboard.active_sensor_node, 'Flow Graph - GUI')
+        await dashboard.backend.inspectionFlowGraphStop(dashboard.selected_node_uid, 'Flow Graph - GUI')
 
         # Toggle the Text
         dashboard.ui.pushButton_iq_inspection_fg_file_start.setText("Start")
@@ -6571,7 +6573,7 @@ async def _slotIQ_InspectionFG_FileStartClicked(dashboard: QtCore.QObject):
 
         # Send "Run Inspection Flow Graph" Message to the HIPRFISR
         get_file_type = "Flow Graph - GUI"
-        await dashboard.backend.inspectionFlowGraphStart(dashboard.active_sensor_node, fname, variable_names, variable_values, get_file_type)
+        await dashboard.backend.inspectionFlowGraphStart(dashboard.selected_node_uid, fname, variable_names, variable_values, get_file_type)
 
         # Toggle the Text
         dashboard.ui.pushButton_iq_inspection_fg_file_start.setText("Stop")

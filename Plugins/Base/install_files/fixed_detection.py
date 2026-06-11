@@ -29,13 +29,13 @@ class OperationMain(Operation):
         freq_mhz: float = 915.0,
         min_detection_interval_s: float = 10.0,
         description: str = "Fixed detection",
-        sensor_node_id: Union[int, str] = 0,
+        node_uid: str = "",
         logger: logging.Logger = logging.getLogger(__name__),
         alert_callback: Union[Callable, None] = None,
         tak_cot_callback: Union[Callable, None] = None,
     ) -> None:
         super().__init__(
-            sensor_node_id=sensor_node_id,
+            node_uid=node_uid,
             logger=logger,
             alert_callback=alert_callback,
             tak_cot_callback=tak_cot_callback,
@@ -173,7 +173,7 @@ class OperationMain(Operation):
 
                     if self.alert_callback:
                         await self.alert_callback(
-                            self.sensor_node_id,
+                            self.node_uid,
                             self.opid,
                             f"{self.description} @ {freq_hz/1e6:.3f} MHz, RSSI {rssi_dbm} dBm",
                             self.logger,

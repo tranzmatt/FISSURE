@@ -24,7 +24,6 @@ async def removeBlacklist(component: object, start_frequency=0, end_frequency=0)
 
 async def startTSI_Conditioner(
     component: object,
-    sensor_node_id=0,
     common_parameter_names=[],
     common_parameter_values=[],
     method_parameter_names=[],
@@ -48,7 +47,7 @@ async def startTSI_Conditioner(
     )
 
 
-async def stopTSI_Conditioner(component: object, sensor_node_id=0):
+async def stopTSI_Conditioner(component: object):
     """
     Accepts a Stop message from the HIPRFISR to stop the signal conditioning operation.
     """

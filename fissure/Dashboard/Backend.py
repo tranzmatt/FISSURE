@@ -61,7 +61,6 @@ class DashboardBackend:
     hiprfisr_connected: bool
     pd_connected: bool
     tsi_connected: bool
-    sensor_node_connected: List[bool]
     session_active: bool  # For keeping track of StatusBar status
     shutdown: bool
     identifier: str = fissure.comms.Identifiers.DASHBOARD
@@ -105,7 +104,6 @@ class DashboardBackend:
         self.hiprfisr_connected = False
         self.pd_connected = False
         self.tsi_connected = False
-        self.sensor_node_connected = [False, False, False, False, False]
         self.session_active = False
         self.shutdown = False
         self.shutting_down_message_received = False
@@ -402,69 +400,6 @@ class DashboardBackend:
                     fissure.comms.Identifiers.TSI, True, self.frontend.statusBar()
                 )
 
-        #
-        # --- SENSOR NODE CHECKS ---
-        #
-        sensor_nodes = self.heartbeats.get(fissure.comms.Identifiers.SENSOR_NODE)
-
-        for idx in range(5):
-            node_record = sensor_nodes[idx]
-
-            # SAFETY: No record at all (None) → treat as disconnected
-            if node_record is None:
-                if self.sensor_node_connected[idx]:  # only emit transition
-                    self.sensor_node_connected[idx] = False
-                    self.frontend.signals.ComponentStatus.emit(
-                        f"fissure.comms.Identifiers.SENSOR_NODE_{idx+1}",
-                        False,
-                        self.frontend.statusBar()
-                    )
-                continue
-
-            #
-            # At this point, node_record is a dict with: {"time": X, "interval": Y}
-            #
-
-            # If time exists but is None → disconnected
-            if node_record["time"] is None:
-                if self.sensor_node_connected[idx]:
-                    self.sensor_node_connected[idx] = False
-                    self.frontend.signals.ComponentStatus.emit(
-                        f"fissure.comms.Identifiers.SENSOR_NODE_{idx+1}",
-                        False,
-                        self.frontend.statusBar()
-                    )
-                continue
-
-            last_time = float(node_record["time"])
-
-            # Use node's interval if present, otherwise fallback to global
-            interval = (
-                float(node_record["interval"])
-                if node_record["interval"] is not None
-                else global_interval
-            )
-
-            node_cutoff = current_time - (interval * failure_multiple)
-
-            # Transition to disconnected
-            if self.sensor_node_connected[idx] and last_time < node_cutoff:
-                self.sensor_node_connected[idx] = False
-                self.frontend.signals.ComponentStatus.emit(
-                    f"fissure.comms.Identifiers.SENSOR_NODE_{idx+1}",
-                    False,
-                    self.frontend.statusBar()
-                )
-
-            # Transition to connected
-            elif (not self.sensor_node_connected[idx]) and last_time > node_cutoff:
-                self.sensor_node_connected[idx] = True
-                self.frontend.signals.ComponentStatus.emit(
-                    f"fissure.comms.Identifiers.SENSOR_NODE_{idx+1}",
-                    True,
-                    self.frontend.statusBar()
-                )
-
 
     async def read_hiprfisr_messages(self):
         """
@@ -631,12 +566,11 @@ class DashboardBackend:
         self.heartbeats[fissure.comms.Identifiers.HIPRFISR] = 0
         self.heartbeats[fissure.comms.Identifiers.PD] = 0
         self.heartbeats[fissure.comms.Identifiers.TSI] = 0
-        self.heartbeats[fissure.comms.Identifiers.SENSOR_NODE] = [None] * 5
+        # self.heartbeats[fissure.comms.Identifiers.SENSOR_NODE] = 0
 
         self.hiprfisr_connected = False
         self.pd_connected = False
         self.tsi_connected = False
-        self.sensor_node_connected = [False] * 5
         self.session_active = False
 
         # Reset frontend/database
@@ -645,30 +579,11 @@ class DashboardBackend:
         self.library = None
 
 
-    # async def connect_remote_sensor_node(self, sensor_node_id, ip_address, msg_port, hb_port, recall_settings):
-    #     """
-    #     Sends message to HIPRFISR to establish IP based connection to a remote sensor node.
-    #     """
-    #     PARAMETERS = {
-    #         "sensor_node_id": str(sensor_node_id),
-    #         "ip_address": ip_address,
-    #         "msg_port": msg_port,
-    #         "hb_port": hb_port,
-    #         "recall_settings": recall_settings,
-    #     }
-    #     launch_cmd = {
-    #         fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-    #         fissure.comms.MessageFields.MESSAGE_NAME: "connectToSensorNodeIP",
-    #         fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-    #     }
-    #     await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, launch_cmd)
-
-
-    async def disconnect_local_sensor_node(self, sensor_node_id):
+    async def disconnect_local_sensor_node(self, node_uid):
         """
         Forwards the terminate sensor node message to the HIPRFISR/Sensor Node.
         """
-        PARAMETERS = {"sensor_node_id": str(sensor_node_id)}
+        PARAMETERS = {"node_uid": node_uid}
         terminate_cmd = {
             fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
             fissure.comms.MessageFields.MESSAGE_NAME: "terminateSensorNode",
@@ -677,9 +592,9 @@ class DashboardBackend:
         await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, terminate_cmd)
 
 
-    async def disconnect_remote_sensor_node(self, sensor_node_id, delete_node, network_type):
+    async def disconnect_remote_sensor_node(self, node_uid, delete_node, network_type):
         PARAMETERS = {
-            "dashboard_index": str(sensor_node_id),
+            "node_uid": node_uid,
             "delete_node": delete_node,
             "network_type": network_type
         }
@@ -691,12 +606,12 @@ class DashboardBackend:
         await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, disconnect_cmd)
 
 
-    # async def disconnectFromMeshtastic(self, sensor_node_id):
+    # async def disconnectFromMeshtastic(self, node_uid):
     #     """
     #     Ends connections to local serial connection to Meshatastic.
     #     """
     #     PARAMETERS = {
-    #         "sensor_node_id": str(sensor_node_id),
+    #         "node_uid": node_uid,
     #     }
     #     disconnect_cmd = {
     #         fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -706,11 +621,14 @@ class DashboardBackend:
     #     await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, disconnect_cmd)
 
 
-    async def scanHardware(self, tab_index, hardware_list):
+    async def scanHardware(self, node_uid, hardware_list):
         """
         Scans the listed hardware on the sensor node for information.
         """
-        PARAMETERS = {"tab_index": tab_index, "hardware_list": hardware_list}
+        PARAMETERS = {
+            "node_uid": node_uid, 
+            "hardware_list": hardware_list
+        }
         scan_cmd = {
             fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
             fissure.comms.MessageFields.MESSAGE_NAME: "scanHardware",
@@ -719,11 +637,14 @@ class DashboardBackend:
         await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, scan_cmd)
 
 
-    async def probeHardware(self, tab_index, table_row_text):
+    async def probeHardware(self, node_uid, table_row_text):
         """
         Probes hardware connected to a sensor node.
         """
-        PARAMETERS = {"tab_index": tab_index, "table_row_text": table_row_text}
+        PARAMETERS = {
+            "node_uid": node_uid, 
+            "table_row_text": table_row_text
+        }
         probe_cmd = {
             fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
             fissure.comms.MessageFields.MESSAGE_NAME: "probeHardware",
@@ -732,12 +653,12 @@ class DashboardBackend:
         await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, probe_cmd)    
 
 
-    async def guessHardware(self, tab_index=0, table_row=0, table_row_text=[], guess_index=0):
+    async def guessHardware(self, node_uid="", table_row=0, table_row_text=[], guess_index=0):
         """
         Guesses identifiers for hardware connected to a sensor node.
         """
         PARAMETERS = {
-            "tab_index": tab_index,
+            "node_uid": node_uid,
             "table_row": table_row,
             "table_row_text": table_row_text,
             "guess_index": guess_index,
@@ -791,7 +712,7 @@ class DashboardBackend:
 
     async def archivePlaylistStart(
         self,
-        sensor_node_id,
+        node_uid,
         flow_graph,
         filenames,
         frequencies,
@@ -811,7 +732,7 @@ class DashboardBackend:
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "flow_graph": flow_graph,
                 "filenames": filenames,
                 "frequencies": frequencies,
@@ -833,13 +754,13 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def archivePlaylistStop(self, sensor_node_id):
+    async def archivePlaylistStop(self, node_uid):
         """
         Stops Archive Playlist in response to button press.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
-            PARAMETERS = {"sensor_node_id": sensor_node_id}
+            PARAMETERS = {"node_uid": node_uid}
             msg = {
                 fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
                 fissure.comms.MessageFields.MESSAGE_NAME: "archivePlaylistStop",
@@ -848,13 +769,13 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def attackFlowGraphStart(self, sensor_node_id, flow_graph_filepath, variable_names, variable_values, file_type, run_with_sudo, autorun_index, trigger_values):
+    async def attackFlowGraphStart(self, node_uid, flow_graph_filepath, variable_names, variable_values, file_type, run_with_sudo, autorun_index, trigger_values):
         """
         Sends a message to start a single-stage attack.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
-            PARAMETERS = {"sensor_node_id": sensor_node_id, "flow_graph_filepath": flow_graph_filepath, "variable_names": variable_names, "variable_values": variable_values, "file_type": file_type, "run_with_sudo": run_with_sudo, "autorun_index": autorun_index, "trigger_values": trigger_values}
+            PARAMETERS = {"node_uid": node_uid, "flow_graph_filepath": flow_graph_filepath, "variable_names": variable_names, "variable_values": variable_values, "file_type": file_type, "run_with_sudo": run_with_sudo, "autorun_index": autorun_index, "trigger_values": trigger_values}
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
                     fissure.comms.MessageFields.MESSAGE_NAME: "attackFlowGraphStart",
@@ -863,13 +784,17 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def attackFlowGraphStop(self, sensor_node_id, parameter, autorun_index):
+    async def attackFlowGraphStop(self, node_uid, parameter, autorun_index):
         """
         Sends a message to stop a single-stage attack.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
-            PARAMETERS = {"sensor_node_id": sensor_node_id, "parameter": parameter, "autorun_index": autorun_index}
+            PARAMETERS = {
+                "node_uid": node_uid, 
+                "parameter": parameter, 
+                "autorun_index": autorun_index
+            }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
                     fissure.comms.MessageFields.MESSAGE_NAME: "attackFlowGraphStop",
@@ -880,7 +805,7 @@ class DashboardBackend:
 
     async def multiStageAttackStart(
         self, 
-        sensor_node_id=0,
+        node_uid="",
         filenames=[],
         variable_names=[],
         variable_values=[],
@@ -896,7 +821,7 @@ class DashboardBackend:
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "filenames": filenames,
                 "variable_names": variable_names,
                 "variable_values": variable_values,
@@ -914,14 +839,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def multiStageAttackStop(self, sensor_node_id=0, autorun_index=0):
+    async def multiStageAttackStop(self, node_uid="", autorun_index=0):
         """
         Sends a message to stop a multi-stage attack.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "autorun_index": autorun_index,
             }
             msg = {
@@ -932,14 +857,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def autorunPlaylistStart(self, sensor_node_id, playlist_dict, trigger_values):
+    async def autorunPlaylistStart(self, node_uid, playlist_dict, trigger_values):
         """
         Sends a message to transfer and start an autorun playlist.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "playlist_dict": playlist_dict,
                 "trigger_values": trigger_values,
             }
@@ -951,14 +876,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def autorunPlaylistExecute(self, sensor_node_id=0, playlist_filename=""):
+    async def autorunPlaylistExecute(self, node_uid="", playlist_filename=""):
         """
         Sends a message to execute an autorun playlist already located on the sensor node.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "playlist_filename": playlist_filename,
             }
             msg = {
@@ -969,14 +894,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def autorunPlaylistStop(self, sensor_node_id=0):
+    async def autorunPlaylistStop(self, node_uid=""):
         """
         Sends a message to stop the running autorun playlist.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -986,14 +911,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def overwriteDefaultAutorunPlaylist(self, sensor_node_id=0, playlist_dict={}):
+    async def overwriteDefaultAutorunPlaylist(self, node_uid="", playlist_dict={}):
         """
         Sends a message to overwrite the default autorun playlist on the sensor node.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "playlist_dict": playlist_dict
             }
             msg = {
@@ -1004,14 +929,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def refreshSensorNodeFiles(self, sensor_node_id=0, sensor_node_folder=""):
+    async def refreshSensorNodeFiles(self, node_uid="", sensor_node_folder=""):
         """
         Sends a message to get the sensor node folder contents and return to the Dashboard.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "sensor_node_folder": sensor_node_folder
             }
             msg = {
@@ -1022,14 +947,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def deleteSensorNodeFile(self, sensor_node_id=0, sensor_node_file=""):
+    async def deleteSensorNodeFile(self, node_uid="", sensor_node_file=""):
         """
         Deletes a file/folder on the sensor node.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "sensor_node_file": sensor_node_file
             }
             msg = {
@@ -1040,14 +965,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def downloadSensorNodeFile(self, sensor_node_id=0, sensor_node_file="", download_folder=""):
+    async def downloadSensorNodeFile(self, node_uid="", sensor_node_file="", download_folder=""):
         """
         Signals to sensor node to transfer a copy of a file or folder for saving it to a specified file path.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "sensor_node_file": sensor_node_file,
                 "download_folder": download_folder
             }
@@ -1059,14 +984,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def transferSensorNodeFile(self, sensor_node_id=0, local_file="", remote_folder="", refresh_file_list=False):
+    async def transferSensorNodeFile(self, node_uid="", local_file="", remote_folder="", refresh_file_list=False):
         """
         Loads a local file and transfers the data to a remote sensor node.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "local_file": local_file,
                 "remote_folder": remote_folder,
                 "refresh_file_list": refresh_file_list
@@ -1155,14 +1080,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def iqFlowGraphStart(self, sensor_node_id=0, flow_graph_filepath="", variable_names=[], variable_values=[], file_type=""):
+    async def iqFlowGraphStart(self, node_uid="", flow_graph_filepath="", variable_names=[], variable_values=[], file_type=""):
         """
         Command for running an IQ flow graph.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "flow_graph_filepath": flow_graph_filepath,
                 "variable_names": variable_names,
                 "variable_values": variable_values,
@@ -1176,14 +1101,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def iqFlowGraphStop(self, sensor_node_id=0, parameter=""):
+    async def iqFlowGraphStop(self, node_uid="", parameter=""):
         """
         Command for stopping an IQ flow graph.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "parameter": parameter,
             }
             msg = {
@@ -1196,7 +1121,7 @@ class DashboardBackend:
 
     async def inspectionFlowGraphStart(
         self, 
-        sensor_node_id=0, 
+        node_uid="", 
         flow_graph_filepath="", 
         variable_names=[], 
         variable_values=[], 
@@ -1208,7 +1133,7 @@ class DashboardBackend:
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "flow_graph_filepath": flow_graph_filepath,
                 "variable_names": variable_names,
                 "variable_values": variable_values,
@@ -1222,14 +1147,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def inspectionFlowGraphStop(self, sensor_node_id=0, parameter=""):
+    async def inspectionFlowGraphStop(self, node_uid="", parameter=""):
         """
         Command for stopping an inspection flow graph.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "parameter": parameter,
             }
             msg = {
@@ -1289,14 +1214,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def stopPD(self, sensor_node_id=0):
+    async def stopPD(self, node_uid=""):
         """
         Signals to PD to stop protocol discovery.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -1306,14 +1231,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
     
-    async def startPD(self, sensor_node_id=0):
+    async def startPD(self, node_uid=""):
         """
         Signals to PD and sensor node to start protocol discovery.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -1391,14 +1316,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def protocolDiscoveryFG_Stop(self, sensor_node_id=0):
+    async def protocolDiscoveryFG_Stop(self, node_uid=""):
         """
         Sends message to Sensor Node to stop a running flow graph.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -1408,14 +1333,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def protocolDiscoveryFG_Start(self, sensor_node_id=0, flow_graph_filepath="", variable_names=[], variable_values=[]):
+    async def protocolDiscoveryFG_Start(self, node_uid="", flow_graph_filepath="", variable_names=[], variable_values=[]):
         """
         Sends message to Sensor Node to run a flow graph.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "flow_graph_filepath": flow_graph_filepath,
                 "variable_names": variable_names,
                 "variable_values": variable_values
@@ -1428,14 +1353,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def setVariable(self, sensor_node_id=0, flow_graph="", variable="", value=""):
+    async def setVariable(self, node_uid="", flow_graph="", variable="", value=""):
         """
         Sends a message to Sensor Node to change the variable of the running flow graph.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "flow_graph": flow_graph,
                 "variable": variable,
                 "value": value
@@ -1487,14 +1412,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def snifferFlowGraphStart(self, sensor_node_id=0, flow_graph_filepath="", variable_names=[], variable_values=[]):
+    async def snifferFlowGraphStart(self, node_uid="", flow_graph_filepath="", variable_names=[], variable_values=[]):
         """
         Starts a sniffer flow graph.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "flow_graph_filepath": flow_graph_filepath,
                 "variable_names": variable_names,
                 "variable_values": variable_values,
@@ -1507,14 +1432,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def snifferFlowGraphStop(self, sensor_node_id=0, parameter=""):
+    async def snifferFlowGraphStop(self, node_uid="", parameter=""):
         """
         Stops a sniffer flow graph.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "parameter": parameter,
             }
             msg = {
@@ -1525,14 +1450,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def physicalFuzzingStop(self, sensor_node_id=0):
+    async def physicalFuzzingStop(self, node_uid=""):
         """
         Sends message to Sensor Node to stop the physical fuzzing being performed on a running flow graph.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -1544,7 +1469,7 @@ class DashboardBackend:
     
     async def physicalFuzzingStart(
         self, 
-        sensor_node_id=0,
+        node_uid="",
         fuzzing_variables=[],
         fuzzing_type="",
         fuzzing_min=0,
@@ -1558,7 +1483,7 @@ class DashboardBackend:
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "fuzzing_variables": fuzzing_variables,
                 "fuzzing_type": fuzzing_type,
                 "fuzzing_min": fuzzing_min,
@@ -1589,7 +1514,7 @@ class DashboardBackend:
     
     async def updateConfiguration(
         self, 
-        sensor_node_id=0, 
+        node_uid="", 
         start_frequency=0, 
         end_frequency=0, 
         step_size=0, 
@@ -1602,7 +1527,7 @@ class DashboardBackend:
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "start_frequency": start_frequency,
                 "end_frequency": end_frequency,
                 "step_size": step_size,
@@ -1653,14 +1578,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
     
-    async def startTSI_Detector(self, sensor_node_id=0, detector="", variable_names=[], variable_values=[], detector_port=0):
+    async def startTSI_Detector(self, node_uid="", detector="", variable_names=[], variable_values=[], detector_port=0):
         """
         Signals to sensor node to start TSI detector.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "detector": detector,
                 "variable_names": variable_names,
                 "variable_values": variable_values,
@@ -1674,14 +1599,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def stopTSI_Detector(self, sensor_node_id=0):
+    async def stopTSI_Detector(self, node_uid=""):
         """
         Signals to sensor node to stop TSI detector.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -1693,7 +1618,7 @@ class DashboardBackend:
     
     async def startTSI_Conditioner(
         self,
-        sensor_node_id=0,
+        node_uid="",
         common_parameter_names=[],
         common_parameter_values=[],
         method_parameter_names=[],
@@ -1706,7 +1631,7 @@ class DashboardBackend:
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "common_parameter_names": common_parameter_names,
                 "common_parameter_values": common_parameter_values,
                 "method_parameter_names": method_parameter_names,
@@ -1721,14 +1646,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def stopTSI_Conditioner(self, sensor_node_id=0):
+    async def stopTSI_Conditioner(self, node_uid=""):
         """
         Signals to TSI to stop TSI conditioner.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -1769,14 +1694,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def startScapy(self, sensor_node_id=0, interface="", interval=0, loop=False, operating_system=""):
+    async def startScapy(self, node_uid="", interface="", interval=0, loop=False, operating_system=""):
         """
         Signals to Sensor Node to start Scapy.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "interface": interface,
                 "interval": interval,
                 "loop": loop,
@@ -1790,14 +1715,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def stopScapy(self, sensor_node_id=0):
+    async def stopScapy(self, node_uid=""):
         """
         Signals to Sensor Node to stop Scapy.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -1807,14 +1732,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def deleteArchiveReplayFiles(self, sensor_node_id=0):
+    async def deleteArchiveReplayFiles(self, node_uid=""):
         """
         Deletes all the files in the Archive_Replay folder on the sensor node ahead of file transfer for replay.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -1841,18 +1766,18 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def checkPluginStatus(self, sensor_node_id: int):
+    async def checkPluginStatus(self, node_uid: str):
         """Check Status of Plugins on Sensor Node
 
         Parameters
         ----------
-        sensor_node_id : int
+        node_uid: str
             Sensor node ID
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id
+                "node_uid": node_uid
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -1862,12 +1787,12 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def transferPlugins(self, sensor_node_id: int, plugin_names: List[str]):
+    async def transferPlugins(self, node_uid: str, plugin_names: List[str]):
         """Transfer Plugins from HIPFISR to Sensor Node
 
         Parameters
         ----------
-        sensor_node_id : int
+        node_uid: str
             Sensor node ID
         plugin_names : str
             Plugin names with file extension or no extension if folder
@@ -1875,7 +1800,7 @@ class DashboardBackend:
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "plugin_names": plugin_names
             }
             msg = {
@@ -1886,12 +1811,12 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def installPlugins(self, sensor_node_id: int, plugin_names: List[str]):
+    async def installPlugins(self, node_uid: str, plugin_names: List[str]):
         """Install Plugins on Sensor Node
 
         Parameters
         ----------
-        sensor_node_id : int
+        node_uid: str
             Sensor node ID
         plugin_names : str
             Plugin names with file extension or no extension if folder
@@ -1899,7 +1824,7 @@ class DashboardBackend:
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "plugin_names": plugin_names
             }
             msg = {
@@ -1910,12 +1835,12 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def uninstallPlugin(self, sensor_node_id: int, plugin_name: str):
+    async def uninstallPlugin(self, node_uid: str, plugin_name: str):
         """Uninstall Plugin on Sensor Node
 
         Parameters
         ----------
-        sensor_node_id : int
+        node_uid: str
             Sensor node ID
         plugin_name : str
             Plugin name with file extension or no extension if folder
@@ -1923,7 +1848,7 @@ class DashboardBackend:
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "plugin_name": plugin_name
             }
             msg = {
@@ -1934,23 +1859,23 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def removePlugin(self, sensor_node_id: int, plugin_name: str):
+    async def removePlugin(self, node_uid: str, plugin_name: str):
         """Remove Plugin on Sensor Node
 
         **WARNING**: This will remove the plugin from the sensor node file system
 
         Parameters
         ----------
-        sensor_node_id : int
+        node_uid: str
             Sensor node ID
         plugin_name : str
             Plugin name with file extension or no extension if folder
         """
-        if sensor_node_id > -1:
+        if node_uid:
             # Send the Message
             if self.hiprfisr_connected is True:
                 PARAMETERS = {
-                    "sensor_node_id": sensor_node_id,
+                    "node_uid": node_uid,
                     "plugin_name": plugin_name
                 }
                 msg = {
@@ -2135,12 +2060,12 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def findGPS_Coordinates(self, tab_index=0, gps_source="", format=""):
+    async def findGPS_Coordinates(self, node_uid="", gps_source="", format=""):
         """
         Queries the remote sensor node for its GPS coordinates. 
         """
         PARAMETERS = {
-            "tab_index": tab_index,
+            "node_uid": node_uid,
             "gps_source": gps_source,
             "format": format
         }
@@ -2182,14 +2107,14 @@ class DashboardBackend:
         await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, listener_cmd)
 
 
-    async def connectToSensorNodeMeshtastic(self, sensor_node_id, serial_port, serial_baud_rate):
+    async def connectToSensorNodeMeshtastic(self, node_uid, serial_port, serial_baud_rate):
         """
         Sends message to HIPRFISR to establish local serial connection to communicate with preconfigured remote sensor node.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": str(sensor_node_id),
+                "node_uid": node_uid,
                 "serial_port": serial_port,
                 "serial_baud_rate": serial_baud_rate,
             }
@@ -2201,14 +2126,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, launch_cmd)
 
 
-    async def gpsBeaconEnableDisableIP(self, sensor_node_id):
+    async def gpsBeaconEnableDisableIP(self, node_uid):
         """
         Sends a message to the HIPRFISR to enable/disable the GPS TAK beacon at the sensor node.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id
+                "node_uid": node_uid
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2218,31 +2143,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def gpsBeaconRefreshIP(self, sensor_node_id):
-        """
-        Sends a message to the HIPRFISR to retrieve the GPS TAK beacon state from the sensor node.
-        """
-        # Send the Message
-        if self.hiprfisr_connected is True:
-            PARAMETERS = {
-                "sensor_node_id": sensor_node_id
-            }
-            msg = {
-                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "gpsBeaconRefreshIP",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-            }
-            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
-
-
-    async def rebootIP(self, sensor_node_id):
+    async def rebootIP(self, node_uid):
         """
         Sends a message to the HIPRFISR to reboot the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id
+                "node_uid": node_uid
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2252,14 +2160,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def uptimeIP(self, sensor_node_id):
+    async def uptimeIP(self, node_uid):
         """
         Sends a message to the HIPRFISR to retrieve the uptime of the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id
+                "node_uid": node_uid
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2269,14 +2177,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def memoryIP(self, sensor_node_id):
+    async def memoryIP(self, node_uid):
         """
         Sends a message to the HIPRFISR to retrieve the memory usage of the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id
+                "node_uid": node_uid
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2286,14 +2194,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def diskIP(self, sensor_node_id):
+    async def diskIP(self, node_uid):
         """
         Sends a message to the HIPRFISR to retrieve the disk usage of the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id
+                "node_uid": node_uid
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2303,14 +2211,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def cpuIP(self, sensor_node_id):
+    async def cpuIP(self, node_uid):
         """
         Sends a message to the HIPRFISR to retrieve the CPU percentage of the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id
+                "node_uid": node_uid
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2320,14 +2228,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def processesIP(self, sensor_node_id):
+    async def processesIP(self, node_uid):
         """
         Sends a message to the HIPRFISR to retrieve the processes on the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id
+                "node_uid": node_uid
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2337,14 +2245,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def ifconfigIP(self, sensor_node_id):
+    async def ifconfigIP(self, node_uid):
         """
         Sends a message to the HIPRFISR to retrieve the ifconfig output on the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id
+                "node_uid": node_uid
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2354,14 +2262,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def iwconfigIP(self, sensor_node_id):
+    async def iwconfigIP(self, node_uid):
         """
         Sends a message to the HIPRFISR to retrieve the iwconfig output on the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id
+                "node_uid": node_uid
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2371,14 +2279,32 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)            
 
 
-    async def pingIP(self, sensor_node_id):
+    async def updateNodeSettings(self, node_uid, settings_dict):
+        """
+        Sends a message to the HIPRFISR to update its runtime settings dictionary.
+        """
+        # Send the Message
+        if self.hiprfisr_connected is True:
+            PARAMETERS = {
+                "node_uid": node_uid,
+                "settings_dict": settings_dict
+            }
+            msg = {
+                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+                    fissure.comms.MessageFields.MESSAGE_NAME: "updateNodeSettings",
+                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+            }
+            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)  
+
+
+    async def pingIP(self, node_uid):
         """
         Sends a message to the HIPRFISR to ping the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id
+                "node_uid": node_uid
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2388,32 +2314,45 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def nodeRefresh(self, dashboard_node_index, network_type):
+    async def nodeRefresh(self):
         """
-        Sends a message to the HIPRFISR to.
+        Sends a message to the HIPRFISR to refresh the list of connected nodes.
+        """
+        # Send the Message
+        if self.hiprfisr_connected is True:
+            # PARAMETERS = {}
+            msg = {
+                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+                    fissure.comms.MessageFields.MESSAGE_NAME: "nodeRefresh",
+                    # fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+            }
+            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+    async def removeNode(self, node_uid):
+        """
+        Sends a message to the HIPRFISR to remove a node from its records.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "dashboard_node_index": dashboard_node_index,
-                "network_type": network_type
+                "node_uid": node_uid
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "nodeRefresh",
+                    fissure.comms.MessageFields.MESSAGE_NAME: "removeNode",
                     fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
             }
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def nodeSelectIP(self, dashboard_node_index, node_uuid):
+    async def nodeSelectIP(self, node_uuid):
         """
-        Sends a message to the HIPRFISR to.
+        Sends a message to the HIPRFISR to update the selected dashboard node.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "dashboard_node_index": dashboard_node_index,
                 "node_uuid": node_uuid
             }
             msg = {
@@ -2774,12 +2713,11 @@ class DashboardBackend:
         await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def findGPS_CoordinatesLT(self, tab_index=0, gps_source="", format=""):
+    async def findGPS_CoordinatesLT(self, gps_source="", format=""):
         """
         Queries the remote sensor node for its GPS coordinates. 
         """
         PARAMETERS = {
-            "tab_index": tab_index,
             "gps_source": gps_source,
             "format": format
         }
@@ -2791,11 +2729,14 @@ class DashboardBackend:
         await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, find_gps_cmd)
 
 
-    async def scanHardwareLT(self, tab_index, hardware_list):
+    async def scanHardwareLT(self, node_uid, hardware_list):
         """
         Scans the listed hardware on the sensor node for information.
         """
-        PARAMETERS = {"tab_index": tab_index, "hardware_list": hardware_list}
+        PARAMETERS = {
+            "node_uid": node_uid,
+            "hardware_list": hardware_list
+        }
         scan_cmd = {
             fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
             fissure.comms.MessageFields.MESSAGE_NAME: "scanHardwareLT",
@@ -2804,11 +2745,14 @@ class DashboardBackend:
         await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, scan_cmd)
 
 
-    async def probeHardwareLT(self, tab_index, table_row_text):
+    async def probeHardwareLT(self, node_uid, table_row_text):
         """
         Probes hardware connected to a sensor node.
         """
-        PARAMETERS = {"tab_index": tab_index, "table_row_text": table_row_text}
+        PARAMETERS = {
+            "node_uid": node_uid, 
+            "table_row_text": table_row_text
+        }
         probe_cmd = {
             fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
             fissure.comms.MessageFields.MESSAGE_NAME: "probeHardwareLT",
@@ -2835,14 +2779,14 @@ class DashboardBackend:
         await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, guess_cmd)
 
 
-    async def autorunPlaylistExecuteLT(self, sensor_node_id=0, playlist_filename=""):
+    async def autorunPlaylistExecuteLT(self, node_uid="", playlist_filename=""):
         """
         Sends a message to execute an autorun playlist already located on the sensor node.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
                 "playlist_filename": playlist_filename,
             }
             msg = {
@@ -2853,14 +2797,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def autorunPlaylistStopLT(self, sensor_node_id=0):
+    async def autorunPlaylistStopLT(self, node_uid=""):
         """
         Sends a message to stop the running autorun playlist.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2870,14 +2814,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def gpsBeaconEnableMeshtasticLT(self, sensor_node_id: str):
+    async def gpsBeaconEnableMeshtasticLT(self, node_uid: str):
         """
         Sends a message to enable the GPS TAK beacon.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2887,14 +2831,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def gpsBeaconDisableMeshtasticLT(self, sensor_node_id: str):
+    async def gpsBeaconDisableMeshtasticLT(self, node_uid: str):
         """
         Sends a message to disable the GPS TAK beacon.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2904,14 +2848,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def rebootMeshtasticLT(self, sensor_node_id: str):
+    async def rebootMeshtasticLT(self, node_uid: str):
         """
         Sends a message to reboot the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2921,14 +2865,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def uptimeMeshtasticLT(self, sensor_node_id: str):
+    async def uptimeMeshtasticLT(self, node_uid: str):
         """
         Sends a message to retrieve the uptime of the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2938,14 +2882,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def memoryMeshtasticLT(self, sensor_node_id: str):
+    async def memoryMeshtasticLT(self, node_uid: str):
         """
         Sends a message to retrieve the memory usage of the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2955,14 +2899,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def diskMeshtasticLT(self, sensor_node_id: str):
+    async def diskMeshtasticLT(self, node_uid: str):
         """
         Sends a message to retrieve the disk usage of the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2972,14 +2916,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def cpuMeshtasticLT(self, sensor_node_id: str):
+    async def cpuMeshtasticLT(self, node_uid: str):
         """
         Sends a message to retrieve the CPU percentage of the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -2989,14 +2933,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def processesMeshtasticLT(self, sensor_node_id: str):
+    async def processesMeshtasticLT(self, node_uid: str):
         """
         Sends a message to retrieve the processes on the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -3006,14 +2950,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def ifconfigMeshtasticLT(self, sensor_node_id: str):
+    async def ifconfigMeshtasticLT(self, node_uid: str):
         """
         Sends a message to retrieve the ifconfig output on the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
@@ -3023,14 +2967,14 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
     
-    async def iwconfigMeshtasticLT(self, sensor_node_id: str):
+    async def iwconfigMeshtasticLT(self, node_uid: str):
         """
         Sends a message to retrieve the iwconfig output on the sensor node computer.
         """
         # Send the Message
         if self.hiprfisr_connected is True:
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
+                "node_uid": node_uid,
             }
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,

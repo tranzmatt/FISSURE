@@ -40,7 +40,7 @@ async def hiprfisrDisconnecting(component: object):
 
 
 async def transferSensorNodeFile(
-    component: object, sensor_node_id=0, local_file_data="", remote_filepath="", refresh_file_list=False
+    component: object, local_file_data="", remote_filepath="", refresh_file_list=False
 ):
     """
     Saves file data sent by the HIPRFISR to a sensor node folder.
@@ -60,10 +60,10 @@ async def transferSensorNodeFile(
 
         # Refresh the File List in Dashboard
         if str(refresh_file_list) == "True":
-            await refreshSensorNodeFiles(component, sensor_node_id, os.path.dirname(remote_filepath))
+            await refreshSensorNodeFiles(component, os.path.dirname(remote_filepath))
 
 
-async def deleteArchiveReplayFiles(component: object, sensor_node_id=0):
+async def deleteArchiveReplayFiles(component: object):
     """
     Deletes all the files in the Archive_Replay folder on the sensor node ahead of file transfer for replay.
     """
@@ -75,7 +75,7 @@ async def deleteArchiveReplayFiles(component: object, sensor_node_id=0):
                 os.remove(os.path.join(folder_location, filename))
 
 
-async def overwriteDefaultAutorunPlaylist(component: object, sensor_node_id=0, playlist_dict={}):
+async def overwriteDefaultAutorunPlaylist(component: object, playlist_dict={}):
     """
     Overwrites the default autorun playlist yaml file with a dictionary configured in the Dashboard.
     """
@@ -86,7 +86,7 @@ async def overwriteDefaultAutorunPlaylist(component: object, sensor_node_id=0, p
         yaml.dump(playlist_dict, stream, default_flow_style=False, indent=5)
 
 
-async def downloadSensorNodeFile(component: object, sensor_node_id=0, sensor_node_file="", download_folder=""):
+async def downloadSensorNodeFile(component: object, sensor_node_file="", download_folder=""):
     """
     Transfers a file from the sensor node to the other computer.
     """
@@ -112,7 +112,6 @@ async def downloadSensorNodeFile(component: object, sensor_node_id=0, sensor_nod
             return_filepath = download_folder + return_file_name
 
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
                 "operation": "Download",
                 "filepath": return_filepath,
                 "data": get_data,
@@ -153,7 +152,6 @@ async def downloadSensorNodeFile(component: object, sensor_node_id=0, sensor_nod
             return_filepath = download_folder + zip_file_name + ".zip"
 
             PARAMETERS = {
-                "sensor_node_id": sensor_node_id,
                 "operation": "Download",
                 "filepath": return_filepath,
                 "data": get_data,
@@ -177,7 +175,7 @@ async def downloadSensorNodeFile(component: object, sensor_node_id=0, sensor_nod
             return
 
 
-async def deleteSensorNodeFile(component: object, sensor_node_id=0, sensor_node_file=""):
+async def deleteSensorNodeFile(component: object, sensor_node_file=""):
     """
     Deletes a file or folder local to the sensor node.
     """
@@ -186,12 +184,12 @@ async def deleteSensorNodeFile(component: object, sensor_node_id=0, sensor_node_
         os.system('rm -Rf "' + sensor_node_file + '"')
 
 
-async def refreshSensorNodeFiles(component: object, sensor_node_id=0, sensor_node_folder=""):
+async def refreshSensorNodeFiles(component: object, sensor_node_folder=""):
     """
     Returns file details for a specified folder.
     """
     # Update the Tree Widget
-    if (sensor_node_id > -1) and (len(sensor_node_folder) > 0):
+    if len(sensor_node_folder) > 0:
         folder_path = os.path.join(fissure.utils.SENSOR_NODE_DIR, sensor_node_folder.replace("/",""))
         path_item = []
         size_item = []
@@ -211,7 +209,6 @@ async def refreshSensorNodeFiles(component: object, sensor_node_id=0, sensor_nod
 
         # Return File Details
         PARAMETERS = {
-            "sensor_node_id": sensor_node_id,
             "filepaths": path_item,
             "file_sizes": size_item,
             "file_types": type_item,
@@ -225,26 +222,26 @@ async def refreshSensorNodeFiles(component: object, sensor_node_id=0, sensor_nod
         await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def autorunPlaylistStart(component: object, sensor_node_id=0, playlist_dict={}, trigger_values=[]):
+async def autorunPlaylistStart(component: object, playlist_dict={}, trigger_values=[]):
     """
     Starts a new thread for cycling through the autorun playlist.
     """
     # Run Event and Do Not Block
     loop = asyncio.get_event_loop()
-    loop.run_in_executor(None, component.autorunPlaylistStart, sensor_node_id, playlist_dict, trigger_values)
+    loop.run_in_executor(None, component.autorunPlaylistStart, playlist_dict, trigger_values)
     # component.autorunPlaylistStart(sensor_node_id, playlist_dict, trigger_values)
 
 
-async def autorunPlaylistExecute(component: object, sensor_node_id=0, playlist_filename=""):
+async def autorunPlaylistExecute(component: object, playlist_filename=""):
     """
     Starts a new thread for loading and cycling through the autorun playlist.
     """
     # Run Event and Do Not Block
     loop = asyncio.get_event_loop()
-    loop.run_in_executor(None, component.autorunPlaylistExecute, sensor_node_id, playlist_filename)
+    loop.run_in_executor(None, component.autorunPlaylistExecute, playlist_filename)
 
 
-async def autorunPlaylistStop(component: object, sensor_node_id=0):
+async def autorunPlaylistStop(component: object):
     """
     Stops an autorun playlist already in progress.
     """
@@ -263,7 +260,7 @@ async def autorunPlaylistStop(component: object, sensor_node_id=0):
 
 async def physicalFuzzingStart(
     component: object,
-    sensor_node_id=0,
+   
     fuzzing_variables=[],
     fuzzing_type=[],
     fuzzing_min=[],
@@ -279,7 +276,6 @@ async def physicalFuzzingStart(
     loop.run_in_executor(
         None, 
         component.physicalFuzzingThreadStart, 
-        sensor_node_id,
         fuzzing_variables,
         fuzzing_type,
         fuzzing_min,
@@ -289,7 +285,7 @@ async def physicalFuzzingStart(
     )
 
 
-async def physicalFuzzingStop(component: object, sensor_node_id=0):
+async def physicalFuzzingStop(component: object):
     """
     Stop physical fuzzing on the currently running attack flow graph.
     """
@@ -299,7 +295,6 @@ async def physicalFuzzingStop(component: object, sensor_node_id=0):
 
 async def multiStageAttackStart(
     component: object,
-    sensor_node_id=0,
     filenames=[],
     variable_names=[],
     variable_values=[],
@@ -318,25 +313,25 @@ async def multiStageAttackStart(
     if len(trigger_values) == 0:
         # Run Event and Do Not Block
         loop = asyncio.get_event_loop()
-        loop.run_in_executor(None, component.multiStageAttackStart, sensor_node_id, filenames, variable_names, variable_values, durations, repeat, file_types, autorun_index)
+        loop.run_in_executor(None, component.multiStageAttackStart, filenames, variable_names, variable_values, durations, repeat, file_types, autorun_index)
     else:
         # Make a new Trigger Thread
-        fissure_event_values = [sensor_node_id, filenames, variable_names, variable_values, durations, repeat, file_types, autorun_index]
+        fissure_event_values = [filenames, variable_names, variable_values, durations, repeat, file_types, autorun_index]
         loop = asyncio.get_event_loop()
         loop.run_in_executor(None, component.triggerStart, trigger_values, "Multi-Stage Attack", fissure_event_values, autorun_index)
     await asyncio.sleep(0.1)
 
 
-async def multiStageAttackStop(component: object, sensor_node_id=0, autorun_index=0):
+async def multiStageAttackStop(component: object, autorun_index=0):
     """Stops a multi-stage attack already in progress"""
     # Use the Function that is Called Frequently in SensorNode.py
     loop = asyncio.get_event_loop()
-    loop.run_in_executor(None, component.multiStageAttackStop, sensor_node_id, autorun_index)
+    loop.run_in_executor(None, component.multiStageAttackStop, autorun_index)
 
 
 async def archivePlaylistStart(
     component: object,
-    sensor_node_id=0,
+   
     flow_graph="",
     filenames=[],
     frequencies=[],
@@ -357,29 +352,28 @@ async def archivePlaylistStart(
         # Run Event and Do Not Block
         loop = asyncio.get_event_loop()
         component.archive_playlist_stop_event = asyncio.Event()
-        loop.run_in_executor(None, component.archivePlaylistThreadStart, sensor_node_id, flow_graph, filenames, frequencies, sample_rates, formats, channels, gains, durations, repeat, ip_address, serial)
+        loop.run_in_executor(None, component.archivePlaylistThreadStart, flow_graph, filenames, frequencies, sample_rates, formats, channels, gains, durations, repeat, ip_address, serial)
     else:
         # Run Event and Do Not Block
-        fissure_event_values = [sensor_node_id, flow_graph, filenames, frequencies, sample_rates, formats, channels, gains, durations, repeat, ip_address, serial]
+        fissure_event_values = [flow_graph, filenames, frequencies, sample_rates, formats, channels, gains, durations, repeat, ip_address, serial]
         loop = asyncio.get_event_loop()
         loop.run_in_executor(None, component.triggerStart, trigger_values, "Archive Replay", fissure_event_values, -1)
     await asyncio.sleep(0.1)
 
 
-async def archivePlaylistStop(component: object, sensor_node_id=0):
+async def archivePlaylistStop(component: object):
     """
     Stops a multi-stage attack already in progress
     """
     # Use the Function that is Called Frequently in SensorNode.py
     loop = asyncio.get_event_loop()
-    loop.run_in_executor(None, component.archivePlaylistStop, sensor_node_id)
+    loop.run_in_executor(None, component.archivePlaylistStop)
     # component.archivePlaylistStop(sensor_node_id)
     await asyncio.sleep(0.1)
 
 
 async def attackFlowGraphStart(
     component: object,
-    sensor_node_id=0,
     flow_graph_filepath="",
     variable_names=[],
     variable_values=[],
@@ -395,27 +389,27 @@ async def attackFlowGraphStart(
     if len(trigger_values) == 0:
         # Run Event and Do Not Block
         loop = asyncio.get_event_loop()
-        loop.run_in_executor(None, component.attackFlowGraphStart, sensor_node_id, flow_graph_filepath, variable_names, variable_values, file_type, run_with_sudo, autorun_index)
+        loop.run_in_executor(None, component.attackFlowGraphStart, flow_graph_filepath, variable_names, variable_values, file_type, run_with_sudo, autorun_index)
     else:
         # Run Event and Do Not Block
-        fissure_event_values = [sensor_node_id, flow_graph_filepath, variable_names, variable_values, file_type, run_with_sudo, autorun_index]
+        fissure_event_values = [flow_graph_filepath, variable_names, variable_values, file_type, run_with_sudo, autorun_index]
         loop = asyncio.get_event_loop()
         loop.run_in_executor(None, component.triggerStart, trigger_values, "Single-Stage Attack", fissure_event_values, autorun_index)
     await asyncio.sleep(0.1)
 
 
-async def attackFlowGraphStop(component: object, sensor_node_id=0, parameter="", autorun_index=0):
+async def attackFlowGraphStop(component: object, parameter="", autorun_index=0):
     """
     Stop the currently running attack flow graph.
     """
     # Use the Function that is Called Frequently in SensorNode.py
-    component.attackFlowGraphStop(sensor_node_id, parameter, autorun_index)
+    component.attackFlowGraphStop(parameter, autorun_index)
     # loop = asyncio.get_event_loop()
-    # loop.run_in_executor(None, component.attackFlowGraphStop, sensor_node_id, parameter, autorun_index)
+    # loop.run_in_executor(None, component.attackFlowGraphStop, parameter, autorun_index)
 
 
 async def iqFlowGraphStart(
-    component: object, sensor_node_id=0, flow_graph_filepath="", variable_names=[], variable_values=[], file_type=""
+    component: object, flow_graph_filepath="", variable_names=[], variable_values=[], file_type=""
 ):
     """
     Runs the IQ flow graph with the specified file path.
@@ -444,7 +438,6 @@ async def iqFlowGraphStart(
     loop.run_in_executor(
         None, 
         component.iqFlowGraphThread, 
-        sensor_node_id,
         flow_graph_filepath,
         variable_names,
         variable_values,
@@ -459,7 +452,6 @@ async def iqFlowGraphStart(
     #         target=component.iqFlowGraphThread,
     #         args=(
     #             stop_event,
-    #             sensor_node_id,
     #             flow_graph_filepath,
     #             variable_names,
     #             variable_values,
@@ -480,7 +472,7 @@ async def iqFlowGraphStop(component: object, parameter=""):
 
 
 async def inspectionFlowGraphStart(
-    component: object, sensor_node_id=0, flow_graph_filepath="", variable_names=[], variable_values=[], file_type=""
+    component: object, flow_graph_filepath="", variable_names=[], variable_values=[], file_type=""
 ):
     """Runs the flow graph with the specified file path."""
     # Only Supports Flow Graphs with GUIs
@@ -491,7 +483,6 @@ async def inspectionFlowGraphStart(
         loop.run_in_executor(
             None, 
             component.inspectionFlowGraphGUI_Thread, 
-            sensor_node_id,
             flow_graph_filepath,
             variable_names,
             variable_values,
@@ -508,7 +499,7 @@ async def inspectionFlowGraphStop(component: object, parameter=""):
 
 
 async def snifferFlowGraphStart(
-    component: object, sensor_node_id=0, flow_graph_filepath="", variable_names=[], variable_values=[]
+    component: object, flow_graph_filepath="", variable_names=[], variable_values=[]
 ):
     """
     Runs the flow graph with the specified file path.
@@ -516,10 +507,10 @@ async def snifferFlowGraphStart(
     # Run Event and Do Not Block
     class_name = flow_graph_filepath.replace(".py", "")
     loop = asyncio.get_event_loop()
-    loop.run_in_executor(None, component.snifferFlowGraphThread, sensor_node_id, class_name, variable_names, variable_values)
+    loop.run_in_executor(None, component.snifferFlowGraphThread, class_name, variable_names, variable_values)
 
 
-async def snifferFlowGraphStop(component: object, sensor_node_id=0, parameter=""):
+async def snifferFlowGraphStop(component: object, parameter=""):
     """
     Stop the currently running flow graph.
     """
@@ -529,14 +520,14 @@ async def snifferFlowGraphStop(component: object, sensor_node_id=0, parameter=""
     del component.snifferflowtoexec  # Free up the ports
 
     if parameter == "Stream":
-        await component.flowGraphFinished(sensor_node_id, "Sniffer - Stream")
+        await component.flowGraphFinished("Sniffer - Stream")
     elif parameter == "TaggedStream":
-        await component.flowGraphFinished(sensor_node_id, "Sniffer - Tagged Stream")
+        await component.flowGraphFinished("Sniffer - Tagged Stream")
     elif parameter == "Message/PDU":
-        await component.flowGraphFinished(sensor_node_id, "Sniffer - Message/PDU")
+        await component.flowGraphFinished("Sniffer - Message/PDU")
 
 
-async def startScapy(component: object, sensor_node_id=0, interface="", interval=0, loop=False, operating_system=""):
+async def startScapy(component: object, interface="", interval=0, loop=False, operating_system=""):
     """
     Start a new Scapy operation.
     """
@@ -567,7 +558,7 @@ async def startScapy(component: object, sensor_node_id=0, interface="", interval
         component.logger.error("Specify wireless interface for Scapy")
 
 
-async def stopScapy(component: object, sensor_node_id=0):
+async def stopScapy(component: object):
     """
     Stop the currently running Scapy operation.
     """
@@ -575,7 +566,7 @@ async def stopScapy(component: object, sensor_node_id=0):
     os.system('sudo pkill -f "python2 scapy"')
 
 
-async def setVariable(component: object, sensor_node_id=0, flow_graph="", variable="", value=""):
+async def setVariable(component: object, flow_graph="", variable="", value=""):
     """
     Sets a variable of a specified running flow graph.
     """
@@ -603,7 +594,7 @@ async def setVariable(component: object, sensor_node_id=0, flow_graph="", variab
 
 
 async def protocolDiscoveryFG_Start(
-    component: object, sensor_node_id=0, flow_graph_filepath="", variable_names=[], variable_values=[]
+    component: object, flow_graph_filepath="", variable_names=[], variable_values=[]
 ):
     """
     Runs the flow graph with the specified file path.
@@ -611,10 +602,10 @@ async def protocolDiscoveryFG_Start(
     # Run Event and Do Not Block
     class_name = flow_graph_filepath.replace(".py", "")
     loop = asyncio.get_event_loop()
-    loop.run_in_executor(None, component.protocolDiscoveryFG_ThreadStart, sensor_node_id, class_name, variable_names, variable_values)
+    loop.run_in_executor(None, component.protocolDiscoveryFG_ThreadStart, class_name, variable_names, variable_values)
 
 
-async def protocolDiscoveryFG_Stop(component: object, sensor_node_id=0):
+async def protocolDiscoveryFG_Stop(component: object):
     """
     Stop the currently running flow graph.
     """
@@ -624,7 +615,7 @@ async def protocolDiscoveryFG_Stop(component: object, sensor_node_id=0):
 
 
 async def updateConfiguration(
-    component: object, sensor_node_id=0, start_frequency=0, end_frequency=0, step_size=0, dwell_time=0, detector_port=0
+    component: object, start_frequency=0, end_frequency=0, step_size=0, dwell_time=0, detector_port=0
 ):
     """
     Updates the TSI Configuration with the specified values.
@@ -650,10 +641,10 @@ async def updateConfiguration(
     if not component.running_TSI_wideband:
         # Run Event and Do Not Block
         loop = asyncio.get_event_loop()
-        loop.run_in_executor(None, component.startWidebandThread, sensor_node_id, detector_port)
+        loop.run_in_executor(None, component.startWidebandThread, detector_port)
 
 
-async def startTSI_Detector(component: object, sensor_node_id=0, detector="", variable_names=[], variable_values=[], detector_port=0):
+async def startTSI_Detector(component: object, detector="", variable_names=[], variable_values=[], detector_port=0):
     """
     Begins TSI processing of signals after receiving the command from the HIPRFISR.
     """
@@ -730,7 +721,7 @@ async def startTSI_Detector(component: object, sensor_node_id=0, detector="", va
 
             # Run Event and Do Not Block
             loop = asyncio.get_event_loop()
-            loop.run_in_executor(None, component.detectorFlowGraphGUI_Thread, sensor_node_id, flow_graph_filename, variable_names, variable_values, detector_port)
+            loop.run_in_executor(None, component.detectorFlowGraphGUI_Thread, flow_graph_filename, variable_names, variable_values, detector_port)
             return
 
         # Simulator Detector Thread
@@ -758,18 +749,18 @@ async def startTSI_Detector(component: object, sensor_node_id=0, detector="", va
             # Run Event and Do Not Block, SUB Created on Update Click
             class_name = flow_graph_filename.replace(".py", "")
             loop = asyncio.get_event_loop()
-            loop.run_in_executor(None, component.runWidebandThread, sensor_node_id, class_name, variable_names, variable_values)
+            loop.run_in_executor(None, component.runWidebandThread, class_name, variable_names, variable_values)
 
 
-async def stopTSI_Detector(component: object, sensor_node_id=0):
+async def stopTSI_Detector(component: object):
     """
     Pauses TSI processing of signals after receiving the command from the HIPRFISR
     """
     # Call the Function used Multiple Times
-    component.stopTSI_Detector(sensor_node_id)
+    component.stopTSI_Detector()
 
 
-async def startPD(component: object, sensor_node_id=0):
+async def startPD(component: object):
     """
     Starts a ZMQ SUB for forwarding bits from demodulation flow graphs to the PD circular buffer.
     """
@@ -783,12 +774,12 @@ async def startPD(component: object, sensor_node_id=0):
     component.pd_bits_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
 
-async def stopPD(component: object, sensor_node_id=0):
+async def stopPD(component: object):
     """
     Closes the ZMQ SUB listening for bits.
     """
     # Call the Function used Multiple Times
-    component.stopPD(sensor_node_id)
+    component.stopPD()
 
 
 async def terminateSensorNode(component: object):
@@ -824,30 +815,29 @@ async def recallSettings(component: object):
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def nodeSelectIP(component: object, dashboard_node_index):
+async def nodeSelectIP(component: object):
     """
-    Recall default settings from a local yaml file and send to HIPRFISR.
+    Return current in-memory sensor node settings to HIPRFISR.
     """
-    # Recall Default Settings Saved Locally
     component.logger.info("nodeSelectIP/Recall Settings")
-    filename = os.path.join(fissure.utils.SENSOR_NODE_DIR, "Sensor_Node_Config", "default.yaml")
-    with open(filename) as yaml_library_file:
-        settings_dict = yaml.load(yaml_library_file, yaml.FullLoader)
 
-    # Send the Message
     PARAMETERS = {
-        "dashboard_node_index": dashboard_node_index,
-        "settings_dict": settings_dict
+        "settings_dict": component.settings_dict
     }
+
     msg = {
         fissure.comms.MessageFields.IDENTIFIER: component.identifier,
         fissure.comms.MessageFields.MESSAGE_NAME: "recallSettingsReturn",
         fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
-    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+    await component.hiprfisr_socket.send_msg(
+        fissure.comms.MessageTypes.COMMANDS,
+        msg
+    )
 
 
-async def probeHardware(component: object, tab_index=0, table_row_text=[]):
+async def probeHardware(component: object, table_row_text=[]):
     """
     Probe the selected hardware from the table and return the information.
     """
@@ -931,7 +921,10 @@ async def probeHardware(component: object, tab_index=0, table_row_text=[]):
             height_width = [300, 500]
 
     # Return the Text
-    PARAMETERS = {"tab_index": tab_index, "output": output, "height_width": height_width}
+    PARAMETERS = {
+        "output": output, 
+        "height_width": height_width
+    }
     msg = {
         fissure.comms.MessageFields.IDENTIFIER: component.identifier,
         fissure.comms.MessageFields.MESSAGE_NAME: "hardwareProbeResults",
@@ -999,7 +992,7 @@ async def scanHardware(component: object, hardware_list=[]):
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def guessHardware(component: object, tab_index=0, table_row=[], table_row_text=[], guess_index=0):
+async def guessHardware(component: object, table_row=[], table_row_text=[], guess_index=0):
     """
     Probe the selected hardware from the table and return the information.
     """
@@ -1077,7 +1070,6 @@ async def guessHardware(component: object, tab_index=0, table_row=[], table_row_
 
     # Return Guess Results
     PARAMETERS = {
-        "tab_index": tab_index,
         "table_row": table_row,
         "hardware_type": get_hardware,
         "scan_results": scan_results,
@@ -1091,7 +1083,7 @@ async def guessHardware(component: object, tab_index=0, table_row=[], table_row_
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def checkPlugin(component: object, plugin_names: List[str], sensor_node_id: int):
+async def checkPlugin(component: object, plugin_names: List[str]):
     """Check Plugin Status
 
     Check for the existence and installation status of the plugin on the sensor node.
@@ -1102,8 +1094,6 @@ async def checkPlugin(component: object, plugin_names: List[str], sensor_node_id
         Component
     plugin_names : List[str]
         Plugin names with file extension or no extension if folder
-    sensor_node_id : int, optional
-        Sensor node ID
     """
     plugin_dir_list = os.listdir(fissure.utils.PLUGIN_DIR)
     status = {}
@@ -1112,7 +1102,6 @@ async def checkPlugin(component: object, plugin_names: List[str], sensor_node_id
 
     # return status
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "plugin_status": status
     }
     msg = {
@@ -1147,15 +1136,13 @@ def unpackPlugin(plugin_name: str, plugin_data: str):
     return filename
 
 
-async def transferPlugins(component: object, sensor_node_id: int, plugins: List[tuple]):
+async def transferPlugins(component: object, plugins: List[tuple]):
     """Save Plugin Sent by HIPRFISR
 
     Parameters
     ----------
     component : object
         Component
-    sensor_node_id : int
-        Sensor node ID
     plugins : List[tuple]
         Plugin file data as (file name, binary ascii file data)
     """
@@ -1164,15 +1151,13 @@ async def transferPlugins(component: object, sensor_node_id: int, plugins: List[
         plugin_name = unpackPlugin(plugin_name, plugin_data)
 
 
-async def __installPlugin(component: object, sensor_node_id: int, plugin_name: str):
+async def __installPlugin(component: object, plugin_name: str):
     """Install Plugin to Sensor Node
 
     Parameters
     ----------
     component : object
         Component
-    sensor_node_id : int
-        Sensor node ID
     plugin_name : str
         Plugin name
     """
@@ -1181,7 +1166,6 @@ async def __installPlugin(component: object, sensor_node_id: int, plugin_name: s
 
     # activate plugin on hiprfisr for sensor node
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "plugin_name": plugin_name
     }
     msg = {
@@ -1192,15 +1176,13 @@ async def __installPlugin(component: object, sensor_node_id: int, plugin_name: s
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def installPlugins(component: object, sensor_node_id: int, plugin_names: str):
+async def installPlugins(component: object, plugin_names: str):
     """Install Plugin
 
     Parameters
     ----------
     component : object
         Component
-    sensor_node_id : int
-        Sensor node ID
     plugin_name : str
         Plugin name with file extension or no extension if folder
     """
@@ -1217,7 +1199,6 @@ async def installPlugins(component: object, sensor_node_id: int, plugin_names: s
     if len(transfer_request) > 0:
         # request transfer and installation of plugins
         PARAMETERS = {
-            "sensor_node_id": sensor_node_id,
             "plugin_names": transfer_request,
             "install": True
         }
@@ -1234,11 +1215,10 @@ async def installPlugins(component: object, sensor_node_id: int, plugin_names: s
     # install available plugins
     for plugin_name in to_install:
         # sensor node installation
-        await __installPlugin(component, sensor_node_id, plugin_name)
+        await __installPlugin(component, plugin_name)
 
     # update database and dashboard
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "refresh_frontend_widgets": refresh_frontend_widgets
     }
     msg = {
@@ -1249,15 +1229,13 @@ async def installPlugins(component: object, sensor_node_id: int, plugin_names: s
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def transferPluginsInstall(component: object, sensor_node_id: int, plugins: List[tuple]):
+async def transferPluginsInstall(component: object, plugins: List[tuple]):
     """Transfer and Install Plugins
 
     Parameters
     ----------
     component : object
         Component
-    sensor_node_id : int
-        Sensor node ID
     plugins : List[tuple]
         Plugin file data as (file name, binary ascii file data)
     """
@@ -1266,29 +1244,23 @@ async def transferPluginsInstall(component: object, sensor_node_id: int, plugins
         plugin_name = unpackPlugin(plugin_name, plugin_data)
 
         # run installation
-        await __installPlugin(component, sensor_node_id, plugin_name)
+        await __installPlugin(component, plugin_name)
 
     # update database and dashboard
-    PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
-    }
     msg = {
         fissure.comms.MessageFields.IDENTIFIER: component.identifier,
         fissure.comms.MessageFields.MESSAGE_NAME: "installPluginsDatabase",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def uninstallPlugins(component: object, sensor_node_id: int, plugin_names: str):
+async def uninstallPlugins(component: object, plugin_names: str):
     """Uninstall Plugins
 
     Parameters
     ----------
     component : object
         Component
-    sensor_node_id : int
-        Sensor node ID
     plugin_names : str
         Plugin names with file extension
     """
@@ -1298,7 +1270,6 @@ async def uninstallPlugins(component: object, sensor_node_id: int, plugin_names:
 
         # deregister plugin on hiprfisr for sensor node
         PARAMETERS = {
-            "sensor_node_id": sensor_node_id,
             "plugin_name": plugin_name
         }
         msg = {
@@ -1310,7 +1281,6 @@ async def uninstallPlugins(component: object, sensor_node_id: int, plugin_names:
 
     # update database and dashboard
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "plugin_names": plugin_names
     }
     msg = {
@@ -1435,7 +1405,7 @@ async def sendPluginActionNamesTak(
         component.logger.debug(tb)
 
 
-async def findGPS_Coordinates(component: object, tab_index=0, gps_source="", format=""):
+async def findGPS_Coordinates(component: object, gps_source="", format=""):
     """
     Find the sensor node GPS coordinates using gpsd and return the information.
     """
@@ -1476,13 +1446,14 @@ async def findGPS_Coordinates(component: object, tab_index=0, gps_source="", for
             format
         )
     elif gps_source == "Internet":
-        get_coordinates = await fissure.utils.hardware.probeInternetGPS(component.logger)
-        if get_coordinates is None:
+        gps_data = await fissure.utils.hardware.probeInternetGPS(component.logger)
+
+        if gps_data is None:
             get_coordinates = "No GPS data returned"
         else:
             get_coordinates = fissure.utils.format_coordinates(
-                component.gps_position['latitude'], 
-                component.gps_position['longitude'], 
+                gps_data["latitude"],
+                gps_data["longitude"],
                 format
             )
     else:
@@ -1491,7 +1462,9 @@ async def findGPS_Coordinates(component: object, tab_index=0, gps_source="", for
     # Return the Text
     # if get_coordinates:
     # Only return lat, lon
-    PARAMETERS = {"tab_index": tab_index, "coordinates": get_coordinates}
+    PARAMETERS = {
+        "coordinates": get_coordinates
+    }
     msg = {
         fissure.comms.MessageFields.IDENTIFIER: component.identifier,
         fissure.comms.MessageFields.MESSAGE_NAME: "findGPS_CoordinatesResults",
@@ -1500,7 +1473,7 @@ async def findGPS_Coordinates(component: object, tab_index=0, gps_source="", for
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def gpsBeaconEnableDisableIP(component: object, sensor_node_id: str):
+async def gpsBeaconEnableDisableIP(component: object):
     """
     Toggles the state of the GPS TAK beacon.
     """
@@ -1514,7 +1487,6 @@ async def gpsBeaconEnableDisableIP(component: object, sensor_node_id: str):
 
     # Send Confirmation
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "gps_tak_beacon_status": component.gps_tak_beacon
     }
     msg = {
@@ -1525,24 +1497,7 @@ async def gpsBeaconEnableDisableIP(component: object, sensor_node_id: str):
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def gpsBeaconRefreshIP(component: object, sensor_node_id: str):
-    """
-    Retrieves the state of the GPS TAK beacon.
-    """
-    # Send Status
-    PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
-        "gps_tak_beacon_status": component.gps_tak_beacon
-    }
-    msg = {
-        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
-        fissure.comms.MessageFields.MESSAGE_NAME: "gpsBeaconEnableDisableIP_Return",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-    }
-    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
-
-
-async def rebootIP(component: object, sensor_node_id: str):
+async def rebootIP(component: object):
     """
     Reboots the sensor node computer.
     """
@@ -1552,7 +1507,7 @@ async def rebootIP(component: object, sensor_node_id: str):
     os.system("sudo reboot")
 
 
-async def uptimeIP(component: object, sensor_node_id: str):
+async def uptimeIP(component: object):
     """
     Retrieves the uptime of the sensor node computer.
     """
@@ -1573,7 +1528,6 @@ async def uptimeIP(component: object, sensor_node_id: str):
 
     # Send Status
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "uptime": uptime_string
     }
     msg = {
@@ -1584,7 +1538,7 @@ async def uptimeIP(component: object, sensor_node_id: str):
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def memoryIP(component: object, sensor_node_id: str):
+async def memoryIP(component: object):
     """
     Retrieves the memory usage of the sensor node computer.
     """
@@ -1593,7 +1547,6 @@ async def memoryIP(component: object, sensor_node_id: str):
 
     # Send Status
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "memory": output
     }
     msg = {
@@ -1604,7 +1557,7 @@ async def memoryIP(component: object, sensor_node_id: str):
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def diskIP(component: object, sensor_node_id: str):
+async def diskIP(component: object):
     """
     Retrieves the disk usage of the sensor node computer.
     """
@@ -1613,7 +1566,6 @@ async def diskIP(component: object, sensor_node_id: str):
 
     # Send Status
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "disk": disk_string
     }
     msg = {
@@ -1624,7 +1576,7 @@ async def diskIP(component: object, sensor_node_id: str):
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def cpuIP(component: object, sensor_node_id: str):
+async def cpuIP(component: object):
     """
     Retrieves the CPU percentrage of the sensor node computer.
     """
@@ -1634,7 +1586,6 @@ async def cpuIP(component: object, sensor_node_id: str):
 
     # Send Status
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "cpu": cpu_result
     }
     msg = {
@@ -1645,7 +1596,7 @@ async def cpuIP(component: object, sensor_node_id: str):
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def processesIP(component: object, sensor_node_id: str):
+async def processesIP(component: object):
     """
     Retrieves the processes on the sensor node computer.
     """
@@ -1654,7 +1605,6 @@ async def processesIP(component: object, sensor_node_id: str):
 
     # Send Status
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "processes": processes_result
     }
     msg = {
@@ -1665,7 +1615,7 @@ async def processesIP(component: object, sensor_node_id: str):
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def ifconfigIP(component: object, sensor_node_id: str):
+async def ifconfigIP(component: object):
     """
     Retrieves the ifconfig output on the sensor node computer.
     """
@@ -1674,7 +1624,6 @@ async def ifconfigIP(component: object, sensor_node_id: str):
 
     # Send Status
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "ifconfig": ifconfig_result
     }
     msg = {
@@ -1685,7 +1634,7 @@ async def ifconfigIP(component: object, sensor_node_id: str):
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def iwconfigIP(component: object, sensor_node_id: str):
+async def iwconfigIP(component: object):
     """
     Retrieves the iwconfig output on the sensor node computer.
     """
@@ -1694,7 +1643,6 @@ async def iwconfigIP(component: object, sensor_node_id: str):
 
     # Send Status
     PARAMETERS = {
-        "sensor_node_id": sensor_node_id,
         "iwconfig": iwconfig_result
     }
     msg = {
@@ -1703,6 +1651,18 @@ async def iwconfigIP(component: object, sensor_node_id: str):
         fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+async def updateNodeSettings(component: object, settings_dict: dict):
+    if not isinstance(settings_dict, dict):
+        component.logger.error("updateNodeSettings received invalid settings_dict.")
+        return
+
+    if "Sensor Node" not in settings_dict:
+        settings_dict = {"Sensor Node": settings_dict}
+
+    component.settings_dict = settings_dict
+    component.logger.info("Sensor Node settings updated in memory.")
 
 
 async def transferArtifactRequest(component: object, artifact_id: str, destination: str, data: Optional[bytes]) -> None:

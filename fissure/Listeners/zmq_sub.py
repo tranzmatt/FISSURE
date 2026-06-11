@@ -83,6 +83,6 @@ class ZMQSubscriberListener:
             print(f"Received message on topic '{topic.decode('utf-8')}': {alert_text}")
 
             # Call the alert callback to forward to the dashboard
-            await self.alert_callback(self.component, sensor_node_id=0, alert_text=alert_text)
+            await self.alert_callback(self.component, node_uid="", alert_text=alert_text)
         except Exception as e:
             print(f"Failed to process ZMQ message: {e}")

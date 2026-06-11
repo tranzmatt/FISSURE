@@ -50,9 +50,16 @@ import time
 import signal
 import json
 import random
+import subprocess
 
 from fissure.Dashboard.UI_Components.TacticalMapView import TacticalMapView
 
+from fissure.utils.selected_node_utils import (
+    selected_node_is_local,
+    selected_node_is_remote,
+    selected_node_is_ip,
+    selected_node_is_meshtastic,
+)
 
 # Base Window Size
 WINDOW_WIDTH = 1280
@@ -112,11 +119,6 @@ class Dashboard(QtWidgets.QMainWindow):
         ]
 
         # Disable Buttons for Disconnected HIPRFISR
-        self.ui.pushButton_top_node2.setVisible(False)
-        self.ui.pushButton_top_node3.setVisible(False)
-        self.ui.pushButton_top_node4.setVisible(False)
-        self.ui.pushButton_top_node5.setVisible(False)
-        self.ui.pushButton_top_node1.setEnabled(False)
         self.ui.tabWidget.setEnabled(False)
 
         # Light/Dark Mode Style Sheets
@@ -161,6 +163,18 @@ class Dashboard(QtWidgets.QMainWindow):
         self.ui.tabWidget_archive_download.setCurrentIndex(0)
         self.ui.tabWidget_sensor_nodes.setCurrentIndex(0)
         self.ui.tabWidget_library.setCurrentIndex(0)
+
+        # Initialize Selected Node
+        self.selected_node_uid = ""
+        self.selected_node_ip = ""
+        self.selected_node_settings = {}
+        self.ui.label_top_launch_local_node_image.setPixmap(QtGui.QPixmap(os.path.join(fissure.utils.UI_DIR, "Icons", "rocket_icon_64x48.png")))
+        self.ui.label_top_select_sensor_node_image.setPixmap(QtGui.QPixmap(os.path.join(fissure.utils.UI_DIR, "Icons", "select_node.png")))
+        self.ui.label_top_configure_node_image.setPixmap(QtGui.QPixmap(os.path.join(fissure.utils.UI_DIR, "Icons", "configure_node.png")))
+        self.ui.frame_top_configure_node.setProperty("selected", False)
+        self.ui.frame_top_configure_node.setProperty("pressed", False)
+        self.ui.frame_top_configure_node.style().unpolish(self.ui.frame_top_configure_node)
+        self.ui.frame_top_configure_node.style().polish(self.ui.frame_top_configure_node)
 
         # Auto Connect HIPRFISR
         self.hiprfisr_serial_connected = False
@@ -490,7 +504,6 @@ class Dashboard(QtWidgets.QMainWindow):
 
         # Initialize Tabs
         if self.backend.library != None:
-            TopBarSlots.sensor_node_rightClick(self, -1)
             self.__init_Tactical__()
             self.__init_TSI__()
             self.__init_PD__()
@@ -574,6 +587,14 @@ class Dashboard(QtWidgets.QMainWindow):
 
         # Initialize Clear Toolbutton
         self.__init_tactical_clear_menu__()
+
+        # Initialize selected Tactical node frame state
+        self.ui.frame5_tactical1.setToolTip(
+            "Select a Tactical node pin or ecosystem row first."
+        )
+        self.ui.frame5_tactical1.setProperty("pressed", False)
+        self.ui.frame5_tactical1.setProperty("active", False)
+        self.ui.frame5_tactical1.setEnabled(False)
 
 
     def __init_tactical_clear_menu__(self):
@@ -1482,12 +1503,9 @@ class Dashboard(QtWidgets.QMainWindow):
         """
         Needed to shut down Server with async function in StatusBarSlots when closing the Dashboard.
         """
-        # Shut Down Local Sensor Node
-        for n in range(1,6):
-            if (self.backend.settings["sensor_node" + str(n)]["local_remote"].lower() == "local") and (self.backend.sensor_node_connected[n-1] == True):
-                await self.backend.disconnect_local_sensor_node(n-1)
-                break
-        
+        # Shut down local sensor node launched from new top-bar workflow
+        await self.stop_new_local_sensor_node_process()
+       
         # Shut Down Local HIPRFISR, Disconnect from Remote HIPRFISR
         if self.backend.settings["auto_connect_hiprfisr"] == True:
             await StatusBarSlots.shutdown_hiprfisr(self)
@@ -1512,121 +1530,179 @@ class Dashboard(QtWidgets.QMainWindow):
         self.close()
 
 
-    def configureTSI_Hardware(self, node_number):
+    async def stop_new_local_sensor_node_process(self):
         """
-        Configures TSI after new sensor node selection.
+        Stop the local sensor node process launched from the new top-bar workflow.
         """
-        # TSI Hardware Comboboxes
-        node_number = node_number
+        proc = getattr(self, "local_sensor_node_process", None)
+
+        if proc is None:
+            return
+
+        if proc.poll() is not None:
+            self.local_sensor_node_process = None
+            return
+
+        self.logger.info("Stopping new local sensor node process...")
+
+        try:
+            os.killpg(proc.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+        except Exception as e:
+            self.logger.warning(f"Failed to terminate local sensor node process group: {e}")
+            proc.terminate()
+
+        try:
+            proc.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            self.logger.warning("Local sensor node did not stop cleanly. Killing it.")
+
+            try:
+                os.killpg(proc.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            except Exception as e:
+                self.logger.warning(f"Failed to kill local sensor node process group: {e}")
+                proc.kill()
+
+            proc.wait(timeout=3)
+
+        self.local_sensor_node_process = None
+
+
+    def configureTSI_Hardware(self):
+        """
+        Configures TSI after new selected sensor node selection.
+        """
         self.ui.comboBox_tsi_detector_sweep_hardware.clear()
         self.ui.comboBox_tsi_detector_fixed_hardware.clear()
         self.ui.comboBox_tsi_conditioner_settings_isolation_hardware.clear()
-        if node_number >= 0:
-            get_sensor_node_hardware = []
-            get_sensor_node = ["sensor_node1", "sensor_node2", "sensor_node3", "sensor_node4", "sensor_node5"]
-            for n in range(0, len(self.backend.settings[get_sensor_node[node_number]]["tsi"])):
-                get_type = self.backend.settings[get_sensor_node[node_number]]["tsi"][n][0]
-                get_hardware_name = fissure.utils.hardware.hardwareDisplayName(self, get_type, get_sensor_node[node_number], "tsi", n)
-                get_sensor_node_hardware.append(get_hardware_name)
-            self.ui.comboBox_tsi_detector_sweep_hardware.addItems(get_sensor_node_hardware)
-            self.ui.comboBox_tsi_detector_fixed_hardware.addItems(get_sensor_node_hardware)
-            self.ui.comboBox_tsi_conditioner_settings_isolation_hardware.addItems(get_sensor_node_hardware)
 
-            # Refresh Detector Advanced Settings
-            TSITabSlots._slotTSI_DetectorChanged(self)
+        if not self.selected_node_uid:
+            return
+
+        get_sensor_node_hardware = (
+            fissure.utils.hardware.selectedNodeHardwareDisplayNames(
+                self,
+                "tsi",
+            )
+        )
+
+        self.ui.comboBox_tsi_detector_sweep_hardware.addItems(get_sensor_node_hardware)
+        self.ui.comboBox_tsi_detector_fixed_hardware.addItems(get_sensor_node_hardware)
+        self.ui.comboBox_tsi_conditioner_settings_isolation_hardware.addItems(get_sensor_node_hardware)
+
+        # Refresh Detector Advanced Settings
+        TSITabSlots._slotTSI_DetectorChanged(self)
 
 
-    def configurePD_Hardware(self, node_number):
+    def configurePD_Hardware(self):
         """
-        Configures PD after new sensor node selection.
+        Configures PD after new selected sensor node selection.
         """
-        # PD Demod Hardware Combobox
-        node_number = node_number
         self.ui.comboBox_pd_demod_hardware.clear()
-        if node_number >= 0:
-            get_sensor_node_hardware = []
-            get_sensor_node = ["sensor_node1", "sensor_node2", "sensor_node3", "sensor_node4", "sensor_node5"]
-            for n in range(0, len(self.backend.settings[get_sensor_node[node_number]]["pd"])):
-                get_type = self.backend.settings[get_sensor_node[node_number]]["pd"][n][0]
-                get_hardware_name = fissure.utils.hardware.hardwareDisplayName(self, get_type, get_sensor_node[node_number], "pd", n)
-                get_sensor_node_hardware.append(get_hardware_name)
-            self.ui.comboBox_pd_demod_hardware.addItems(get_sensor_node_hardware)
 
-            # self.ui.textEdit_pd_sniffer_interface.setPlainText(self.backend.settings['hardware_interface_pd'])
+        if not self.selected_node_uid:
+            return
+
+        get_sensor_node_hardware = (
+            fissure.utils.hardware.selectedNodeHardwareDisplayNames(
+                self,
+                "pd",
+            )
+        )
+
+        self.ui.comboBox_pd_demod_hardware.addItems(get_sensor_node_hardware)
 
 
-    def configureAttackHardware(self, node_number):
+    def configureAttackHardware(self):
         """
-        Configures Attack after new sensor node selection.
+        Configures Attack after new selected sensor node selection.
         """
-        # Attack Hardware Combobox
-        node_number = node_number
         self.ui.comboBox_attack_hardware.clear()
-        if node_number >= 0:
-            self.ui.comboBox_attack_hardware.addItem("Computer")
-            get_sensor_node_hardware = []
-            get_sensor_node = ["sensor_node1", "sensor_node2", "sensor_node3", "sensor_node4", "sensor_node5"]
-            for n in range(0, len(self.backend.settings[get_sensor_node[node_number]]["attack"])):
-                get_type = self.backend.settings[get_sensor_node[node_number]]["attack"][n][0]
-                get_hardware_name = fissure.utils.hardware.hardwareDisplayName(self, get_type, get_sensor_node[node_number], "attack", n)
-                get_sensor_node_hardware.append(get_hardware_name)
-            self.ui.comboBox_attack_hardware.addItems(get_sensor_node_hardware)
-            if len(get_sensor_node_hardware) > 0:
-                self.ui.comboBox_attack_hardware.setCurrentIndex(1)
+
+        if not self.selected_node_uid:
+            return
+
+        get_sensor_node_hardware = (
+            fissure.utils.hardware.selectedNodeHardwareDisplayNames(
+                self,
+                "attack",
+                include_computer=True,
+            )
+        )
+
+        self.ui.comboBox_attack_hardware.addItems(get_sensor_node_hardware)
+
+        # Prefer first actual hardware item after Computer when available.
+        if len(get_sensor_node_hardware) > 1:
+            self.ui.comboBox_attack_hardware.setCurrentIndex(1)
 
 
-    def configureIQ_Hardware(self, node_number):
+    def configureIQ_Hardware(self):
         """
-        Configures IQ after new sensor node selection.
+        Configures IQ after new selected sensor node selection.
         """
-        # TSI Hardware Comboboxes
-        node_number = node_number
         self.ui.comboBox_iq_record_hardware.clear()
         self.ui.comboBox_iq_playback_hardware.clear()
         self.ui.comboBox_iq_inspection_hardware.clear()
-        if node_number >= 0:
-            get_sensor_node_hardware = []
-            get_sensor_node = ["sensor_node1", "sensor_node2", "sensor_node3", "sensor_node4", "sensor_node5"]
-            for n in range(0, len(self.backend.settings[get_sensor_node[node_number]]["archive"])):
-                get_type = self.backend.settings[get_sensor_node[node_number]]["archive"][n][0]
-                get_hardware_name = fissure.utils.hardware.hardwareDisplayName(self, get_type, get_sensor_node[node_number], "archive", n)
-                get_sensor_node_hardware.append(get_hardware_name)
-            self.ui.comboBox_iq_record_hardware.addItems(get_sensor_node_hardware)
-            self.ui.comboBox_iq_playback_hardware.addItems(get_sensor_node_hardware)
-            self.ui.comboBox_iq_inspection_hardware.addItems(get_sensor_node_hardware)
+
+        if not self.selected_node_uid:
+            return
+
+        get_sensor_node_hardware = (
+            fissure.utils.hardware.selectedNodeHardwareDisplayNames(
+                self,
+                "archive",
+            )
+        )
+
+        self.ui.comboBox_iq_record_hardware.addItems(get_sensor_node_hardware)
+        self.ui.comboBox_iq_playback_hardware.addItems(get_sensor_node_hardware)
+        self.ui.comboBox_iq_inspection_hardware.addItems(get_sensor_node_hardware)
 
 
-    def configureArchiveHardware(self, node_number):
+    def configureArchiveHardware(self):
         """
-        Configures Archive after new hardware selection.
+        Configures Archive after new selected sensor node selection.
         """
-        # Archive Hardware Combobox
-        node_number = node_number
         self.ui.comboBox_archive_replay_hardware.clear()
-        if node_number >= 0:
-            get_sensor_node_hardware = []
-            get_sensor_node = ["sensor_node1", "sensor_node2", "sensor_node3", "sensor_node4", "sensor_node5"]
-            for n in range(0, len(self.backend.settings[get_sensor_node[node_number]]["archive"])):
-                get_type = self.backend.settings[get_sensor_node[node_number]]["archive"][n][0]
-                get_hardware_name = fissure.utils.hardware.hardwareDisplayName(self, get_type, get_sensor_node[node_number], "archive", n)
-                get_sensor_node_hardware.append(get_hardware_name)
-            self.ui.comboBox_archive_replay_hardware.addItems(get_sensor_node_hardware)
+
+        if not self.selected_node_uid:
+            return
+
+        get_sensor_node_hardware = (
+            fissure.utils.hardware.selectedNodeHardwareDisplayNames(
+                self,
+                "archive",
+            )
+        )
+
+        self.ui.comboBox_archive_replay_hardware.addItems(get_sensor_node_hardware)
 
 
-    def configureSensorNodeHardware(self, node_number: int):
-        """Update Sensor Node Tab Based on Hardware
-
-        Parameters
-        ----------
-        node_number : int
-            Sensor node index
+    def configureSensorNodeHardware(self):
+        """
+        Update Sensor Node Tab Based on Hardware
         """
         # Do not retrieve plugins for Meshtastic
-        get_sensor_node = ['sensor_node1','sensor_node2','sensor_node3','sensor_node4','sensor_node5']
-        if self.backend.settings[get_sensor_node[node_number]]["network_type"] == "IP":
+        if selected_node_is_ip(self):
             pass
             # LibraryTabSlots._slotLibraryPluginPluginRefresh(self)  # async, make user press refresh for now
             # SensorNodesPluginsTabSlots._slotSensorNodesPluginsPluginsListRefresh(self)  # Future
+
+
+    def configureSelectedNodeHardware(self):
+        """
+        Refreshes hardware combo boxes across tabs from selected_node_settings.
+        """
+        self.configureTSI_Hardware()
+        self.configurePD_Hardware()
+        self.configureAttackHardware()
+        self.configureIQ_Hardware()
+        self.configureArchiveHardware()
+        self.configureSensorNodeHardware()
 
 
     def configureHighThroughputWidgets(self):
@@ -2014,28 +2090,38 @@ def connect_slots(dashboard: Dashboard):
 
 
 def connect_top_bar_slots(dashboard: Dashboard):
-    # Left Click Sensor Node Buttons
-    dashboard.ui.pushButton_top_node1.clicked.connect(lambda: TopBarSlots.sensor_node_leftClick(dashboard, node_idx=0))
-    dashboard.ui.pushButton_top_node2.clicked.connect(lambda: TopBarSlots.sensor_node_leftClick(dashboard, node_idx=1))
-    dashboard.ui.pushButton_top_node3.clicked.connect(lambda: TopBarSlots.sensor_node_leftClick(dashboard, node_idx=2))
-    dashboard.ui.pushButton_top_node4.clicked.connect(lambda: TopBarSlots.sensor_node_leftClick(dashboard, node_idx=3))
-    dashboard.ui.pushButton_top_node5.clicked.connect(lambda: TopBarSlots.sensor_node_leftClick(dashboard, node_idx=4))
-
-    # Right Click Sensor Node Buttons
-    dashboard.ui.pushButton_top_node1.customContextMenuRequested.connect(
-        lambda: TopBarSlots.sensor_node_rightClick(dashboard, node_idx=0)
+    dashboard.ui.frame_top_launch_local_node.mousePressEvent = (
+        lambda event: TopBarSlots._topFramePressed(dashboard.ui.frame_top_launch_local_node, event)
     )
-    dashboard.ui.pushButton_top_node2.customContextMenuRequested.connect(
-        lambda: TopBarSlots.sensor_node_rightClick(dashboard, node_idx=1)
+    dashboard.ui.frame_top_launch_local_node.mouseReleaseEvent = (
+        lambda event: TopBarSlots._topFrameReleased(
+            dashboard,
+            dashboard.ui.frame_top_launch_local_node,
+            event,
+            TopBarSlots._slotLaunchLocalNodeClicked,
+        )
     )
-    dashboard.ui.pushButton_top_node3.customContextMenuRequested.connect(
-        lambda: TopBarSlots.sensor_node_rightClick(dashboard, node_idx=2)
+    dashboard.ui.frame_top_select_sensor_node.mousePressEvent = (
+        lambda event: TopBarSlots._topFramePressed(dashboard.ui.frame_top_select_sensor_node, event)
     )
-    dashboard.ui.pushButton_top_node4.customContextMenuRequested.connect(
-        lambda: TopBarSlots.sensor_node_rightClick(dashboard, node_idx=3)
+    dashboard.ui.frame_top_select_sensor_node.mouseReleaseEvent = (
+        lambda event: TopBarSlots._topFrameReleased(
+            dashboard,
+            dashboard.ui.frame_top_select_sensor_node,
+            event,
+            TopBarSlots._slotSelectNodeClicked,
+        )
     )
-    dashboard.ui.pushButton_top_node5.customContextMenuRequested.connect(
-        lambda: TopBarSlots.sensor_node_rightClick(dashboard, node_idx=4)
+    dashboard.ui.frame_top_configure_node.mousePressEvent = (
+        lambda event: TopBarSlots._topFramePressed(dashboard.ui.frame_top_configure_node, event)
+    )
+    dashboard.ui.frame_top_configure_node.mouseReleaseEvent = (
+        lambda event: TopBarSlots._topFrameReleased(
+            dashboard,
+            dashboard.ui.frame_top_configure_node,
+            event,
+            TopBarSlots._slotConfigureNodeClicked,
+        )
     )
 
     # Demo Mode
@@ -2847,6 +2933,23 @@ def connect_tactical_slots(dashboard: Dashboard):
        lambda: TacticalTabSlots._slotTacticalNodeArtifactsRowSelectionChanged(dashboard)
     )
 
+    # Frame
+    dashboard.ui.frame5_tactical1.mousePressEvent = (
+        lambda event: TacticalTabSlots._clickableFramePressed(
+            dashboard.ui.frame5_tactical1,
+            event
+        )
+    )
+
+    dashboard.ui.frame5_tactical1.mouseReleaseEvent = (
+        lambda event: TacticalTabSlots._clickableFrameReleased(
+            dashboard,
+            dashboard.ui.frame5_tactical1,
+            event,
+            TacticalTabSlots._slotSetTacticalNodeActiveClicked,
+        )
+    )
+    
 
 def connect_tsi_slots(dashboard: Dashboard):
     # Check Box

@@ -59,7 +59,7 @@ MON_SUFFIX_DEFAULT = "mon"
 class OperationMain(Operation):
     def __init__(
         self,
-        sensor_node_id: Union[int, str] = 0,
+        node_uid: str = "",
         logger: logging.Logger = logging.getLogger(__name__),
         alert_callback: Union[Callable, None] = None,
         tak_cot_callback: Union[Callable, None] = None,
@@ -69,7 +69,7 @@ class OperationMain(Operation):
         parameters: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(
-            sensor_node_id=sensor_node_id,
+            node_uid=node_uid,
             logger=logger,
             alert_callback=alert_callback,
             tak_cot_callback=tak_cot_callback,
@@ -457,7 +457,7 @@ class OperationMain(Operation):
             "event_type": "detection",
             "detection_kind": "wifi_geolocate_target",
             "target_id": target_id,
-            "sensor_node_id": str(self.sensor_node_id),
+            "node_uid": str(self.node_uid),
             "frequency_hz": int(frequency_mhz * 1e6) if frequency_mhz is not None else None,
             "frequency_mhz": frequency_mhz,
             "power_dbm": float(rssi_dbm) if rssi_dbm is not None else None,

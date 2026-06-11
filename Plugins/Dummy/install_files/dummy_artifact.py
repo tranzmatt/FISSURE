@@ -31,7 +31,7 @@ class OperationMain(Operation):
         file_count: int = 3,
         file_size_kb: int = 64,
         description: str = "Create a dummy zip artifact",
-        sensor_node_id: Union[int, str] = 0,
+        node_uid: str = "",
         logger: logging.Logger = logging.getLogger(__name__),
         alert_callback: Union[Callable, None] = None,
         tak_cot_callback: Union[Callable, None] = None,
@@ -41,7 +41,7 @@ class OperationMain(Operation):
     ) -> None:
 
         super().__init__(
-            sensor_node_id=sensor_node_id,
+            node_uid=node_uid,
             logger=logger,
             alert_callback=alert_callback,
             tak_cot_callback=tak_cot_callback,
@@ -111,7 +111,7 @@ class OperationMain(Operation):
             with open(meta_path, "w", encoding="utf-8") as f:
                 json.dump(
                     {
-                        "sensor_node_id": self.sensor_node_id,
+                        "node_uid": self.node_uid,
                         "operation_id": operation_id,
                         "created_time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                         "note": "dummy artifact payload",
@@ -134,7 +134,7 @@ class OperationMain(Operation):
             metadata={
                 "role": "dummy_artifact_v1",
                 "operation_id": operation_id,
-                "sensor_node_id": self.sensor_node_id,
+                "node_uid": self.node_uid,
                 "file_count": file_count,
                 "file_size_kb": file_size_kb,
             },
@@ -156,7 +156,7 @@ class OperationMain(Operation):
                 }
                 await asyncio.wait_for(
                     self.alert_callback(
-                        self.sensor_node_id,
+                        self.node_uid,
                         self.opid,
                         json.dumps(payload),
                         self.logger,

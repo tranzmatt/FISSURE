@@ -7,6 +7,7 @@ import datetime
 import qasync
 import subprocess
 import os
+import asyncio
 
 
 @QtCore.pyqtSlot(QtCore.QObject)
@@ -163,6 +164,8 @@ def populate_tactical_node_details(dashboard: QtCore.QObject, node_uid):
     )
 
     update_tactical_node_stop_button_state(dashboard, node)
+
+    _updateTacticalNodeInfoFrameState(dashboard)
 
 
 def update_tactical_node_stop_button_state(dashboard: QtCore.QObject, node: dict):
@@ -876,21 +879,29 @@ def update_tactical_node_action_parameters(
 
         param_type = param.get("type", "string")
         default = str(param.get("default", ""))
-        options = param.get("options", [])
+        options = param.get("options", param.get("option", []))
 
         if options:
             widget = QtWidgets.QComboBox()
 
-            widget.addItems(options)
+            option_strings = [str(option) for option in options]
+            widget.addItems(option_strings)
 
-            if default in options:
+            if default in option_strings:
                 widget.setCurrentText(default)
+
 
         elif param_type == "number":
             widget = QtWidgets.QDoubleSpinBox()
 
-            widget.setDecimals(3)
-            widget.setMaximum(999999999)
+            decimals = int(param.get("decimals", 3))
+            minimum = float(param.get("min", -999999999.0))
+            maximum = float(param.get("max", 999999999.0))
+            step = float(param.get("step", 1.0))
+
+            widget.setDecimals(decimals)
+            widget.setRange(minimum, maximum)
+            widget.setSingleStep(step)
 
             try:
                 widget.setValue(float(default))
@@ -900,10 +911,15 @@ def update_tactical_node_action_parameters(
         elif param_type == "integer":
             widget = QtWidgets.QSpinBox()
 
-            widget.setMaximum(999999999)
+            minimum = int(param.get("min", -999999999))
+            maximum = int(param.get("max", 999999999))
+            step = int(param.get("step", 1))
+
+            widget.setRange(minimum, maximum)
+            widget.setSingleStep(step)
 
             try:
-                widget.setValue(int(default))
+                widget.setValue(int(float(default)))
             except Exception:
                 pass
 
@@ -1014,6 +1030,7 @@ def update_tactical_ecosystem_action_parameters(
 
     if description_text:
         description_label = QtWidgets.QLabel(description_text)
+
         description_label.setWordWrap(True)
 
         description_font = description_label.font()
@@ -1025,10 +1042,14 @@ def update_tactical_ecosystem_action_parameters(
     for param in parameters:
         param_name = param.get("name", "")
 
-        if not param_name or param_name == "description":
+        if not param_name:
+            continue
+
+        if param_name == "description":
             continue
 
         row_widget = QtWidgets.QWidget()
+
         row_layout = QtWidgets.QHBoxLayout(row_widget)
         row_layout.setContentsMargins(0, 0, 0, 0)
 
@@ -1041,19 +1062,28 @@ def update_tactical_ecosystem_action_parameters(
 
         param_type = param.get("type", "string")
         default = str(param.get("default", ""))
-        options = param.get("options", [])
+        options = param.get("options", param.get("option", []))
 
         if options:
             widget = QtWidgets.QComboBox()
-            widget.addItems(options)
 
-            if default in options:
+            option_strings = [str(option) for option in options]
+            widget.addItems(option_strings)
+
+            if default in option_strings:
                 widget.setCurrentText(default)
 
         elif param_type == "number":
             widget = QtWidgets.QDoubleSpinBox()
-            widget.setDecimals(3)
-            widget.setMaximum(999999999)
+
+            decimals = int(param.get("decimals", 3))
+            minimum = float(param.get("min", -999999999.0))
+            maximum = float(param.get("max", 999999999.0))
+            step = float(param.get("step", 1.0))
+
+            widget.setDecimals(decimals)
+            widget.setRange(minimum, maximum)
+            widget.setSingleStep(step)
 
             try:
                 widget.setValue(float(default))
@@ -1062,10 +1092,16 @@ def update_tactical_ecosystem_action_parameters(
 
         elif param_type == "integer":
             widget = QtWidgets.QSpinBox()
-            widget.setMaximum(999999999)
+
+            minimum = int(param.get("min", -999999999))
+            maximum = int(param.get("max", 999999999))
+            step = int(param.get("step", 1))
+
+            widget.setRange(minimum, maximum)
+            widget.setSingleStep(step)
 
             try:
-                widget.setValue(int(default))
+                widget.setValue(int(float(default)))
             except Exception:
                 pass
 
@@ -1075,6 +1111,7 @@ def update_tactical_ecosystem_action_parameters(
         widget.setObjectName(f"tactical_ecosystem_param_{param_name}")
 
         row_layout.addWidget(widget)
+
         layout.addWidget(row_widget)
 
         dashboard.tactical_ecosystem_action_parameter_widgets[param_name] = widget
@@ -1916,8 +1953,9 @@ def _slotTacticalTargetsRowSelectionChanged(dashboard: QtCore.QObject):
         str(target.get("updated", ""))
     )
 
+    print(target)
     dashboard.ui.label2_tactical_targets_node_id.setText(
-        str(target.get("sensor_node_id", ""))
+        str(target.get("node_uid", ""))
     )
 
     dashboard.ui.label2_tactical_targets_ssid.setText(
@@ -2614,7 +2652,7 @@ def update_tactical_node_soi_row(dashboard: QtCore.QObject, soi_record: dict):
 
     tooltip = (
         f"SOI ID: {soi_record.get('soi_id', '')}\n"
-        f"Node ID: {soi_record.get('sensor_node_id', '')}"
+        f"Node ID: {soi_record.get('node_uid', '')}"
     )
 
     for item in [frequency_item, status_item, time_item]:
@@ -2669,7 +2707,7 @@ def _slotTacticalNodeSoisRowSelectionChanged(dashboard: QtCore.QObject):
         str(soi.get("status", ""))
     )
     dashboard.ui.label2_tactical_node_soi_node_id.setText(
-        str(soi.get("sensor_node_id", ""))
+        str(soi.get("node_uid", ""))
     )
     dashboard.ui.label2_tactical_node_soi_soi_id.setText(
         str(soi.get("soi_id", ""))
@@ -3196,7 +3234,7 @@ async def _slotTacticalNodeSoiPromoteToTargetClicked(
 
     soi_id = soi.get("soi_id", "")
     frequency_mhz = soi.get("frequency_mhz")
-    sensor_node_id = soi.get("sensor_node_id", "")
+    node_uid = soi.get("node_uid", "")
     artifact_id = soi.get("artifact_id", "")
 
     display_label = (
@@ -3209,7 +3247,7 @@ async def _slotTacticalNodeSoiPromoteToTargetClicked(
 
     patch = {
         "target_id": target_id,
-        "sensor_node_id": sensor_node_id,
+        "node_uid": node_uid,
         "source_soi_id": soi_id,
         "frequency_mhz": frequency_mhz,
         "classification": {
@@ -3348,3 +3386,106 @@ def _slotTacticalEcosystemPluginChanged(dashboard: QtCore.QObject):
     :type dashboard: QtCore.QObject
     """
     clear_tactical_ecosystem_action_controls(dashboard)
+
+
+def _refresh_frame_style(frame):
+    frame.style().unpolish(frame)
+    frame.style().polish(frame)
+    frame.update()
+
+
+def _clickableFramePressed(frame: QtWidgets.QFrame, event: QtCore.QEvent):
+    if event.button() != QtCore.Qt.LeftButton:
+        return
+
+    if frame.property("clickable") != "true":
+        return
+
+    frame.setProperty("pressed", "true")
+    _refresh_frame_style(frame)
+
+
+def _clickableFrameReleased(dashboard, frame: QtWidgets.QFrame, event: QtCore.QEvent, callback):
+    if event.button() != QtCore.Qt.LeftButton:
+        return
+
+    frame.setProperty("pressed", "false")
+    _refresh_frame_style(frame)
+
+    if not frame.rect().contains(event.pos()):
+        return
+
+    if frame.property("clickable") != "true":
+        return
+
+    result = callback(dashboard)
+
+    if asyncio.iscoroutine(result):
+        asyncio.create_task(result)
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def _slotSetTacticalNodeActiveClicked(dashboard: QtCore.QObject):
+    """
+    Promote the currently selected Tactical node to the dashboard-selected sensor node.
+    """
+    node_uid = getattr(dashboard, "selected_tactical_node_uid", None)
+
+    if not node_uid:
+        dashboard.logger.warning("No Tactical node is selected.")
+        return
+
+    # Already active
+    if getattr(dashboard, "selected_node_uid", None) == node_uid:
+        dashboard.logger.debug("Tactical node is already the dashboard-selected node.")
+        return
+
+    dashboard.logger.info(f"Setting Tactical node as active selected node: {node_uid}")
+
+    try:
+        await dashboard.backend.nodeSelectIP(node_uid=node_uid)
+    except TypeError:
+        # Use this fallback if your backend wrapper expects the UUID positionally.
+        await dashboard.backend.nodeSelectIP(node_uid)
+    except Exception as e:
+        dashboard.logger.error(f"Failed to select Tactical node through HIPRFISR: {e}")
+        return
+
+
+def _updateTacticalNodeInfoFrameState(dashboard):
+    """
+    Updates the Tactical selected-node info frame state.
+
+    The frame contains node information whenever a Tactical node is selected,
+    but it is only clickable when:
+    - a Tactical node is selected
+    - that Tactical node is not already the dashboard-selected node
+    """
+    frame = dashboard.ui.frame5_tactical1
+
+    tactical_node_uid = getattr(dashboard, "selected_tactical_node_uid", None)
+    active_node_uid = getattr(dashboard, "selected_node_uid", None)
+
+    has_tactical_node = bool(tactical_node_uid)
+    is_active = has_tactical_node and tactical_node_uid == active_node_uid
+    is_clickable = has_tactical_node and not is_active
+
+    # Keep the frame enabled when it has node information so tooltip/hover can work.
+    frame.setEnabled(has_tactical_node)
+
+    # Use string values for Qt stylesheet dynamic properties.
+    frame.setProperty("active", "true" if is_active else "false")
+    frame.setProperty("clickable", "true" if is_clickable else "false")
+    frame.setProperty("pressed", "false")
+
+    if is_clickable:
+        frame.setCursor(QtCore.Qt.PointingHandCursor)
+        frame.setToolTip("Set this Tactical node as the dashboard-selected sensor node.")
+    elif is_active:
+        frame.unsetCursor()
+        frame.setToolTip("This is the dashboard-selected sensor node.")
+    else:
+        frame.unsetCursor()
+        frame.setToolTip("Select a Tactical node pin or ecosystem row first.")
+
+    _refresh_frame_style(frame)
