@@ -74,7 +74,7 @@ class HiprFisr:
     tak_connected: bool
 
 
-    def __init__(self, address: fissure.comms.Address):
+    def __init__(self, address: fissure.comms.Address, dashboard_expected=True):
         self.logger = fissure.utils.get_logger(fissure.comms.Identifiers.HIPRFISR)
         self.logger.info("=== INITIALIZING ===")
 
@@ -129,6 +129,7 @@ class HiprFisr:
 
         # Load settings from Fissure Config YAML
         self.settings = fissure.utils.get_fissure_config()
+        self.dashboard_expected = bool(dashboard_expected)
 
         # Update Logging Levels
         fissure.utils.update_logging_levels(
@@ -595,8 +596,8 @@ class HiprFisr:
             # Backend (PD/TSI)
             await self.read_backend_messages()
 
-            # Dashboard expected
-            if self.settings.get("auto_connect_hiprfisr", True):
+            # Dashboard expected only for normal Dashboard-launched operation
+            if self.settings.get("auto_connect_hiprfisr", True) and self.dashboard_expected:
                 if not self.dashboard_connected:
                     self.logger.warning("Dashboard lost during connect loop")
                     break
@@ -863,10 +864,9 @@ class HiprFisr:
             if self.dashboard_connected:
                 await self.dashboard_socket.send_heartbeat(heartbeat)
             else:
-                if self.settings.get("auto_connect_hiprfisr", True):
+                if self.settings.get("auto_connect_hiprfisr", True) and self.dashboard_expected:
+                    print(self.dashboard_expected)
                     self.logger.error("[HIPRFISR][HB] Dashboard not connected.")
-                else:
-                    pass
 
             # -------------------------------------------------------------
             # PD / TSI HEARTBEAT

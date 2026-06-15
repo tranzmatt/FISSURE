@@ -1,7 +1,3 @@
-SOI_quantity_limit: 5
-SOI_trigger_mode: 0
-SOI_trigger_time: 0
-SOI_trigger_timeout: 10
 auto_connect_hiprfisr: true
 buffer_size_interval: 2
 callsign_prefix: FTN
@@ -94,7 +90,6 @@ tak:
   webadmin_cert: /home/user/Installed_by_FISSURE/takserver-docker-5.3-RELEASE-24/tak/certs/files/webadmin.p12
   node_idle_icon: 'a-f-G-E'
   node_busy_icon: 'a-f-G-E-X-M-C'
-target_SOI: 0
 tsi_hiprfisr_dealer_port: 5052
 tsi_pub_port: 5059
 tsi_pub_port_classification: 5065

@@ -24,7 +24,10 @@ async def main():
     else:
         server_address = fissure.comms.Address(protocol="ipc", address="fissure")
 
-    hiprfisr = fissure.Server.HiprFisr.HiprFisr(server_address)
+    hiprfisr = fissure.Server.HiprFisr.HiprFisr(
+        server_address,
+        dashboard_expected=not args.remote,
+    )
     pd = fissure.Server.ProtocolDiscovery.ProtocolDiscovery()
     tsi = fissure.Server.TargetSignalIdentification.TargetSignalIdentification()
 

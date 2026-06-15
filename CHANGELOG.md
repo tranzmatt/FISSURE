@@ -1,6 +1,26 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2026-6-12
+
+Alert map controls and cleaning legacy workflows.
+
+### Added
+
+- Added Tactical tab alert plotting, plot-and-zoom, map removal, row deletion, and alert table clearing controls.
+
+### Changed
+
+- Cleaned up duplicate icon assets after migrating application icons to `UI/Icons`.
+- Moved sensor node configuration presets from `fissure/Sensor_Node/Sensor_Node_Config` to `YAML/Sensor_Node_Config`.
+- Removed unused legacy sensor node settings recall callback after consolidating settings return behavior under node selection.
+- Removed obsolete SOI automation callbacks and related default configuration options.
+
+### Fixed
+
+- Prevented Tactical tab alerts from auto-plotting when received as non-pin CoT events.
+- Allowed the `fissure-hiprfisr` command to launch the remote headless hub without requiring Dashboard auto-connect settings to be disabled.
+
 ## 2026-6-10
 
 Node selection rework, selected-node configuration, Tactical tab integration, and hardware settings cleanup.

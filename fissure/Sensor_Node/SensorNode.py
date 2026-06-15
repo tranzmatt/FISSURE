@@ -202,7 +202,7 @@ class SensorNode(object):
         
 
         self.os_info = fissure.utils.get_os_info()
-        filename = os.path.join(fissure.utils.SENSOR_NODE_DIR, "Sensor_Node_Config", "default.yaml")
+        filename = os.path.join(fissure.utils.YAML_DIR, "Sensor_Node_Config", "default.yaml")
         with open(filename) as yaml_library_file:
             self.settings_dict = yaml.load(yaml_library_file, yaml.FullLoader)
 

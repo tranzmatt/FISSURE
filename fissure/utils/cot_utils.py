@@ -324,7 +324,8 @@ def cot_to_tactical_alert_record(cot_message):
 
     return {
         "uid": uid,
-        "type": cot_message.get("alert_kind") or cot_message.get("cot_type") or "",
+        "type": cot_message.get("alert_kind") or "",
+        "cot_type": cot_message.get("cot_type") or "",
         "time": cot_message.get("time") or "",
         "summary": cot_message.get("alert_summary") or "",
         "callsign": cot_message.get("callsign") or uid,
@@ -556,7 +557,10 @@ def handle_tactical_alert_message(dashboard, cot_message):
     lon = alert_record.get("lon")
     label = alert_record.get("type") or alert_record.get("callsign") or uid
 
-    if lat is not None and lon is not None:
+    cot_type = alert_record.get("cot_type") or ""
+    auto_plot = str(cot_type).startswith("a-h-G-E-S")
+
+    if auto_plot and lat is not None and lon is not None:
         frontend.tactical_map.add_alert(
             alert_id=uid,
             lat=lat,

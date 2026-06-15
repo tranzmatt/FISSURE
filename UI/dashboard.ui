@@ -3045,7 +3045,7 @@
          <x>-1</x>
          <y>605</y>
          <width>304</width>
-         <height>200</height>
+         <height>135</height>
         </rect>
        </property>
        <property name="editTriggers">
@@ -3576,6 +3576,111 @@
          <string>Clear Rows</string>
         </property>
        </widget>
+      </widget>
+      <widget class="QPushButton" name="pushButton_tactical_ecosystem_alerts_remove_from_map">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>205</x>
+         <y>775</y>
+         <width>90</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Remove</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_tactical_ecosystem_alerts_plot_zoom">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>100</x>
+         <y>775</y>
+         <width>100</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Plot + Zoom</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_tactical_ecosystem_alerts_plot">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>5</x>
+         <y>775</y>
+         <width>90</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Plot</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_tactical_ecosystem_alerts_delete_row">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>5</x>
+         <y>745</y>
+         <width>90</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Delete Row</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_tactical_ecosystem_alerts_clear_rows">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>100</x>
+         <y>745</y>
+         <width>90</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Clear Rows</string>
+       </property>
       </widget>
      </widget>
     </widget>

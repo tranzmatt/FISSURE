@@ -34,4 +34,4 @@ Logs/CoT_Logs/
 .venv
 env.py
 artifacts*
-#mobac-profile.xml
+mobac-profile.xml

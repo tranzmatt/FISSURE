@@ -794,27 +794,6 @@ async def terminateSensorNode(component: object):
     # Let task termination and socket shutdown fall naturally through the checks at the end of begin()
 
 
-async def recallSettings(component: object):
-    """
-    Recall default settings from a local yaml file and send to HIPRFISR.
-    """
-    # Recall Default Settings Saved Locally
-    component.logger.info("Recall Settings")
-
-    filename = os.path.join(fissure.utils.SENSOR_NODE_DIR, "Sensor_Node_Config", "default.yaml")
-    with open(filename) as yaml_library_file:
-        settings_dict = yaml.load(yaml_library_file, yaml.FullLoader)
-
-    # Send the Message
-    PARAMETERS = {"settings_dict": settings_dict}
-    msg = {
-        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
-        fissure.comms.MessageFields.MESSAGE_NAME: "recallSettingsReturn",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-    }
-    await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
-
-
 async def nodeSelectIP(component: object):
     """
     Return current in-memory sensor node settings to HIPRFISR.

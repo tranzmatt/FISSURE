@@ -933,17 +933,6 @@ async def bufferSizeReturn(component: object, buffer_size=0):
     component.frontend.ui.progressBar_bit_slicing_buffer.setValue(int(buffer_size))
 
 
-async def SOI_Chosen(component: object, returned_soi=[]):
-    """ 
-    The HIPRFISR returned a SOI to target. This checks the radio button of the chosen SOI. This does nothing.
-    """
-    target_SOI = target_SOI.replace("(","")
-    target_SOI = target_SOI.replace(")","")
-    target_SOI = target_SOI.replace("'","")
-    target_SOI = target_SOI.replace(" ","")
-    target_SOI_label = ""
-
-
 async def demodFG_LibrarySearchReturn(component: object, flow_graphs=[]):
     """ 
     Updates the list of recommended flow graphs in the "Flow Graph" tab.

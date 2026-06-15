@@ -3489,3 +3489,228 @@ def _updateTacticalNodeInfoFrameState(dashboard):
         frame.setToolTip("Select a Tactical node pin or ecosystem row first.")
 
     _refresh_frame_style(frame)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def get_selected_tactical_ecosystem_alert(dashboard: QtCore.QObject):
+    table = dashboard.ui.tableWidget_tactical_ecosystem_alerts
+
+    row = table.currentRow()
+    if row < 0:
+        return None
+
+    item = table.item(row, 0)
+    if item is None:
+        return None
+
+    alert_uid = item.data(QtCore.Qt.UserRole) or item.text()
+    if not alert_uid:
+        return None
+
+    return dashboard.tactical_alerts.get(alert_uid)
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotTacticalEcosystemAlertsPlotClicked(dashboard: QtCore.QObject):
+    alert = get_selected_tactical_ecosystem_alert(dashboard)
+    if not alert:
+        return
+
+    plot_tactical_ecosystem_alert(dashboard, alert, zoom=False)
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotTacticalEcosystemAlertsPlotZoomClicked(dashboard: QtCore.QObject):
+    alert = get_selected_tactical_ecosystem_alert(dashboard)
+    if not alert:
+        return
+
+    plot_tactical_ecosystem_alert(dashboard, alert, zoom=True)
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotTacticalEcosystemAlertsRemoveClicked(dashboard: QtCore.QObject):
+    alert = get_selected_tactical_ecosystem_alert(dashboard)
+    if not alert:
+        return
+
+    uid = alert.get("uid") or alert.get("alert_id")
+    if uid:
+        dashboard.tactical_map.remove_alert_pin(uid)
+
+
+def plot_tactical_ecosystem_alert(
+    dashboard: QtCore.QObject,
+    alert: dict,
+    zoom=False,
+):
+    uid = alert.get("uid") or alert.get("alert_id")
+    lat = alert.get("lat")
+    lon = alert.get("lon")
+
+    if not uid or lat is None or lon is None:
+        return
+
+    label = (
+        alert.get("alert_text")
+        or alert.get("message")
+        or alert.get("summary")
+        or alert.get("type")
+        or uid
+    )
+
+    dashboard.tactical_map.add_alert(
+        alert_id=uid,
+        lat=lat,
+        lon=lon,
+        label=label,
+    )
+
+    if zoom:
+        dashboard.tactical_map.center_on_latlon(lat, lon)
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotTacticalEcosystemAlertsDeleteRowClicked(
+    dashboard: QtCore.QObject,
+):
+    table = dashboard.ui.tableWidget_tactical_ecosystem_alerts
+
+    row = table.currentRow()
+    if row < 0:
+        return
+
+    item = table.item(row, 0)
+    if item is None:
+        return
+
+    uid = item.data(QtCore.Qt.UserRole) or item.text()
+
+    if uid:
+        dashboard.tactical_alerts.pop(uid, None)
+
+        # Remove plotted pin only if present
+        dashboard.tactical_map.remove_alert_pin(uid)
+
+    table.removeRow(row)
+
+    if table.rowCount() == 0:
+        clear_tactical_ecosystem_alert_details(dashboard)
+    else:
+        next_row = min(row, table.rowCount() - 1)
+
+        table.selectRow(next_row)
+        table.setCurrentCell(next_row, 0)
+
+    update_tactical_ecosystem_alert_buttons(dashboard)
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotTacticalEcosystemAlertsClearRowsClicked(
+    dashboard: QtCore.QObject,
+):
+    dashboard.tactical_alerts.clear()
+
+    dashboard.tactical_map.clear_alert_records()
+
+    dashboard.ui.tableWidget_tactical_ecosystem_alerts.setRowCount(0)
+
+    clear_tactical_ecosystem_alert_details(dashboard)
+
+    update_tactical_ecosystem_alert_buttons(dashboard)
+
+
+@QtCore.pyqtSlot(QtCore.QObject, QtWidgets.QTableWidgetItem)
+def _slotTacticalEcosystemAlertsDoubleClicked(dashboard, item):
+    if item is None:
+        return
+
+    row = item.row()
+    uid_item = dashboard.ui.tableWidget_tactical_ecosystem_alerts.item(row, 0)
+    if uid_item is None:
+        return
+
+    alert_uid = uid_item.data(QtCore.Qt.UserRole) or uid_item.text()
+    if not alert_uid:
+        return
+
+    alert = dashboard.tactical_alerts.get(alert_uid)
+    if not alert:
+        return
+
+    plot_tactical_ecosystem_alert(
+        dashboard,
+        alert,
+        zoom=True,
+    )
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotTacticalEcosystemAlertsRowSelectionChanged(dashboard: QtCore.QObject):
+    alert = get_selected_tactical_ecosystem_alert(dashboard)
+
+    if not alert:
+        clear_tactical_ecosystem_alert_details(dashboard)
+        update_tactical_ecosystem_alert_buttons(dashboard)
+        return
+
+    uid = alert.get("uid") or alert.get("alert_id")
+    dashboard.selected_tactical_alert_id = uid
+
+    # If you later add alert detail labels, populate them here.
+
+    update_tactical_ecosystem_alert_buttons(dashboard)
+
+
+def clear_tactical_ecosystem_alert_details(dashboard: QtCore.QObject):
+    dashboard.selected_tactical_alert_id = None
+
+    # Add label clearing here if you later create alert detail labels.
+    # Example:
+    # dashboard.ui.label2_tactical_ecosystem_alerts_uid.setText("")
+
+    update_tactical_ecosystem_alert_buttons(dashboard)
+
+
+def update_tactical_ecosystem_alert_buttons(dashboard: QtCore.QObject):
+    table = dashboard.ui.tableWidget_tactical_ecosystem_alerts
+    alert = get_selected_tactical_ecosystem_alert(dashboard)
+
+    has_rows = table.rowCount() > 0
+    has_selection = alert is not None
+
+    has_location = False
+    if alert:
+        lat = alert.get("lat")
+        lon = alert.get("lon")
+
+        if lat not in [None, "", "None"] and lon not in [None, "", "None"]:
+            try:
+                float(lat)
+                float(lon)
+                has_location = True
+            except Exception:
+                has_location = False
+
+    dashboard.ui.pushButton_tactical_ecosystem_alerts_plot.setEnabled(has_location)
+    dashboard.ui.pushButton_tactical_ecosystem_alerts_plot_zoom.setEnabled(has_location)
+    dashboard.ui.pushButton_tactical_ecosystem_alerts_remove_from_map.setEnabled(has_location)
+
+    dashboard.ui.pushButton_tactical_ecosystem_alerts_delete_row.setEnabled(has_selection)
+    dashboard.ui.pushButton_tactical_ecosystem_alerts_clear_rows.setEnabled(has_rows)

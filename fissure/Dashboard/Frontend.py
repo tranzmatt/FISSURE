@@ -2894,6 +2894,21 @@ def connect_tactical_slots(dashboard: Dashboard):
     dashboard.ui.pushButton_tactical_targets_geolocate.clicked.connect(
         lambda: TacticalTabSlots._slotTacticalTargetsGeolocateClicked(dashboard)
     )
+    dashboard.ui.pushButton_tactical_ecosystem_alerts_plot.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemAlertsPlotClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_ecosystem_alerts_plot_zoom.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemAlertsPlotZoomClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_ecosystem_alerts_remove_from_map.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemAlertsRemoveClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_ecosystem_alerts_clear_rows.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemAlertsClearRowsClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_ecosystem_alerts_delete_row.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemAlertsDeleteRowClicked(dashboard)
+    )
 
     # Table Widget
     dashboard.ui.tableWidget_tactical_ecosystem.itemSelectionChanged.connect(
@@ -2931,6 +2946,12 @@ def connect_tactical_slots(dashboard: Dashboard):
     )
     dashboard.ui.tableWidget_tactical_node_artifacts.itemSelectionChanged.connect(
        lambda: TacticalTabSlots._slotTacticalNodeArtifactsRowSelectionChanged(dashboard)
+    )
+    dashboard.ui.tableWidget_tactical_ecosystem_alerts.itemSelectionChanged.connect(
+        lambda: TacticalTabSlots._slotTacticalEcosystemAlertsRowSelectionChanged(dashboard)
+    )
+    dashboard.ui.tableWidget_tactical_ecosystem_alerts.itemDoubleClicked.connect(
+        lambda item: TacticalTabSlots._slotTacticalEcosystemAlertsDoubleClicked(dashboard, item)
     )
 
     # Frame
