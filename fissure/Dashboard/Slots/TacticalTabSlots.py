@@ -3470,12 +3470,16 @@ def _updateTacticalNodeInfoFrameState(dashboard):
     is_active = has_tactical_node and tactical_node_uid == active_node_uid
     is_clickable = has_tactical_node and not is_active
 
+    node_state = getattr(dashboard, "node_states", {}).get(tactical_node_uid, {})
+    is_connected = bool(node_state.get("connected", True))
+
     # Keep the frame enabled when it has node information so tooltip/hover can work.
     frame.setEnabled(has_tactical_node)
 
     # Use string values for Qt stylesheet dynamic properties.
     frame.setProperty("active", "true" if is_active else "false")
     frame.setProperty("clickable", "true" if is_clickable else "false")
+    frame.setProperty("connected", "true" if is_connected else "false")
     frame.setProperty("pressed", "false")
 
     if is_clickable:

@@ -6,7 +6,6 @@ Sensor Node:
      file_logging_level: 'DEBUG'
      gps:
           gps_autostart: true
-          gps_tak_beacon: true            # Beacons to HIPRFISR, forwards to TAK
           gps_position:                    # Default starting position
                latitude: 40.7580   
                longitude: -73.9855
@@ -56,7 +55,7 @@ Sensor Node:
      ############################################
 
      heartbeat_interval: 5
-     heartbeat_interval_connected: 60
+     heartbeat_interval_connected: 20
      hb_port: "6100"
      hiprfisr_ip_address: '127.0.0.1'  # HIPRFISR IP address the node connects to, '127.0.0.1' for local
      local_remote: remote                   # Does not need to be set, updated during init, "remote" or "local"

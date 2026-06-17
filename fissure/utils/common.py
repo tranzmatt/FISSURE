@@ -486,6 +486,48 @@ def isFloat(x):
     return True
 
 
+def safe_float(value, default=None):
+    """
+    Convert a value to float without raising.
+
+    Useful for message payloads where values may be None, empty strings,
+    numeric strings, or already numeric.
+    """
+    if value is None:
+        return default
+
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def safe_bool(value, default=False):
+    """
+    Convert common bool-like payload values to bool without treating every
+    non-empty string as True.
+    """
+    if value is None:
+        return default
+
+    if isinstance(value, bool):
+        return value
+
+    if isinstance(value, (int, float)):
+        return bool(value)
+
+    if isinstance(value, str):
+        value = value.strip().lower()
+
+        if value in {"true", "1", "yes", "y", "on", "enabled"}:
+            return True
+
+        if value in {"false", "0", "no", "n", "off", "disabled"}:
+            return False
+
+    return default
+
+
 def updateCRC(crc_poly, crc_acc, crc_input, crc_length):
     """
     Calculates CRC for bytes. Used in multiple tabs. Move this function somewhere else?

@@ -971,8 +971,9 @@ class HiprFisr:
     async def recv_sensor_node_heartbeats(self):
         """
         Reads heartbeats from Sensor Nodes via the heartbeat channel.
-        Updates metadata in self.nodes just like a hello would,
-        but WITHOUT notifying the dashboard or assigning slots.
+
+        Heartbeat is the authoritative liveness path. For IP nodes, it may
+        also carry cached node status and cached GPS state.
         """
         hbs = await self.sensor_node_router.recv_heartbeats()
         if not hbs:
@@ -987,7 +988,7 @@ class HiprFisr:
         for hb in hbs:
             sn_time = float(hb.get(fissure.comms.MessageFields.TIME))
             sn_int = hb.get(fissure.comms.MessageFields.INTERVAL, 5)
-            sn_uuid = hb.get(fissure.comms.MessageFields.IDENTIFIER)  # UUID is the real node key
+            sn_uuid = hb.get(fissure.comms.MessageFields.IDENTIFIER)
 
             params = hb.get(fissure.comms.MessageFields.PARAMETERS, {}) or {}
 
@@ -1007,6 +1008,21 @@ class HiprFisr:
             sn_id_zmq = hb.get(fissure.comms.MessageFields.SENDER_ID)
             sn_assigned_id = -1  # For Meshtastic handshake
 
+            # Optional unified node state from heartbeat.
+            # These are cached values from the Sensor Node; heartbeat receive
+            # should never block on GPS lookup.
+            sn_state = {
+                "status": params.get("status"),
+                "version": params.get("version"),
+                "gps_source": params.get("gps_source"),
+                "gps_valid": fissure.utils.common.safe_bool(params.get("gps_valid"), default=False),
+                "gps_time": params.get("gps_time"),
+                "gps_stale": fissure.utils.common.safe_bool(params.get("gps_stale"), default=False),
+                "lat": fissure.utils.common.safe_float(params.get("lat")),
+                "lon": fissure.utils.common.safe_float(params.get("lon")),
+                "alt": fissure.utils.common.safe_float(params.get("alt"), default=0.0),
+            }
+
             await self.node_heartbeat_updates(
                 sn_time,
                 sn_int,
@@ -1017,6 +1033,7 @@ class HiprFisr:
                 sn_nettype,
                 sn_id_zmq,
                 sn_assigned_id,
+                sn_state,
             )
 
 
@@ -1031,10 +1048,13 @@ class HiprFisr:
         sn_nettype,
         sn_id_zmq,
         sn_assigned_id: int,
+        sn_state: dict = None,
     ):
         """
         Updates HIPRFISR's sensor node registry from heartbeat data.
         """
+        sn_state = sn_state or {}
+
         # Validate input variables
         if not sn_uuid:
             self.logger.error("Heartbeat missing UUID — ignoring.")
@@ -1057,6 +1077,7 @@ class HiprFisr:
         # HANDLE ASSIGNED ID LOGIC
         # ---------------------------------------------------------
         final_assigned_id = None
+        send_handshake = False
 
         if sn_nettype == "IP":
             # IP nodes do not participate in the short-ID scheme
@@ -1104,6 +1125,31 @@ class HiprFisr:
 
                     self.assigned_id_counter = max(self.assigned_id_counter, final_assigned_id + 1)
                     send_handshake = False
+        
+        # ---------------------------------------------------------
+        # NORMALIZE OPTIONAL NODE STATE FROM HEARTBEAT
+        # ---------------------------------------------------------
+        incoming_status = sn_state.get("status")
+        if incoming_status is not None:
+            incoming_status = str(incoming_status).strip()
+            if not incoming_status:
+                incoming_status = None
+
+        incoming_version = sn_state.get("version")
+        if incoming_version is not None:
+            incoming_version = str(incoming_version).strip()
+
+        incoming_gps_source = sn_state.get("gps_source")
+        if incoming_gps_source is not None:
+            incoming_gps_source = str(incoming_gps_source).strip()
+
+        incoming_lat = sn_state.get("lat")
+        incoming_lon = sn_state.get("lon")
+        incoming_alt = sn_state.get("alt")
+
+        incoming_gps_valid = bool(sn_state.get("gps_valid", False))
+        incoming_gps_stale = bool(sn_state.get("gps_stale", False))
+        incoming_gps_time = sn_state.get("gps_time")
 
         # ---------------------------------------------------------
         # CREATE OR UPDATE NODE ENTRY
@@ -1129,7 +1175,20 @@ class HiprFisr:
                 "interval": sn_int,
                 "connected": True,
                 "assigned_id": final_assigned_id,
-                "status": "unknown",
+
+                # Unified node state from heartbeat.
+                "status": incoming_status or "unknown",
+                "version": incoming_version or "",
+                "gps_source": incoming_gps_source or "",
+                "gps_valid": incoming_gps_valid,
+                "gps_stale": incoming_gps_stale,
+                "gps_time": incoming_gps_time,
+
+                # Position is independent from liveness. A node can be alive
+                # without a valid GPS fix.
+                "lat": incoming_lat,
+                "lon": incoming_lon,
+                "alt": incoming_alt if incoming_alt is not None else 0.0,
             }
             self.nodes[sn_uuid] = node
 
@@ -1151,7 +1210,34 @@ class HiprFisr:
             node["interval"] = sn_int
             node["connected"] = True
             node["assigned_id"] = final_assigned_id
-            # node["status"] = "unknown"  # If status ever goes in heartbeat, place status here
+
+            # Unified node state from heartbeat.
+            # Only overwrite optional string fields when the heartbeat provides them.
+            if incoming_status is not None:
+                node["status"] = incoming_status
+
+            if incoming_version is not None:
+                node["version"] = incoming_version
+
+            if incoming_gps_source is not None:
+                node["gps_source"] = incoming_gps_source
+
+            node["gps_valid"] = incoming_gps_valid
+            node["gps_stale"] = incoming_gps_stale
+
+            if incoming_gps_time is not None:
+                node["gps_time"] = incoming_gps_time
+
+            # Only update position when heartbeat provides coordinates.
+            # This avoids erasing a prior valid position if a later heartbeat omits GPS fields.
+            if incoming_lat is not None:
+                node["lat"] = incoming_lat
+
+            if incoming_lon is not None:
+                node["lon"] = incoming_lon
+
+            if incoming_alt is not None:
+                node["alt"] = incoming_alt
 
         # ---------------------------------------------------------
         # SEND HANDSHAKE MESSAGE IF NEEDED (Meshtastic only)
@@ -1168,6 +1254,175 @@ class HiprFisr:
 
             await self.meshtastic_node.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
             # print(f"Handshake sent → assigned_id={final_assigned_id}")
+
+        # ---------------------------------------------------------
+        # SEND NORMALIZED NODE STATE TO DASHBOARD
+        # ---------------------------------------------------------
+        await self.send_node_state_update_to_dashboard(sn_uuid)
+
+        # ---------------------------------------------------------
+        # PUBLISH NODE TRACK COT FROM NORMALIZED HEARTBEAT STATE
+        # ---------------------------------------------------------
+        if sn_nettype == "IP":
+            await self.publish_node_track_from_state(sn_uuid)
+
+
+    async def send_node_state_update_to_dashboard(self, node_uid: str):
+        """
+        Send the latest normalized node registry record to the Dashboard.
+
+        This is intentionally separate from CoT/TAK publication. Heartbeat
+        receipt should update Dashboard node state immediately, even if a
+        later CoT/TAK sender suppresses duplicate map tracks.
+        """
+        if not self.dashboard_connected:
+            return
+
+        node = self.nodes.get(node_uid)
+        if not node:
+            return
+
+        # Avoid sending ROUTER identity bytes or internal/private publish state
+        # directly to the Dashboard.
+        public_node = {
+            "uuid": node.get("uuid", node_uid),
+            "callsign": node.get("callsign"),
+            "ip": node.get("ip"),
+            "node_ip_address": node.get("node_ip_address"),
+            "hiprfisr_ip_address": node.get("hiprfisr_ip_address"),
+            "network_type": node.get("network_type"),
+            "nickname": node.get("nickname"),
+            "last_seen": node.get("last_seen"),
+            "interval": node.get("interval"),
+            "connected": node.get("connected", False),
+            "assigned_id": node.get("assigned_id"),
+
+            # Unified node state from heartbeat.
+            "status": node.get("status", "unknown"),
+            "version": node.get("version", ""),
+            "gps_source": node.get("gps_source", ""),
+            "gps_valid": node.get("gps_valid", False),
+            "gps_stale": node.get("gps_stale", False),
+            "gps_time": node.get("gps_time"),
+            "lat": node.get("lat"),
+            "lon": node.get("lon"),
+            "alt": node.get("alt"),
+        }
+
+        PARAMETERS = {
+            "node_uid": node_uid,
+            "node": public_node,
+        }
+
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: self.identifier,
+            fissure.comms.MessageFields.MESSAGE_NAME: "nodeStateUpdate",
+            fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+        }
+
+        await self.dashboard_socket.send_msg(
+            fissure.comms.MessageTypes.COMMANDS,
+            msg
+        )
+
+
+    async def send_node_state_remove_to_dashboard(self, node_uid: str):
+        """
+        Tell Dashboard that a node was explicitly removed from HIPRFISR.
+
+        This is different from disconnected/stale. Removed means the node
+        should be deleted from Dashboard-side node caches/placeholders.
+        """
+        if not self.dashboard_connected:
+            return
+
+        PARAMETERS = {
+            "node_uid": node_uid,
+        }
+
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: self.identifier,
+            fissure.comms.MessageFields.MESSAGE_NAME: "nodeStateRemove",
+            fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+        }
+
+        await self.dashboard_socket.send_msg(
+            fissure.comms.MessageTypes.COMMANDS,
+            msg
+        )
+        
+
+    async def publish_node_track_from_state(self, node_uid: str):
+        """
+        Publish a node CoT track from the normalized HIPRFISR node state.
+
+        This is intentionally sender-side behavior. The heartbeat capture path
+        has already updated self.nodes[node_uid] and Dashboard nodeStateUpdate.
+        """
+        node = self.nodes.get(node_uid)
+        if not node:
+            return
+
+        # IP-first for this refactor. Leave Meshtastic on the existing path.
+        if node.get("network_type") != "IP":
+            return
+
+        lat = node.get("lat")
+        lon = node.get("lon")
+        alt = node.get("alt", 0.0)
+
+        if not fissure.utils.common.is_valid_lat_lon(lat, lon):
+            self.logger.debug(
+                f"Skipping node CoT publish for {node_uid}: invalid lat/lon "
+                f"lat={lat}, lon={lon}"
+            )
+            return
+
+        status = str(node.get("status") or "unknown")
+        status_lc = status.lower()
+        version = str(node.get("version") or "")
+
+        if status_lc in {"idle", "unknown", "disconnected"}:
+            tak_icon = self.settings["tak"]["node_idle_icon"]
+        else:
+            tak_icon = self.settings["tak"]["node_busy_icon"]
+
+        # Match TAK stale time to the node-reported heartbeat interval.
+        # This avoids hardcoding 30/60 seconds and keeps the node config authoritative.
+        try:
+            interval = float(node.get("interval"))
+        except (TypeError, ValueError):
+            interval = float(self.settings.get("heartbeat_interval", 5))
+
+        if interval <= 0:
+            interval = float(self.settings.get("heartbeat_interval", 5))
+
+        try:
+            failure_multiple = float(self.settings.get("failure_multiple", 3))
+        except (TypeError, ValueError):
+            failure_multiple = 3.0
+
+        stale_seconds = int(max(30.0, interval * failure_multiple + interval))
+
+        payload = {
+            "msg_type": "track",
+            "uid": node_uid,
+            "lat": float(lat),
+            "lon": float(lon),
+            "alt": float(alt or 0.0),
+            "time": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+            "remarks": "HEARTBEAT UPDATE",
+            "node_uid": node_uid,
+            "opid": "heartbeat_state",
+            "status": status,
+            "version": version,
+            "tak_icon": tak_icon,
+            "stale": stale_seconds,
+        }
+
+        node["tak_icon"] = tak_icon
+
+        await fissure.utils.tak_messages.send(self, payload)
 
 
     async def check_heartbeats(self):
@@ -1255,40 +1510,49 @@ class HiprFisr:
                     await self.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
                 self.tsi_connected = True
 
-        # -----------------------------------------------------------------
-        # Sensor Node checks
-        # -----------------------------------------------------------------
-        # for uuid, node in list(self.nodes.items()):
-        #     # Do not track Meshtastic nodes (heartbeat intervals can vary among nodes)
-        #     if node["network_type"] == "Meshtastic":
-        #         continue
+        # ---------------------------------------------------------
+        # SENSOR NODE CHECKS
+        # ---------------------------------------------------------
+        sensor_nodes = getattr(self, "nodes", {}) or {}
 
-            # # Calculate
-            # last_seen = node["last_seen"]
-            # interval = node.get("interval", global_interval)
-            # cutoff = current_time - (interval * failure_multiple)
+        for node_uid, node in sensor_nodes.items():
+            # IP-first for this refactor. Leave Meshtastic behavior alone here.
+            if node.get("network_type") != "IP":
+                continue
 
-            # # Node has gone silent → disconnected  # TODO
-            # if node["connected"] and last_seen < cutoff:
-            #     node["connected"] = False
+            last_seen = node.get("last_seen")
+            if last_seen is None:
+                continue
 
-            #     # Find which dashboard slot (0–4) this UUID is assigned to
-            #     try:
-            #         dashboard_index = self.dashboard_node_map.index(uuid)
-            #     except ValueError:
-            #         dashboard_index = None
+            try:
+                last_seen = float(last_seen)
+            except (TypeError, ValueError):
+                continue
 
-            #     # If the dashboard is showing this node, notify it
-            #     if dashboard_index is not None and self.dashboard_connected:
-            #         msg = {
-            #             fissure.comms.MessageFields.IDENTIFIER: self.identifier,
-            #             fissure.comms.MessageFields.MESSAGE_NAME: "componentDisconnected",
-            #             fissure.comms.MessageFields.PARAMETERS: str(dashboard_index),
-            #         }
-            #         await self.dashboard_socket.send_msg(
-            #             fissure.comms.MessageTypes.COMMANDS,
-            #             msg
-            #         )
+            # Use the interval reported by the node. Fall back to the global
+            # heartbeat interval only if the node has not reported one.
+            try:
+                node_interval = float(node.get("interval"))
+            except (TypeError, ValueError):
+                node_interval = float(self.settings.get("heartbeat_interval", 5))
+
+            if node_interval <= 0:
+                node_interval = float(self.settings.get("heartbeat_interval", 5))
+
+            failure_multiple = float(self.settings.get("failure_multiple", 3))
+            cutoff = current_time - (node_interval * failure_multiple)
+
+            if node.get("connected", False) and last_seen < cutoff:
+                node["connected"] = False
+                node["status"] = "Disconnected"
+
+                self.logger.warning(
+                    f"Sensor node disconnected: {node_uid} "
+                    f"last_seen={fissure.utils.get_timestamp(last_seen)} "
+                    f"interval={node_interval}"
+                )
+
+                await self.send_node_state_update_to_dashboard(node_uid)
 
 
     def resolve_uuid_from_assigned_id(self, assigned_id: int):
@@ -1604,7 +1868,7 @@ class HiprFisr:
 
         except Exception as e:
             self.logger.error(f"Failed to write CoT log: {e}")
-
+    
 
 if __name__ == "__main__":
     rc = 0

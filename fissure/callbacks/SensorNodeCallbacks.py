@@ -1454,25 +1454,27 @@ async def findGPS_Coordinates(component: object, gps_source="", format=""):
 
 async def gpsBeaconEnableDisableIP(component: object):
     """
-    Toggles the state of the GPS TAK beacon.
-    """
-    # Toggle
-    if component.gps_tak_beacon == True:
-        component.gps_tak_beacon = False
-        component.logger.info("GPS TAK beacon disabled.")
-    else:
-        component.gps_tak_beacon = True
-        component.logger.info("GPS TAK beacon enabled.")
+    Deprecated compatibility callback.
 
-    # Send Confirmation
+    Node GPS/status publication is no longer controlled by a per-node
+    gps_tak_beacon flag. TAK output is controlled by HIPRFISR TAK settings.
+    """
+    component.logger.info(
+        "gpsBeaconEnableDisableIP is deprecated. "
+        "Node position/status updates are always published to HIPRFISR."
+    )
+
     PARAMETERS = {
-        "gps_tak_beacon_status": component.gps_tak_beacon
+        # Keep the old return key so existing Dashboard code does not break.
+        "gps_tak_beacon_status": True
     }
+
     msg = {
         fissure.comms.MessageFields.IDENTIFIER: component.identifier,
         fissure.comms.MessageFields.MESSAGE_NAME: "gpsBeaconEnableDisableIP_Return",
         fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
     }
+
     await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 

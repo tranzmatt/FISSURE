@@ -763,6 +763,35 @@ QFrame#frame_top_configure_node[selected="true"][pressed="true"] {
     );
 }
 
+/* Node Selected - Disconnected */
+
+QFrame#frame_top_configure_node[selected="true"][connected="false"] {
+    border: 1px solid rgb(190,70,70);
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 rgb(90,45,45),
+        stop:1 rgb(65,30,30)
+    );
+}
+
+QFrame#frame_top_configure_node[selected="true"][connected="false"]:hover {
+    border: 1px solid rgb(220,90,90);
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 rgb(110,55,55),
+        stop:1 rgb(80,35,35)
+    );
+}
+
+QFrame#frame_top_configure_node[selected="true"][connected="false"][pressed="true"] {
+    border: 1px solid rgb(150,45,45);
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 rgb(70,25,25),
+        stop:1 rgb(55,20,20)
+    );
+}
+
 QLabel#label_top_configure_node_title {
     color: @color12;
     font: bold 10pt "Ubuntu";
@@ -786,6 +815,15 @@ QLabel#label_top_configure_node_subtitle_not_connected {
     color: @color13;
     font: 8pt "Ubuntu";
     background: transparent;
+}
+
+QFrame#frame_top_configure_node[selected="true"][connected="false"] QLabel#label_top_configure_node_title {
+    color: rgb(255,235,235);
+}
+
+QFrame#frame_top_configure_node[selected="true"][connected="false"] QLabel#label_top_configure_node_subtitle,
+QFrame#frame_top_configure_node[selected="true"][connected="false"] QLabel#label_top_configure_node_subtitle2 {
+    color: rgb(245,215,215);
 }
 
 
@@ -826,6 +864,16 @@ QFrame#frame5_tactical1[active="true"] {
         stop:0.08 #304130,
         stop:0.50 #293a29,
         stop:1 #223322
+    );
+}
+
+QFrame#frame5_tactical1[active="true"][connected="false"] {
+    border: 1px solid rgb(220,90,90);
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 rgb(95,45,45),
+        stop:0.50 rgb(75,32,32),
+        stop:1 rgb(55,22,22)
     );
 }
 

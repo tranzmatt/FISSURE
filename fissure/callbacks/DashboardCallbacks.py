@@ -52,6 +52,7 @@ from fissure.Dashboard.UI_Components.Qt5 import (
 )
 
 from fissure.utils import cot_utils
+from fissure.utils.selected_node_utils import set_selected_node_connection_state
 
 
 async def flowGraphFinished(component: object, category=""):
@@ -249,7 +250,9 @@ async def recallSettingsReturn(component: object, node_uuid: str, node_ip_addres
 
     frame = component.frontend.ui.frame_top_configure_node
 
-    frame.setProperty("selected", True)
+    frame.setProperty("selected", "true")
+    frame.setProperty("connected", "true")
+    frame.setProperty("pressed", "false")
     frame.style().unpolish(frame)
     frame.style().polish(frame)
 
@@ -2031,3 +2034,152 @@ async def dashboardCoT_Message(component: object, raw_xml:str):
         return
 
     fissure.utils.cot_utils.handle_tactical_cot_message(component, cot_message)
+
+
+async def nodeStateUpdate(component: object, node_uid="", node={}):
+    """
+    Store the latest normalized node state from HIPRFISR.
+
+    Also updates the selected-node top card when the selected node times out
+    or reconnects.
+    """
+    if not node_uid:
+        return
+
+    if node is None:
+        node = {}
+
+    frontend = component.frontend
+
+    if not hasattr(frontend, "node_states"):
+        frontend.node_states = {}
+
+    frontend.node_states[node_uid] = node
+
+    if getattr(frontend, "selected_node_uid", None) == node_uid:
+        connected = bool(node.get("connected", False))
+
+        frontend.selected_node_ip = (
+            node.get("node_ip_address")
+            or node.get("ip")
+            or frontend.selected_node_ip
+        )
+
+        set_selected_node_connection_state(
+            frontend,
+            connected=connected,
+            node=node,
+        )
+
+        if hasattr(frontend, "selected_tactical_node_uid"):
+            TacticalTabSlots._updateTacticalNodeInfoFrameState(frontend)
+
+    component.logger.debug(
+        f"nodeStateUpdate: {node_uid} "
+        f"connected={node.get('connected')} "
+        f"last_seen={node.get('last_seen')} "
+        f"status={node.get('status')}"
+    )
+
+
+async def nodeStateRemove(component: object, node_uid=""):
+    """
+    Remove a node from Dashboard-side normalized node state and Tactical UI.
+
+    This is Dashboard-only cleanup for explicit node removal. It does not
+    publish anything to TAK/WinTAK.
+    """
+    if not node_uid:
+        return
+
+    frontend = component.frontend
+
+    # ---------------------------------------------------------
+    # Normalized node state cache
+    # ---------------------------------------------------------
+    if hasattr(frontend, "node_states"):
+        frontend.node_states.pop(node_uid, None)
+
+    # ---------------------------------------------------------
+    # Tactical node record cache
+    # ---------------------------------------------------------
+    if hasattr(frontend, "tactical_nodes"):
+        frontend.tactical_nodes.pop(node_uid, None)
+
+    # ---------------------------------------------------------
+    # Tactical map pin/record
+    # ---------------------------------------------------------
+    if hasattr(frontend, "tactical_map"):
+        try:
+            frontend.tactical_map.remove_node(node_uid)
+        except Exception as e:
+            component.logger.error(
+                f"Failed to remove Tactical node from map for {node_uid}: {e}"
+            )
+
+    # ---------------------------------------------------------
+    # Tactical ecosystem roster row
+    # ---------------------------------------------------------
+    table = getattr(frontend.ui, "tableWidget_tactical_ecosystem", None)
+
+    if table is not None:
+        for row in range(table.rowCount() - 1, -1, -1):
+            found = False
+
+            for col in range(table.columnCount()):
+                item = table.item(row, col)
+
+                if item and item.data(QtCore.Qt.UserRole) == node_uid:
+                    found = True
+                    break
+
+            if found:
+                table.removeRow(row)
+                break
+
+        table.resizeColumnsToContents()
+        table.resizeRowsToContents()
+        table.horizontalHeader().setStretchLastSection(False)
+        table.horizontalHeader().setStretchLastSection(True)
+
+    # ---------------------------------------------------------
+    # Tactical selections
+    # ---------------------------------------------------------
+    if getattr(frontend, "selected_tactical_node_uid", None) == node_uid:
+        frontend.selected_tactical_node_uid = None
+
+        # Clear node detail panel fields.
+        frontend.ui.label2_tactical_node_callsign.setText("")
+        frontend.ui.label2_tactical_node_uuid.setText("")
+        frontend.ui.label2_node_tactical_status.setText("")
+
+        # Clear node action controls/details.
+        TacticalTabSlots.clear_tactical_node_targets(frontend)
+        TacticalTabSlots.clear_tactical_detection_details(frontend)
+        TacticalTabSlots.clear_tactical_node_soi_details(frontend)
+        TacticalTabSlots.clear_tactical_node_artifact_details(frontend)
+        TacticalTabSlots.clear_tactical_node_plugin_controls(frontend)
+
+    if hasattr(frontend, "selected_tactical_node_uids"):
+        frontend.selected_tactical_node_uids = [
+            uid for uid in frontend.selected_tactical_node_uids
+            if uid != node_uid
+        ]
+
+    # Recompute ecosystem selected-node labels/buttons after row removal.
+    try:
+        TacticalTabSlots.update_selected_tactical_nodes(frontend)
+    except Exception as e:
+        component.logger.debug(
+            f"Could not refresh Tactical selected-node state after removal: {e}"
+        )
+
+    # Refresh selected Tactical node info frame state.
+    try:
+        TacticalTabSlots._updateTacticalNodeInfoFrameState(frontend)
+    except Exception as e:
+        component.logger.debug(
+            f"Could not refresh Tactical node info frame after removal: {e}"
+        )
+
+    component.logger.debug(f"nodeStateRemove: {node_uid}")

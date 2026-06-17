@@ -2041,6 +2041,8 @@ async def removeNode(component, node_uid):
     """
     component.nodes.pop(node_uid, None)
 
+    await component.send_node_state_remove_to_dashboard(node_uid)
+
 
 async def nodeSelectIP(component: object, node_uuid):
     """ Sends a message to the node to retrurn its settings upon Dashboard connection.

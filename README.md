@@ -113,7 +113,7 @@ For organizations requiring a supported and integrated tactical RF capability, F
 
 FISSURE’s roadmap evolves with customer demand and community feedback.
 
-For the most up-to-date view, explore the interactive roadmap:
+For the most up-to-date view, explore the interactive roadmap (updated every July):
 
 - [View Interactive Roadmap](https://ainfosec.github.io/FISSURE/Roadmap/)  
 
@@ -186,17 +186,17 @@ AIS has published several articles highlighting FISSURE’s applications, update
 
 ## Upcoming/Recent Events
 
-![Conference](https://img.shields.io/badge/Event-Conference-darkgray) **Sat. August 10, 2024**: DEF CON 32 - RF Village - 1400-1500 PST. [Prerecorded Video](https://www.youtube.com/watch?v=5nYiVR-PsOc), [Live Recording](https://www.youtube.com/watch?app=desktop&v=mhbJHOGrCik)
-
-![Career Fair](https://img.shields.io/badge/Event-Career%20Fair-darkgray) **Thu. September 5, 2024**: Binghamton University STEM Job and Internship Fair - 1100-1530 EST
-
-![Conference](https://img.shields.io/badge/Event-Conference-darkgray) **Tue. September 17, 2024**: GNU Radio Conference 2024 - 1605-1635 EST [Description/Slides](https://events.gnuradio.org/event/24/contributions/649/), [Live Recording](https://youtu.be/5UYhUi8SiK4?t=27282)
-
-![CTF](https://img.shields.io/badge/Event-CTF-purple) **January 20, 2025 (Runs Indefinitely)**: FISSURE Challenge. [Link](https://fissure.ainfosec.com/) (Now Live)
+![Exhibition](https://img.shields.io/badge/Event-Exhibition-darkgray) **May 5-8, 2025**: SOF Week - Assured Information Security, Inc. (AIS) booth
 
 ![Career Fair](https://img.shields.io/badge/Event-Career%20Fair-darkgray) **Thu. February 6, 2025**: Binghamton University Spring 2025 Job and Internship Fair - 1100-1500 EST
 
-![Exhibition](https://img.shields.io/badge/Event-Exhibition-darkgray) **May 5-8, 2025**: SOF Week - Assured Information Security, Inc. (AIS) booth
+![CTF](https://img.shields.io/badge/Event-CTF-purple) **January 20, 2025 (Runs Indefinitely)**: FISSURE Challenge. [Link](https://fissure.ainfosec.com/) (Now Live)
+
+![Conference](https://img.shields.io/badge/Event-Conference-darkgray) **Tue. September 17, 2024**: GNU Radio Conference 2024 - 1605-1635 EST [Description/Slides](https://events.gnuradio.org/event/24/contributions/649/), [Live Recording](https://youtu.be/5UYhUi8SiK4?t=27282)
+
+![Career Fair](https://img.shields.io/badge/Event-Career%20Fair-darkgray) **Thu. September 5, 2024**: Binghamton University STEM Job and Internship Fair - 1100-1530 EST
+
+![Conference](https://img.shields.io/badge/Event-Conference-darkgray) **Sat. August 10, 2024**: DEF CON 32 - RF Village - 1400-1500 PST. [Prerecorded Video](https://www.youtube.com/watch?v=5nYiVR-PsOc), [Live Recording](https://www.youtube.com/watch?app=desktop&v=mhbJHOGrCik)
 
 ## Documentation
 

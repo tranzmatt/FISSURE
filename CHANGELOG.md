@@ -1,6 +1,22 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2026-6-15
+
+Unify IP node heartbeat state and CoT publishing.
+
+### Changed
+
+- Unified IP sensor node position/status reporting under heartbeat-driven HIPRFISR node state updates.
+- Moved IP node CoT/TAK track publishing from Sensor Node GPS updates to HIPRFISR heartbeat state.
+- Updated selected-node Dashboard and Tactical indicators to show disconnected remote nodes.
+
+### Fixed
+
+- Prevented stale IP sensor node traffic from queueing while the hub is offline and flooding the hub after reconnect.
+- Removed stale local node Tactical pins and ecosystem rows when local nodes are stopped.
+- Prevented normal IP GPS updates from sending duplicate node track messages.
+
 ## 2026-6-12
 
 Alert map controls and cleaning legacy workflows.

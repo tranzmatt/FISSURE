@@ -178,8 +178,9 @@ def clearSelectedNode(dashboard: QtCore.QObject):
 
     # Update selected-node card styling
     frame = dashboard.ui.frame_top_configure_node
-    frame.setProperty("selected", False)
-    frame.setProperty("pressed", False)
+    frame.setProperty("selected", "false")
+    frame.setProperty("connected", "false")
+    frame.setProperty("pressed", "false")
     frame.style().unpolish(frame)
     frame.style().polish(frame)
     frame.update()

@@ -21,6 +21,12 @@ CLIENTS = "clients"
 
 POLL_TIMEOUT = 50
 
+ZMQ_IP_LINGER_MS = 0
+ZMQ_IP_SNDHWM = 10
+ZMQ_IP_RCVHWM = 100
+ZMQ_IP_SNDTIMEO_MS = 0
+ZMQ_IP_IMMEDIATE = 1
+
 
 class FissureZMQNode(ABC):
     """Fissure ZMQ Node Base Class"""
@@ -103,15 +109,26 @@ class FissureZMQNode(ABC):
         if self.terminated:
             self.logger.error(f"{self.name} send_heartbeat aborted because terminated=True")
             return
+
         try:
             if self.sock_type == zmq.ROUTER:
-                for id in target_ids:
+                for id in target_ids or []:
                     if id is not None:
                         encoded_id = id.encode()
                         encoded_msg = json.dumps(msg).encode()
-                        await self.heartbeat_channel.send_multipart([encoded_id, encoded_msg])
+                        await self.heartbeat_channel.send_multipart(
+                            [encoded_id, encoded_msg],
+                            flags=zmq.NOBLOCK
+                        )
             else:
-                await self.heartbeat_channel.send_json(msg)
+                await self.heartbeat_channel.send_json(msg, flags=zmq.NOBLOCK)
+
+        except zmq.Again:
+            # Expected when IMMEDIATE/SNDTIMEO/NOBLOCK prevent stale queueing.
+            # Do not terminate the socket; just drop this heartbeat.
+            self.logger.debug(f"{self.name} send_heartbeat dropped; send would block/no route")
+            return
+
         except Exception as e:
             self.logger.warning(f"{self.name} send_heartbeat error: {e}")
             self.terminated = True
@@ -130,16 +147,19 @@ class FissureZMQNode(ABC):
         """
         if self.terminated:
             return
-        
+
         try:
             msg[MessageFields.TYPE] = msg_type
 
             if self.sock_type == zmq.ROUTER:
-                for id in target_ids:
+                for id in target_ids or []:
                     if id is not None:
                         encoded_id = id.encode()
                         encoded_msg = json.dumps(msg).encode()
-                        await self.message_channel.send_multipart([encoded_id, encoded_msg])
+                        await self.message_channel.send_multipart(
+                            [encoded_id, encoded_msg],
+                            flags=zmq.NOBLOCK
+                        )
 
                         # Ignore Message Parameters in Logging
                         if msg_type == "Commands":
@@ -157,8 +177,8 @@ class FissureZMQNode(ABC):
                                     self.logger.info(f"[{self.name}] sent message: {log_message['MessageName']} to [{identifier_str}]")
                                 else:
                                     self.logger.info(f"[{self.name}] sent message: {log_message['MessageName']}")
-                            self.logger.debug(f"[{self.name}] sent message: {log_message}" + (f" to {target_ids}" if target_ids else ""))                       
-                        
+                            self.logger.debug(f"[{self.name}] sent message: {log_message}" + (f" to {target_ids}" if target_ids else ""))
+
                         # Other Types
                         else:
                             # Log Messages
@@ -170,8 +190,9 @@ class FissureZMQNode(ABC):
                                 else:
                                     self.logger.info(f"[{self.name}] sent message: {msg['MessageName']}")
                             self.logger.debug(f"[{self.name}] sent message: {msg}" + (f" to {target_ids}" if target_ids else ""))
+
             else:
-                await self.message_channel.send_json(msg)
+                await self.message_channel.send_json(msg, flags=zmq.NOBLOCK)
 
                 # Ignore Message Parameters in Logging
                 if msg_type == "Commands":
@@ -180,13 +201,22 @@ class FissureZMQNode(ABC):
                         log_message.pop("Parameters", None)
                     else:
                         log_message = msg
+
                     if self.logger.isEnabledFor(logging.INFO):
                         self.logger.info(f"[{self.name}] sent message: {msg['MessageName']}" + (f" to {target_ids}" if target_ids else ""))
                     self.logger.debug(f"[{self.name}] sent message: {log_message}" + (f" to {target_ids}" if target_ids else ""))
+
                 else:
                     if self.logger.isEnabledFor(logging.INFO):
                         self.logger.info(f"[{self.name}] sent message: {msg['MessageName']}" + (f" to {target_ids}" if target_ids else ""))
                     self.logger.debug(f"[{self.name}] sent message: {msg}" + (f" to {target_ids}" if target_ids else ""))
+
+        except zmq.Again:
+            # Expected when IMMEDIATE/SNDTIMEO/NOBLOCK prevent stale queueing.
+            # Do not terminate the socket; just drop this message.
+            self.logger.debug(f"{self.name} send_msg dropped; send would block/no route")
+            return
+
         except Exception as e:
             self.logger.warning(f"{self.name} send_msg error: {e}")
             self.terminated = True
@@ -563,10 +593,21 @@ class Listener(FissureZMQNode):
         self.heartbeat_channel.setsockopt_string(zmq.IDENTITY, identity)
         self.message_channel.setsockopt_string(zmq.IDENTITY, identity)
 
+    
+    def configure_transport_defaults(self):
+        for sock in (self.heartbeat_channel, self.message_channel):
+            sock.setsockopt(zmq.LINGER, ZMQ_IP_LINGER_MS)
+            sock.setsockopt(zmq.SNDHWM, ZMQ_IP_SNDHWM)
+            sock.setsockopt(zmq.RCVHWM, ZMQ_IP_RCVHWM)
+            sock.setsockopt(zmq.SNDTIMEO, ZMQ_IP_SNDTIMEO_MS)
+
+            if sock.getsockopt(zmq.TYPE) == zmq.DEALER:
+                sock.setsockopt(zmq.IMMEDIATE, ZMQ_IP_IMMEDIATE)
+
 
     async def connect(self, server_addr: Address, timeout: int = 5) -> bool:
         """
-        Initiate connection to the ZMQ Server
+        Initiate connection to the ZMQ Server.
 
         :param server_addr: Address Data of the server we're connecting to
         :type server_addr: fissure.comms.Address
@@ -575,8 +616,11 @@ class Listener(FissureZMQNode):
         :returns: result of the connection attempt
         :rtype: bool
         """
-        self.heartbeat_channel.setsockopt(zmq.LINGER, 1000)  # -1?
-        self.message_channel.setsockopt(zmq.LINGER, 1000)
+        # Apply transport defaults before connecting.
+        # This prevents DEALER sockets from silently building a large stale queue
+        # while the remote ROUTER is unavailable.
+        self.configure_transport_defaults()
+
         if self.heartbeat_channel.getsockopt(zmq.TYPE) == zmq.SUB:
             self.heartbeat_channel.setsockopt_string(zmq.SUBSCRIBE, "")  # pragma: no cover
 
@@ -586,14 +630,23 @@ class Listener(FissureZMQNode):
         self.heartbeat_channel.connect(server_addr.heartbeat_channel)
         self.message_channel.connect(server_addr.message_channel)
 
-        # Send/recv connect message to confirm success
+        self.connections.add(server_addr)
+        self.logger.debug(f"[{self.name}] connected to {server_addr}")
+
+        # Send initial status message. With ZMQ_IMMEDIATE + SNDTIMEO=0, this may fail
+        # if the hub is not currently reachable. That should not mark the socket as
+        # permanently terminated; the node can send again once the pipe exists.
         connect_msg = {
             MessageFields.IDENTIFIER: self.parent_component,
             MessageFields.MESSAGE_NAME: "Connected",
         }
-        await self.send_msg(MessageTypes.STATUS, connect_msg)
-        self.connections.add(server_addr)
-        self.logger.debug(f"[{self.name}] connected to {server_addr}")
+
+        try:
+            await self.send_msg(MessageTypes.STATUS, connect_msg)
+        except zmq.Again:
+            self.logger.debug(f"[{self.name}] initial Connected message dropped; no route to {server_addr}")
+        except Exception as e:
+            self.logger.debug(f"[{self.name}] initial Connected message not sent: {e}")
 
         return True
 

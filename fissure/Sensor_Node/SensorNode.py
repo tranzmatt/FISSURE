@@ -198,6 +198,7 @@ class SensorNode(object):
 
     def __init__(self, local_flag):
         # self.hiprfisr_connected = False
+        self.hiprfisr_seen = False
         self.local_remote = "local" if local_flag else "remote"
         
 
@@ -238,8 +239,8 @@ class SensorNode(object):
             fissure.comms.Identifiers.HIPRFISR: 0.0       # last time this node RECEIVED a HIPRFISR heartbeat
         }
 
-        self.heartbeat_interval = int(self.settings_dict['Sensor Node']['heartbeat_interval'])
-        self.heartbeat_interval_connected = int(self.settings_dict['Sensor Node']['heartbeat_interval_connected'])
+        self.heartbeat_interval = int(self.settings_dict["Sensor Node"].get("heartbeat_interval", 5))
+        self.heartbeat_interval_connected = int(self.settings_dict["Sensor Node"].get("heartbeat_interval_connected", 20))
         self.sensor_node_heartbeat_time = 0
         self.attack_flow_graph_loaded = False
         self.archive_flow_graph_loaded = False
@@ -283,18 +284,30 @@ class SensorNode(object):
         self.callbacks['stop_all_plugin_operations'] = self.stop_all_plugin_operations
         self.callbacks['plugin_action'] = self.plugin_action
 
-        self.gps_autostart = self.settings_dict['Sensor Node']['gps']['gps_autostart']
-        self.gps_tak_beacon = self.settings_dict['Sensor Node']['gps']['gps_tak_beacon']
-        self.gps_source = self.settings_dict['Sensor Node']['gps']['gps_source']
-        self.gps_update_interval_seconds = self.settings_dict['Sensor Node']['gps']['gps_update_interval_seconds']
+        gps_settings = self.settings_dict["Sensor Node"].get("gps", {})
+
+        self.gps_autostart = bool(gps_settings.get("gps_autostart", True))
+        self.gps_source = str(gps_settings.get("gps_source", "saved"))
+        self.gps_update_interval_seconds = int(gps_settings.get("gps_update_interval_seconds", 20))
 
         self.meshtastic_lock = asyncio.Lock()
 
-        self.gps_position = self.settings_dict['Sensor Node']['gps']['gps_position']
-        self.gps_position['latitude_ddm'], self.gps_position['longitude_ddm'] = \
+        # Cached node position state. The heartbeat reads this; it does not probe GPS.
+        self.gps_position = gps_settings.get("gps_position", {}) or {}
+        self.gps_position.setdefault("latitude", 0.0)
+        self.gps_position.setdefault("longitude", 0.0)
+        self.gps_position.setdefault("altitude", 0.0)
+
+        self.gps_position["latitude_ddm"], self.gps_position["longitude_ddm"] = \
             fissure.utils.common.decimal_to_ddm(
-                self.gps_position['latitude'], self.gps_position['longitude']
+                self.gps_position["latitude"],
+                self.gps_position["longitude"]
             )
+
+        # A saved/default position is usable as a fallback immediately.
+        self.gps_valid = True
+        self.gps_time = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        self.gps_stale = False
 
         self.operations = {} # operation tracking dictionary
 
@@ -1515,6 +1528,10 @@ class SensorNode(object):
             if msg_type != fissure.comms.MessageTypes.COMMANDS:
                 continue
 
+            # We have received at least one valid command from HIPRFISR.
+            # From this point on, use heartbeat_interval_connected for steady-state heartbeats.
+            self.hiprfisr_seen = True
+
             msg_name = parsed.get(fissure.comms.MessageFields.MESSAGE_NAME)
 
             # ------------------------------------------------------------
@@ -1554,10 +1571,9 @@ class SensorNode(object):
         """
         Sends a heartbeat to HIPRFISR.
 
-        Parameters
-        ----------
-        force : bool
-            If True, bypass heartbeat throttling. Intended for startup/local announce.
+        Heartbeat is the authoritative liveness signal. For IP nodes, it also
+        carries cached node status and cached GPS state when available. It does
+        not perform GPS probing.
         """
         if self.network_type != "IP" and self.network_type != "Meshtastic":
             return
@@ -1565,8 +1581,14 @@ class SensorNode(object):
         now = time.time()
         last = self.heartbeats["self"]
 
+        heartbeat_interval = (
+            self.heartbeat_interval_connected
+            if getattr(self, "hiprfisr_seen", False)
+            else self.heartbeat_interval
+        )
+
         # Throttle unless explicitly forced
-        if not force and (now - last) < self.heartbeat_interval:
+        if not force and (now - last) < heartbeat_interval:
             return
 
         # Get Sensor Node nickname
@@ -1581,17 +1603,30 @@ class SensorNode(object):
 
         # Build the message
         if self.network_type == "IP":
+            gps_position = getattr(self, "gps_position", {}) or {}
+
             hb = {
                 fissure.comms.MessageFields.IDENTIFIER: self.identifier,
                 fissure.comms.MessageFields.MESSAGE_NAME: fissure.comms.MessageFields.HEARTBEAT,
                 fissure.comms.MessageFields.TIME: now,
                 fissure.comms.MessageFields.IP: self.node_ip_address,
-                fissure.comms.MessageFields.INTERVAL: self.heartbeat_interval,
+                fissure.comms.MessageFields.INTERVAL: heartbeat_interval,
                 fissure.comms.MessageFields.PARAMETERS: {
                     "network_type": self.network_type,
                     "nickname": nickname,
                     "hiprfisr_ip_address": self.hiprfisr_ip_address,
                     "node_ip_address": self.node_ip_address,
+
+                    # Unified node state. HIPRFISR will consume these in the next step.
+                    "status": getattr(self, "current_status", "unknown"),
+                    "version": getattr(self, "version_string", ""),
+                    "gps_source": getattr(self, "gps_source", ""),
+                    "gps_valid": bool(getattr(self, "gps_valid", False)),
+                    "gps_time": getattr(self, "gps_time", None),
+                    "gps_stale": bool(getattr(self, "gps_stale", False)),
+                    "lat": gps_position.get("latitude"),
+                    "lon": gps_position.get("longitude"),
+                    "alt": gps_position.get("altitude"),
                 }
             }
 
@@ -1601,7 +1636,7 @@ class SensorNode(object):
             PARAMETERS = {
                 "msg": [
                     self.assigned_id,
-                    self.heartbeat_interval,
+                    heartbeat_interval,
                     nickname,
                     now,
                 ]
@@ -1625,9 +1660,8 @@ class SensorNode(object):
         """
         Local-only startup announce.
 
-        Sends a small burst of heartbeats and one immediate TAK/GPS-style track
-        so the local node appears in the Dashboard/Tactical UI without waiting
-        for the normal heartbeat/GPS intervals.
+        Sends a small burst of heartbeats so the local node appears in HIPRFISR
+        and Dashboard without waiting for the normal heartbeat interval.
         """
         if self.local_remote != "local":
             return
@@ -1635,7 +1669,6 @@ class SensorNode(object):
         if self.network_type != "IP":
             return
 
-        # A few forced heartbeats help with ZMQ startup timing / slow joiner behavior.
         for _ in range(3):
             try:
                 await self.send_heartbeat(force=True)
@@ -1643,26 +1676,6 @@ class SensorNode(object):
                 self.logger.debug("Local startup heartbeat failed.", exc_info=True)
 
             await asyncio.sleep(0.15)
-
-        # Push one immediate local position update if TAK beaconing is enabled.
-        # This avoids waiting for the GPS manager's first periodic update.
-        if self.gps_tak_beacon:
-            try:
-                await self.send_tak_cot({
-                    "msg_type": "track",
-                    "uid": self.identifier,
-                    "lat": self.gps_position.get("latitude", 0.0),
-                    "lon": self.gps_position.get("longitude", 0.0),
-                    "alt": self.gps_position.get("altitude", 0.0),
-                    "time": True,
-                    "remarks": "GPS UPDATE",
-                    "node_uid": self.identifier,
-                    "opid": "local_startup_beacon",
-                    "status": self.current_status,
-                    "version": self.version_string,
-                })
-            except Exception:
-                self.logger.debug("Local startup TAK/GPS announce failed.", exc_info=True)
 
 
     # async def check_heartbeats(self):
@@ -3773,96 +3786,106 @@ class SensorNode(object):
 
     async def gpsUpdate(self, gps_data):
         """
-        Callback function to save GPS updates from Meshtastic node.
+        Cache GPS updates.
+
+        IP nodes no longer send node track CoT/TAK directly from this function.
+        Heartbeat carries the cached GPS/status state to HIPRFISR, and HIPRFISR
+        publishes node CoT from its normalized node state.
+
+        Meshtastic is left on the existing direct TAK-return path for now.
         """
-        # Update Values, Keep old values if partially None
+        now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+        # ---------------------------------------------------------
+        # UPDATE LOCAL GPS CACHE
+        # ---------------------------------------------------------
         if gps_data:
-            for key in ['latitude', 'longitude', 'altitude']:
+            for key in ["latitude", "longitude", "altitude"]:
                 value = gps_data.get(key)
                 if value is not None:
                     self.gps_position[key] = value
-            
-            # Store DDM Values
-            self.gps_position['latitude_ddm'], self.gps_position['longitude_ddm'] = fissure.utils.common.decimal_to_ddm(self.gps_position['latitude'], self.gps_position['longitude'])
+
+            self.gps_position["latitude_ddm"], self.gps_position["longitude_ddm"] = \
+                fissure.utils.common.decimal_to_ddm(
+                    self.gps_position["latitude"],
+                    self.gps_position["longitude"]
+                )
+
+            self.gps_valid = True
+            self.gps_time = now_iso
+            self.gps_stale = False
+
             self.logger.info(f"Updating GPS position: {self.gps_position}")
 
-        # Failed GPS probe, stale value
         else:
-            # TODO: Add a flag for stale
-            self.logger.info(f"Failed to update GPS position. Keeping last position: {self.gps_position}")
+            # Failed GPS probe. Keep fallback/last-known position available,
+            # but mark it stale so HIPRFISR can report the distinction.
+            self.gps_valid = bool(
+                self.gps_position.get("latitude") is not None and
+                self.gps_position.get("longitude") is not None
+            )
+            self.gps_stale = True
 
-        # Beacon GPS Position to HIPFISR then TAK
-        if self.gps_tak_beacon == True:
-            if self.network_type == "IP":
-                PARAMETERS = {
-                    "payload": {
-                        "msg_type": "track",   # always a track update for GPS beacon
-                        "uid": self.identifier,
-                        "lat": self.gps_position.get("latitude", 0.0),
-                        "lon": self.gps_position.get("longitude", 0.0),
-                        "alt": self.gps_position.get("altitude", 0.0),
-                        "time": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-                        "remarks": "GPS UPDATE",
-                        "node_uid": "", #self.node_uid,
-                        "opid": "gps_beacon",      # helpful for debugging
-                        "status": self.current_status,
-                        "version": self.version_string,  
-                    }
-                }
+            if not getattr(self, "gps_time", None):
+                self.gps_time = now_iso
 
-                msg = {
-                    fissure.comms.MessageFields.IDENTIFIER: self.identifier,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "takReturn",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-                }
+            self.logger.info(
+                f"Failed to update GPS position. Keeping last position: {self.gps_position}"
+            )
 
-                await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+        # ---------------------------------------------------------
+        # IP: CACHE ONLY
+        # ---------------------------------------------------------
+        if self.network_type == "IP":
+            return
 
-            elif self.network_type == "Meshtastic":
-                PARAMETERS = {
-                    "msg": [
-                        "track",
-                        datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-                        self.uuid,
-                        self.gps_position.get("latitude", 0.0),
-                        self.gps_position.get("longitude", 0.0),
-                        None,
-                        self.current_status,
-                        self.version_string,  
-                    ]
-                }
-                msg = {
-                    fissure.comms.MessageFields.SOURCE: self.assigned_id,
-                    fissure.comms.MessageFields.DESTINATION: fissure.comms.Identifiers.HIPRFISR_LT,  # TODO: obtain HIPRFISR ID some other way
-                    fissure.comms.MessageFields.MESSAGE_NAME: "takReturnLT",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-                }
-                await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+        # ---------------------------------------------------------
+        # MESHTASTIC: KEEP EXISTING DIRECT PATH FOR NOW
+        # ---------------------------------------------------------
+        if self.network_type == "Meshtastic":
+            PARAMETERS = {
+                "msg": [
+                    "track",
+                    now_iso,
+                    self.uuid,
+                    self.gps_position.get("latitude", 0.0),
+                    self.gps_position.get("longitude", 0.0),
+                    None,
+                    self.current_status,
+                    self.version_string,
+                ]
+            }
+
+            msg = {
+                fissure.comms.MessageFields.SOURCE: self.assigned_id,
+                fissure.comms.MessageFields.DESTINATION: fissure.comms.Identifiers.HIPRFISR_LT,
+                fissure.comms.MessageFields.MESSAGE_NAME: "takReturnLT",
+                fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+            }
+
+            await self.hiprfisr_socket.send_msg(
+                fissure.comms.MessageTypes.COMMANDS,
+                msg
+            )
 
     
-    async def publish_status_to_hiprfisr(self, status: str = None) -> None:
+    async def publish_status_to_hiprfisr(self, status: str):
         """
-        Publish node status to HIPRFISR for UI + optional TAK forwarding.
+        Publish node status.
 
-        Payload is intentionally minimal:
-          - uid
-          - status
+        For IP nodes, status rides heartbeat. Force a heartbeat so status changes
+        are reported immediately instead of waiting for the next heartbeat period.
 
-        Does not touch tracks and does not require GPS.
+        Meshtastic keeps the previous GPS/TAK-return behavior for now.
         """
-        if status is not None:
-            self.current_status = status
+        self.current_status = status
 
-        if not getattr(self, "current_status", None):
-            # Optional: prevent empty status updates
-            self.current_status = "unknown"
-
-        # Only do this on IP nodes for now (LT later)
-        if getattr(self, "network_type", "") != "IP":
+        if self.network_type == "IP":
+            await self.send_heartbeat(force=True)
             return
-        
-        # Update status through GPS position update
-        await self.gpsUpdate(None)
+
+        if self.network_type == "Meshtastic":
+            await self.gpsUpdate(None)
 
 
     def get_local_ip_for_remote(self, remote_ip):

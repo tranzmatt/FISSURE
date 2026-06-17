@@ -140,3 +140,81 @@ def cycleSelectedNodeWifiInterfaceIntoTable(owner, table_widget, row, column):
     table_widget.setItem(row, column, table_item)
 
     owner.guess_index += 1
+
+
+def refresh_widget_style(widget):
+    widget.style().unpolish(widget)
+    widget.style().polish(widget)
+    widget.update()
+
+
+def get_selected_node_display_name(dashboard, node=None):
+    """
+    Resolve display name for the dashboard-selected node.
+    """
+    node = node or {}
+
+    settings = get_selected_node_settings(dashboard)
+
+    nickname = (
+        settings
+        .get("Sensor Node", {})
+        .get("nickname", "")
+    )
+
+    return (
+        nickname
+        or node.get("nickname")
+        or node.get("callsign")
+        or getattr(dashboard, "selected_node_uid", "")
+        or "Selected Node"
+    )
+
+
+def set_selected_node_connection_state(dashboard, connected: bool, node=None):
+    """
+    Update the selected-node top-card connection display.
+    """
+    node = node or {}
+
+    if not getattr(dashboard, "selected_node_uid", None):
+        return
+
+    display_name = get_selected_node_display_name(dashboard, node)
+
+    ip_text = (
+        node.get("node_ip_address")
+        or node.get("ip")
+        or getattr(dashboard, "selected_node_ip", "")
+        or ""
+    )
+
+    if ip_text == "ipc":
+        ip_text = "Local Process"
+
+    frame = dashboard.ui.frame_top_configure_node
+
+    frame.setProperty("selected", "true")
+    frame.setProperty("connected", "true" if connected else "false")
+    frame.setProperty("pressed", "false")
+
+    if connected:
+        dashboard.ui.label_top_configure_node_title.setText(
+            f"{display_name}  (Online)"
+        )
+        dashboard.ui.label_top_configure_node_subtitle.setText(str(ip_text))
+        dashboard.ui.label_top_configure_node_subtitle2.setText(
+            "Click to view and configure this node"
+        )
+        frame.setToolTip("Click to view and configure this node.")
+    else:
+        dashboard.ui.label_top_configure_node_title.setText(
+            f"{display_name}  (Disconnected)"
+        )
+        dashboard.ui.label_top_configure_node_subtitle.setText(str(ip_text))
+        dashboard.ui.label_top_configure_node_subtitle2.setText(
+            "Last heartbeat timed out"
+        )
+        frame.setToolTip("Selected sensor node is disconnected.")
+
+    refresh_widget_style(frame)

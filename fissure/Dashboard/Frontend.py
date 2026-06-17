@@ -168,11 +168,13 @@ class Dashboard(QtWidgets.QMainWindow):
         self.selected_node_uid = ""
         self.selected_node_ip = ""
         self.selected_node_settings = {}
+        self.node_states = {}  # Latest normalized node state received from HIPRFISR.
         self.ui.label_top_launch_local_node_image.setPixmap(QtGui.QPixmap(os.path.join(fissure.utils.UI_DIR, "Icons", "rocket_icon_64x48.png")))
         self.ui.label_top_select_sensor_node_image.setPixmap(QtGui.QPixmap(os.path.join(fissure.utils.UI_DIR, "Icons", "select_node.png")))
         self.ui.label_top_configure_node_image.setPixmap(QtGui.QPixmap(os.path.join(fissure.utils.UI_DIR, "Icons", "configure_node.png")))
-        self.ui.frame_top_configure_node.setProperty("selected", False)
-        self.ui.frame_top_configure_node.setProperty("pressed", False)
+        self.ui.frame_top_configure_node.setProperty("selected", "false")
+        self.ui.frame_top_configure_node.setProperty("connected", "false")
+        self.ui.frame_top_configure_node.setProperty("pressed", "false")
         self.ui.frame_top_configure_node.style().unpolish(self.ui.frame_top_configure_node)
         self.ui.frame_top_configure_node.style().polish(self.ui.frame_top_configure_node)
 
@@ -592,8 +594,10 @@ class Dashboard(QtWidgets.QMainWindow):
         self.ui.frame5_tactical1.setToolTip(
             "Select a Tactical node pin or ecosystem row first."
         )
-        self.ui.frame5_tactical1.setProperty("pressed", False)
-        self.ui.frame5_tactical1.setProperty("active", False)
+        self.ui.frame5_tactical1.setProperty("pressed", "false")
+        self.ui.frame5_tactical1.setProperty("active", "false")
+        self.ui.frame5_tactical1.setProperty("clickable", "false")
+        self.ui.frame5_tactical1.setProperty("connected", "true")
         self.ui.frame5_tactical1.setEnabled(False)
 
 
