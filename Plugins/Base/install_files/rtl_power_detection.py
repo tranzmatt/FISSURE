@@ -344,6 +344,7 @@ class OperationMain(Operation):
             ts = time.time()
             detection = {
                 "event_type": "detection",
+                "node_uid": self.node_uid,
                 "description": self.description,
                 "frequency_hz": int(freqs_mhz[0] * 1e6),
                 "power_dbm": float(deltas_db[0]),

@@ -1,6 +1,38 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2026-6-18
+
+Add IQ artifact recording and fix Tactical node scoping.
+
+### Added
+
+- Added IQ Data tab artifact browsing for local artifacts under FISSURE/artifacts/<operation_id>/files/.
+- Added IQ recording through the Base plugin action path instead of the old direct IQ flow graph start path.
+- Added Dashboard-generated operation_id tracking so IQ Data only resets for recordings launched from that tab.
+- Added artifact format selection for Raw IQ File and Zip Bundle.
+- Added GRC Parameter block support for runtime recorder values such as filepath, frequency, sample rate, gain, antenna, channel, and serial.
+- Added selected-node scoping for Tactical Node tab detections, SOIs, and artifacts.
+- Added source-node tracking to Tactical artifact metadata using artifact `source_id`.
+
+### Changed
+
+- Changed IQ record output to write into artifact operation workspaces instead of the old IQ Recordings path.
+- Changed IQ record completion handling to reset the Record button/status when the matching artifact arrives.
+- Changed Stop behavior to cancel queued files while allowing the current file capture to finish cleanly.
+- Changed artifact refresh behavior so IQ Data Artifacts updates after matching IQ record completion.
+- Changed Tactical Node Detections, SOIs, and Artifacts tables to rebuild from global records when selecting a Tactical node.
+- Changed incoming Tactical detection, SOI, and artifact handling to always update global stores while only updating visible Node tab rows for the selected source node.
+- Changed Tactical artifact handling to treat `source_id` as the canonical source node identifier for node-scoped artifact display.
+- Changed Node Artifacts behavior to show locally known artifacts for the selected node without automatically requesting additional remote artifact data.
+
+### Fixed
+
+- Fixed stale/wrong-node detections remaining visible after selecting a different Tactical node.
+- Fixed stale/wrong-node SOIs remaining visible after selecting a different Tactical node.
+- Fixed artifacts appearing in the Tactical Node tab when no node was selected or when a different node was selected.
+- Fixed Tactical Node Detections clear behavior so it removes only detections for the selected node instead of clearing all global detections.
+
 ## 2026-6-15
 
 Unify IP node heartbeat state and CoT publishing.

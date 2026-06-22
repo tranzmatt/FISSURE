@@ -1088,7 +1088,6 @@ class Dashboard(QtWidgets.QMainWindow):
         self.fft_data = None
 
         # Load the Files in the Listbox
-        self.ui.textEdit_iq_record_dir.setPlainText(str(fissure.utils.IQ_RECORDINGS_DIR))
         self.ui.comboBox3_iq_folders.addItem(str(fissure.utils.IQ_RECORDINGS_DIR))
         self.ui.comboBox3_iq_folders.addItem(str(fissure.utils.ARCHIVE_DIR))
         self.ui.comboBox3_iq_folders.setCurrentIndex(0)
@@ -1105,6 +1104,33 @@ class Dashboard(QtWidgets.QMainWindow):
         self.ui.pushButton_iq_FunctionsSettings.setIcon(
             QtGui.QIcon(os.path.join(fissure.utils.UI_DIR, "Icons", "settings.png"))
         )
+
+        # IQ Artifact Format
+        self.ui.comboBox_iq_record_artifact_format.blockSignals(True)
+        self.ui.comboBox_iq_record_artifact_format.clear()
+        self.ui.comboBox_iq_record_artifact_format.addItems([
+            "Raw IQ File",
+            "Zip Bundle",
+        ])
+        self.ui.comboBox_iq_record_artifact_format.setCurrentText("Raw IQ File")
+        self.ui.comboBox_iq_record_artifact_format.blockSignals(False)
+
+        # IQ Artifact Browser Data Type
+        self.ui.comboBox_iq_artifacts_data_type.blockSignals(True)
+        self.ui.comboBox_iq_artifacts_data_type.clear()
+
+        for idx in range(self.ui.comboBox_iq_data_type.count()):
+            self.ui.comboBox_iq_artifacts_data_type.addItem(
+                self.ui.comboBox_iq_data_type.itemText(idx)
+            )
+
+        if self.ui.comboBox_iq_artifacts_data_type.findText("Complex Float 32") >= 0:
+            self.ui.comboBox_iq_artifacts_data_type.setCurrentText("Complex Float 32")
+
+        self.ui.comboBox_iq_artifacts_data_type.blockSignals(False)
+
+        # Initial local artifact scan
+        IQDataTabSlots._slotIQ_ArtifactsRefreshClicked(self)
 
         # Load Inspection File Flow Graphs
         get_inspection_file_fgs = fissure.utils.library.getInspectionFlowGraphFilename(
@@ -3785,6 +3811,9 @@ def connect_iq_slots(dashboard: Dashboard):
     dashboard.ui.comboBox_iq_inspection_hardware.currentIndexChanged.connect(
         lambda: IQDataTabSlots._slotIQ_InspectionHardwareChanged(dashboard)
     )
+    dashboard.ui.comboBox_iq_artifacts.currentIndexChanged.connect(
+        lambda: IQDataTabSlots._slotIQ_ArtifactsChanged(dashboard)
+    )
 
     # Label
     dashboard.ui.label2_iq_end.mousePressEvent = lambda event: IQDataTabSlots._slotIQ_EndLabelClicked(dashboard, event)
@@ -3799,7 +3828,12 @@ def connect_iq_slots(dashboard: Dashboard):
     dashboard.ui.listWidget_iq_inspection_fg_file.itemDoubleClicked.connect(
         lambda: IQDataTabSlots._slotIQ_InspectionFG_FileClicked(dashboard)
     )
-    dashboard.ui.listWidget_iq_files.itemDoubleClicked.connect(lambda: IQDataTabSlots._slotIQ_LoadIQ_Data(dashboard))
+    dashboard.ui.listWidget_iq_files.itemDoubleClicked.connect(
+        lambda: IQDataTabSlots._slotIQ_LoadIQ_Data(dashboard)
+    )
+    dashboard.ui.listWidget_iq_artifacts_files.itemDoubleClicked.connect(
+        lambda item: IQDataTabSlots._slotIQ_ArtifactFileDoubleClicked(dashboard, item)
+    )
 
     # Push Button
     dashboard.ui.pushButton1_iq_tab_record.clicked.connect(
@@ -3851,7 +3885,6 @@ def connect_iq_slots(dashboard: Dashboard):
     dashboard.ui.pushButton_iq_dir1.clicked.connect(lambda: IQDataTabSlots._slotIQ_Dir1_Clicked(dashboard))
     dashboard.ui.pushButton_iq_dir2.clicked.connect(lambda: IQDataTabSlots._slotIQ_Dir2_Clicked(dashboard))
     dashboard.ui.pushButton_iq_transfer.clicked.connect(lambda: IQDataTabSlots._slotIQ_TransferClicked(dashboard))
-    dashboard.ui.pushButton_iq_record_dir.clicked.connect(lambda: IQDataTabSlots._slotIQ_RecordDirClicked(dashboard))
     dashboard.ui.pushButton_iq_refresh.clicked.connect(lambda: IQDataTabSlots._slotIQ_RefreshClicked(dashboard))
     dashboard.ui.pushButton_iq_crop.clicked.connect(lambda: IQDataTabSlots._slotIQ_CropClicked(dashboard))
     dashboard.ui.pushButton_iq_append_select1.clicked.connect(
@@ -4080,28 +4113,45 @@ def connect_iq_slots(dashboard: Dashboard):
     dashboard.ui.pushButton_iq_endianness_select.clicked.connect(
         lambda: IQDataTabSlots._slotIQ_EndiannessSelectClicked(dashboard)
     )
-    dashboard.ui.pushButton_iq_endianness_load.clicked.connect(lambda: IQDataTabSlots._slotIQ_EndiannessLoadClicked(dashboard))
+    dashboard.ui.pushButton_iq_endianness_load.clicked.connect(
+        lambda: IQDataTabSlots._slotIQ_EndiannessLoadClicked(dashboard)
+    )
     dashboard.ui.pushButton_iq_endianness_remove.clicked.connect(
         lambda: IQDataTabSlots._slotIQ_EndiannessRemoveClicked(dashboard)
     )
     dashboard.ui.pushButton_iq_endianness_choose.clicked.connect(
         lambda: IQDataTabSlots._slotIQ_EndiannessChooseClicked(dashboard)
     )
-    dashboard.ui.pushButton_iq_endianness.clicked.connect(lambda: IQDataTabSlots._slotIQ_EndiannessClicked(dashboard))
-    dashboard.ui.pushButton_iq_convert_clear.clicked.connect(lambda: IQDataTabSlots._slotIQ_ConvertClearClicked(dashboard))
+    dashboard.ui.pushButton_iq_endianness.clicked.connect(
+        lambda: IQDataTabSlots._slotIQ_EndiannessClicked(dashboard)
+    )
+    dashboard.ui.pushButton_iq_convert_clear.clicked.connect(
+        lambda: IQDataTabSlots._slotIQ_ConvertClearClicked(dashboard)
+    )
     dashboard.ui.pushButton_iq_convert_select.clicked.connect(
         lambda: IQDataTabSlots._slotIQ_ConvertSelectClicked(dashboard)
     )
-    dashboard.ui.pushButton_iq_convert_load.clicked.connect(lambda: IQDataTabSlots._slotIQ_ConvertLoadClicked(dashboard))
+    dashboard.ui.pushButton_iq_convert_load.clicked.connect(
+        lambda: IQDataTabSlots._slotIQ_ConvertLoadClicked(dashboard)
+    )
     dashboard.ui.pushButton_iq_convert_remove.clicked.connect(
         lambda: IQDataTabSlots._slotIQ_ConvertRemoveClicked(dashboard)
     )
     dashboard.ui.pushButton_iq_convert_choose.clicked.connect(
         lambda: IQDataTabSlots._slotIQ_ConvertChooseClicked(dashboard)
     )
-    dashboard.ui.pushButton_iq_convert.clicked.connect(lambda: IQDataTabSlots._slotIQ_ConvertClicked(dashboard))
-    dashboard.ui.pushButton_iq_demod.clicked.connect(lambda: IQDataTabSlots._slotIQ_DemodClicked(dashboard))
-    dashboard.ui.pushButton_iq_convert_output_select.clicked.connect(lambda: IQDataTabSlots._slotIQ_ConvertOutputSelectClicked(dashboard))
+    dashboard.ui.pushButton_iq_convert.clicked.connect(
+        lambda: IQDataTabSlots._slotIQ_ConvertClicked(dashboard)
+    )
+    dashboard.ui.pushButton_iq_demod.clicked.connect(
+        lambda: IQDataTabSlots._slotIQ_DemodClicked(dashboard)
+    )
+    dashboard.ui.pushButton_iq_convert_output_select.clicked.connect(
+        lambda: IQDataTabSlots._slotIQ_ConvertOutputSelectClicked(dashboard)
+    )
+    dashboard.ui.pushButton_iq_artifacts_refresh.clicked.connect(
+        lambda: IQDataTabSlots._slotIQ_ArtifactsRefreshClicked(dashboard)
+    )
 
     # Table Widget
     dashboard.ui.tableWidget_iq_append.horizontalHeader().sectionClicked.connect(

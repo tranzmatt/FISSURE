@@ -25536,353 +25536,6 @@ p, li { white-space: pre-wrap; }
       <string>File Information</string>
      </property>
     </widget>
-    <widget class="QFrame" name="frame1_6">
-     <property name="geometry">
-      <rect>
-       <x>15</x>
-       <y>295</y>
-       <width>266</width>
-       <height>370</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
-     </property>
-     <widget class="QListWidget" name="listWidget_iq_files">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>65</y>
-        <width>246</width>
-        <height>236</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-        <strikeout>false</strikeout>
-       </font>
-      </property>
-      <property name="horizontalScrollBarPolicy">
-       <enum>Qt::ScrollBarAlwaysOn</enum>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_iq_load_file">
-      <property name="geometry">
-       <rect>
-        <x>93</x>
-        <y>305</y>
-        <width>81</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-        <strikeout>false</strikeout>
-       </font>
-      </property>
-      <property name="text">
-       <string>Load File</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_iq_refresh">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>305</y>
-        <width>81</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-        <strikeout>false</strikeout>
-       </font>
-      </property>
-      <property name="text">
-       <string>Refresh</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label2_51">
-      <property name="geometry">
-       <rect>
-        <x>3</x>
-        <y>10</y>
-        <width>40</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-        <strikeout>false</strikeout>
-       </font>
-      </property>
-      <property name="text">
-       <string>Type:</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-     <widget class="QComboBox" name="comboBox_iq_data_type">
-      <property name="geometry">
-       <rect>
-        <x>46</x>
-        <y>5</y>
-        <width>210</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-        <strikeout>false</strikeout>
-       </font>
-      </property>
-      <property name="currentIndex">
-       <number>0</number>
-      </property>
-      <item>
-       <property name="text">
-        <string>Complex Float 32</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Float/Float 32</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Short/Int 16</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Unsigned Int 16</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Int/Int 32</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Unsigned Int 32</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Byte/Int 8</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Unsigned Int 8</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Complex Float 64</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Complex Int 64</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Complex Unsigned Int 64</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Complex Int 16</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Complex Unsigned Int 16</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Complex Int 8</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Complex Unsigned Int 8</string>
-       </property>
-      </item>
-     </widget>
-     <widget class="QPushButton" name="pushButton_iq_delete">
-      <property name="geometry">
-       <rect>
-        <x>176</x>
-        <y>305</y>
-        <width>81</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-        <strikeout>false</strikeout>
-       </font>
-      </property>
-      <property name="text">
-       <string>Delete</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_iq_folder">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>35</y>
-        <width>81</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-        <strikeout>false</strikeout>
-       </font>
-      </property>
-      <property name="text">
-       <string>Choose</string>
-      </property>
-     </widget>
-     <widget class="QComboBox" name="comboBox3_iq_folders">
-      <property name="geometry">
-       <rect>
-        <x>95</x>
-        <y>35</y>
-        <width>161</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-        <strikeout>false</strikeout>
-       </font>
-      </property>
-      <property name="layoutDirection">
-       <enum>Qt::RightToLeft</enum>
-      </property>
-      <property name="inputMethodHints">
-       <set>Qt::ImhNone</set>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_iq_rename">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>335</y>
-        <width>81</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-        <strikeout>false</strikeout>
-       </font>
-      </property>
-      <property name="text">
-       <string>Rename</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_iq_terminal">
-      <property name="geometry">
-       <rect>
-        <x>93</x>
-        <y>335</y>
-        <width>81</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-        <strikeout>false</strikeout>
-       </font>
-      </property>
-      <property name="text">
-       <string>Terminal</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_iq_sigmf">
-      <property name="geometry">
-       <rect>
-        <x>176</x>
-        <y>335</y>
-        <width>81</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-        <strikeout>false</strikeout>
-       </font>
-      </property>
-      <property name="text">
-       <string>SigMF</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QLabel" name="label1_28">
-     <property name="geometry">
-      <rect>
-       <x>15</x>
-       <y>275</y>
-       <width>266</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <family>Ubuntu</family>
-       <pointsize>10</pointsize>
-       <weight>75</weight>
-       <italic>false</italic>
-       <bold>true</bold>
-       <strikeout>false</strikeout>
-      </font>
-     </property>
-     <property name="text">
-      <string>Open</string>
-     </property>
-     <property name="scaledContents">
-      <bool>false</bool>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-     <property name="margin">
-      <number>0</number>
-     </property>
-    </widget>
     <widget class="QFrame" name="frame1_8">
      <property name="geometry">
       <rect>
@@ -26471,7 +26124,7 @@ p, li { white-space: pre-wrap; }
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>35</y>
+           <y>40</y>
            <width>1175</width>
            <height>71</height>
           </rect>
@@ -26698,28 +26351,6 @@ p, li { white-space: pre-wrap; }
           </property>
          </item>
         </widget>
-        <widget class="QLabel" name="label2_68">
-         <property name="geometry">
-          <rect>
-           <x>-13</x>
-           <y>115</y>
-           <width>131</width>
-           <height>17</height>
-          </rect>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <strikeout>false</strikeout>
-          </font>
-         </property>
-         <property name="text">
-          <string>Storage Location:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
         <widget class="QPushButton" name="pushButton_iq_record">
          <property name="enabled">
           <bool>false</bool>
@@ -26740,51 +26371,6 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="text">
           <string>Record</string>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="pushButton_iq_record_dir">
-         <property name="geometry">
-          <rect>
-           <x>125</x>
-           <y>110</y>
-           <width>66</width>
-           <height>27</height>
-          </rect>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>11</pointsize>
-           <strikeout>false</strikeout>
-          </font>
-         </property>
-         <property name="text">
-          <string>Choose</string>
-         </property>
-        </widget>
-        <widget class="QTextEdit" name="textEdit_iq_record_dir">
-         <property name="geometry">
-          <rect>
-           <x>195</x>
-           <y>110</y>
-           <width>786</width>
-           <height>27</height>
-          </rect>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>11</pointsize>
-           <strikeout>false</strikeout>
-          </font>
-         </property>
-         <property name="tabChangesFocus">
-          <bool>true</bool>
-         </property>
-         <property name="html">
-          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
         <widget class="QLabel" name="label2_iq_status_files">
@@ -26813,8 +26399,8 @@ p, li { white-space: pre-wrap; }
          <property name="geometry">
           <rect>
            <x>35</x>
-           <y>145</y>
-           <width>75</width>
+           <y>115</y>
+           <width>70</width>
            <height>27</height>
           </rect>
          </property>
@@ -26828,9 +26414,9 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="geometry">
           <rect>
-           <x>110</x>
-           <y>145</y>
-           <width>98</width>
+           <x>105</x>
+           <y>115</y>
+           <width>90</width>
            <height>27</height>
           </rect>
          </property>
@@ -26875,6 +26461,48 @@ p, li { white-space: pre-wrap; }
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
+        </widget>
+        <widget class="QLabel" name="label2_188">
+         <property name="geometry">
+          <rect>
+           <x>230</x>
+           <y>120</y>
+           <width>100</width>
+           <height>17</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <strikeout>false</strikeout>
+          </font>
+         </property>
+         <property name="text">
+          <string>Artifact Format:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+        <widget class="QComboBox" name="comboBox_iq_record_artifact_format">
+         <property name="geometry">
+          <rect>
+           <x>335</x>
+           <y>115</y>
+           <width>110</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <item>
+          <property name="text">
+           <string>Raw IQ File</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Zip Bundle</string>
+          </property>
+         </item>
         </widget>
        </widget>
       </widget>
@@ -34972,14 +34600,495 @@ p, li { white-space: pre-wrap; }
       <string>Endianness</string>
      </property>
     </widget>
+    <widget class="QTabWidget" name="tabWidget_iq_files_artifacts">
+     <property name="geometry">
+      <rect>
+       <x>15</x>
+       <y>275</y>
+       <width>266</width>
+       <height>390</height>
+      </rect>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tab_26">
+      <attribute name="title">
+       <string>Artifacts</string>
+      </attribute>
+      <widget class="QComboBox" name="comboBox_iq_artifacts_data_type">
+       <property name="geometry">
+        <rect>
+         <x>41</x>
+         <y>35</y>
+         <width>217</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+         <strikeout>false</strikeout>
+        </font>
+       </property>
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <item>
+        <property name="text">
+         <string>Complex Float 32</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Float/Float 32</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Short/Int 16</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Unsigned Int 16</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Int/Int 32</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Unsigned Int 32</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Byte/Int 8</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Unsigned Int 8</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Complex Float 64</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Complex Int 64</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Complex Unsigned Int 64</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Complex Int 16</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Complex Unsigned Int 16</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Complex Int 8</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Complex Unsigned Int 8</string>
+        </property>
+       </item>
+      </widget>
+      <widget class="QListWidget" name="listWidget_iq_artifacts_files">
+       <property name="geometry">
+        <rect>
+         <x>5</x>
+         <y>65</y>
+         <width>253</width>
+         <height>290</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+         <strikeout>false</strikeout>
+        </font>
+       </property>
+       <property name="horizontalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOn</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label2_106">
+       <property name="geometry">
+        <rect>
+         <x>-2</x>
+         <y>40</y>
+         <width>40</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <strikeout>false</strikeout>
+        </font>
+       </property>
+       <property name="text">
+        <string>Type:</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_iq_artifacts_refresh">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>193</x>
+         <y>5</y>
+         <width>65</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+         <strikeout>false</strikeout>
+        </font>
+       </property>
+       <property name="text">
+        <string>Refresh</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="comboBox_iq_artifacts">
+       <property name="geometry">
+        <rect>
+         <x>5</x>
+         <y>5</y>
+         <width>183</width>
+         <height>27</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="tab_25">
+      <attribute name="title">
+       <string>Files</string>
+      </attribute>
+      <widget class="QLabel" name="label2_51">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>40</y>
+         <width>40</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <strikeout>false</strikeout>
+        </font>
+       </property>
+       <property name="text">
+        <string>Type:</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_iq_refresh">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>5</x>
+         <y>300</y>
+         <width>81</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+         <strikeout>false</strikeout>
+        </font>
+       </property>
+       <property name="text">
+        <string>Refresh</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_iq_folder">
+       <property name="geometry">
+        <rect>
+         <x>5</x>
+         <y>5</y>
+         <width>81</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+         <strikeout>false</strikeout>
+        </font>
+       </property>
+       <property name="text">
+        <string>Choose</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_iq_delete">
+       <property name="geometry">
+        <rect>
+         <x>177</x>
+         <y>300</y>
+         <width>81</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+         <strikeout>false</strikeout>
+        </font>
+       </property>
+       <property name="text">
+        <string>Delete</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_iq_sigmf">
+       <property name="geometry">
+        <rect>
+         <x>177</x>
+         <y>330</y>
+         <width>81</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+         <strikeout>false</strikeout>
+        </font>
+       </property>
+       <property name="text">
+        <string>SigMF</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_iq_terminal">
+       <property name="geometry">
+        <rect>
+         <x>91</x>
+         <y>330</y>
+         <width>81</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+         <strikeout>false</strikeout>
+        </font>
+       </property>
+       <property name="text">
+        <string>Terminal</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_iq_rename">
+       <property name="geometry">
+        <rect>
+         <x>5</x>
+         <y>330</y>
+         <width>81</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+         <strikeout>false</strikeout>
+        </font>
+       </property>
+       <property name="text">
+        <string>Rename</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_iq_load_file">
+       <property name="geometry">
+        <rect>
+         <x>91</x>
+         <y>300</y>
+         <width>81</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+         <strikeout>false</strikeout>
+        </font>
+       </property>
+       <property name="text">
+        <string>Load File</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="comboBox3_iq_folders">
+       <property name="geometry">
+        <rect>
+         <x>90</x>
+         <y>5</y>
+         <width>168</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+         <strikeout>false</strikeout>
+        </font>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="inputMethodHints">
+        <set>Qt::ImhNone</set>
+       </property>
+      </widget>
+      <widget class="QListWidget" name="listWidget_iq_files">
+       <property name="geometry">
+        <rect>
+         <x>5</x>
+         <y>65</y>
+         <width>253</width>
+         <height>231</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+         <strikeout>false</strikeout>
+        </font>
+       </property>
+       <property name="horizontalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOn</enum>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="comboBox_iq_data_type">
+       <property name="geometry">
+        <rect>
+         <x>43</x>
+         <y>35</y>
+         <width>215</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+         <strikeout>false</strikeout>
+        </font>
+       </property>
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <item>
+        <property name="text">
+         <string>Complex Float 32</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Float/Float 32</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Short/Int 16</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Unsigned Int 16</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Int/Int 32</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Unsigned Int 32</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Byte/Int 8</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Unsigned Int 8</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Complex Float 64</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Complex Int 64</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Complex Unsigned Int 64</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Complex Int 16</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Complex Unsigned Int 16</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Complex Int 8</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Complex Unsigned Int 8</string>
+        </property>
+       </item>
+      </widget>
+     </widget>
+    </widget>
     <zorder>frame2_69</zorder>
     <zorder>frame3_iq</zorder>
     <zorder>label_iq_folder</zorder>
     <zorder>frame1_3</zorder>
     <zorder>label1_10</zorder>
     <zorder>label1_17</zorder>
-    <zorder>frame1_6</zorder>
-    <zorder>label1_28</zorder>
     <zorder>frame1_8</zorder>
     <zorder>label1_116</zorder>
     <zorder>frame1_9</zorder>
@@ -35005,6 +35114,7 @@ p, li { white-space: pre-wrap; }
     <zorder>pushButton1_iq_tab_split</zorder>
     <zorder>pushButton1_iq_tab_ook</zorder>
     <zorder>pushButton1_iq_tab_endianness</zorder>
+    <zorder>tabWidget_iq_files_artifacts</zorder>
    </widget>
    <widget class="QWidget" name="tab_archive">
     <attribute name="title">

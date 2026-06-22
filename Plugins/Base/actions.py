@@ -24,6 +24,8 @@ ACTION_TAGS = {
     "rtl_power_detection": ["All"],
     "lfm_beacon_detection": ["All"],
 
+    "iq_record": ["All"],
+
     "promote_to_soi": ["All"],
 
     "take_photo": ["All"],
@@ -39,6 +41,7 @@ ACTION_HARDWARE = {
     "fixed_detection": ["USRP B20xmini", "USRP B2x0"],
     "scan_detection": ["USRP B20xmini", "USRP B2x0"],
     "lfm_beacon_detection": ["RTL2832U"],
+    "iq_record": ["USRP B20xmini", "USRP B2x0"],
 }
 
 
@@ -828,4 +831,124 @@ async def take_video(
         op_params,
         node_uid,
         wait=True,
+    )
+
+
+iq_record_schema = {
+    "params": [
+        {
+            "name": "flow_graph_name",
+            "label": "Flow Graph",
+            "type": "string",
+            "default": "iq_recorder_b2x0",
+            "options": [
+                "iq_recorder_b2x0",
+            ],
+        },
+        {
+            "name": "base_file_name",
+            "label": "Base File Name",
+            "type": "string",
+            "default": "capture.sigmf-data",
+        },
+        {
+            "name": "artifact_format",
+            "label": "Artifact Format",
+            "type": "string",
+            "default": "raw",
+            "options": [
+                "raw",
+                "zip",
+            ],
+        },
+        {
+            "name": "frequency_mhz",
+            "label": "Frequency (MHz)",
+            "type": "number",
+            "default": 915.0,
+        },
+        {
+            "name": "sample_rate_mhz",
+            "label": "Sample Rate (MHz)",
+            "type": "number",
+            "default": 1.0,
+        },
+        {
+            "name": "rx_gain",
+            "label": "RX Gain",
+            "type": "number",
+            "default": 20.0,
+        },
+        {
+            "name": "rx_channel",
+            "label": "RX Channel",
+            "type": "string",
+            "default": "A:A",
+        },
+        {
+            "name": "rx_antenna",
+            "label": "RX Antenna",
+            "type": "string",
+            "default": "TX/RX",
+        },
+        {
+            "name": "file_length",
+            "label": "File Length",
+            "type": "number",
+            "default": 100000,
+        },
+        {
+            "name": "number_of_files",
+            "label": "Number of Files",
+            "type": "number",
+            "default": 1,
+        },
+        {
+            "name": "file_interval",
+            "label": "File Interval (s)",
+            "type": "number",
+            "default": 0.0,
+        },
+        {
+            "name": "data_type",
+            "label": "Data Type",
+            "type": "string",
+            "default": "Complex Float 32",
+            "options": [
+                "Complex Float 32",
+            ],
+        },
+        {
+            "name": "sigmf_enabled",
+            "label": "SigMF Enabled",
+            "type": "string",
+            "default": "true",
+            "options": [
+                "true",
+                "false",
+            ],
+        },
+        {
+            "name": "description",
+            "label": "Description",
+            "type": "string",
+            "default": "IQ recording",
+        },
+    ]
+}
+async def iq_record(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    component.logger.info(
+        f"IQ Record action with parameters: {parameters}"
+    )
+
+    await component.run_plugin_operation(
+        component,
+        PLUGIN_NAME,
+        "iq_record.py",
+        parameters,
+        node_uid,
     )

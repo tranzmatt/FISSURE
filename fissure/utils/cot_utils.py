@@ -3,6 +3,7 @@
 import xml.etree.ElementTree as ET
 from fissure.Dashboard.Slots import (
     TacticalTabSlots,
+    IQDataTabSlots,
 )
 
 # ---------------------------------------------------------
@@ -43,6 +44,7 @@ def parse_cot_xml(raw_xml):
         "alert_kind": None,
         "alert_summary": None,
 
+        "detection_node_uid": None,
         "detection_frequency_hz": None,
         "detection_power_dbm": None,
         "detection_timestamp": None,
@@ -77,6 +79,7 @@ def parse_cot_xml(raw_xml):
         "artifact_timestamp": None,
         "artifact_id": None,
         "artifact_operation_id": None,
+        "artifact_node_uid": None,
 
         "raw_xml": raw_xml,
     }
@@ -132,6 +135,10 @@ def parse_cot_xml(raw_xml):
         if fissure_detection is not None:
             cot_message["kind"] = "detection"
 
+            cot_message["detection_node_uid"] = (
+                fissure_detection.findtext("node_uid")
+            )
+
             cot_message["detection_frequency_hz"] = (
                 fissure_detection.findtext("frequency_hz")
             )
@@ -151,6 +158,7 @@ def parse_cot_xml(raw_xml):
             cot_message["detection_opid"] = (
                 fissure_detection.findtext("opid")
             )
+
 
         # -----------------------------------------------------------------
         # Target
@@ -264,8 +272,8 @@ def parse_cot_xml(raw_xml):
                 cot_message["artifact_name"] = name_text
                 cot_message["artifact_timestamp"] = timestamp_text
                 cot_message["artifact_id"] = artid
-                cot_message["artifact_operation_id"] = (fissure_artifact.findtext("operation_id")
-)
+                cot_message["artifact_operation_id"] = fissure_artifact.findtext("operation_id")
+                cot_message["artifact_node_uid"] = fissure_artifact.findtext("source_id")
 
     return cot_message
 
@@ -362,6 +370,7 @@ def cot_to_tactical_detection_record(cot_message):
 
     return {
         "uid": uid,
+        "node_uid": cot_message.get("detection_node_uid") or "",
         "frequency": frequency_display,
         "power": power_display,
         "time": timestamp,
@@ -893,6 +902,15 @@ def handle_tactical_detection_message(dashboard, cot_message):
     uid = detection_record["uid"]
     frontend.tactical_detections[uid] = detection_record
 
+    selected_node_uid = getattr(frontend, "selected_tactical_node_uid", None)
+    detection_node_uid = detection_record.get("node_uid")
+
+    if not selected_node_uid:
+        return
+
+    if detection_node_uid != selected_node_uid:
+        return
+
     TacticalTabSlots.update_tactical_detection_row(
         frontend,
         detection_record,
@@ -927,6 +945,15 @@ def handle_tactical_soi_message(dashboard, cot_message):
             return
 
     frontend.tactical_sois[soi_key] = soi_record
+
+    selected_node_uid = getattr(frontend, "selected_tactical_node_uid", None)
+    soi_node_uid = soi_record.get("node_uid")
+
+    if not selected_node_uid:
+        return
+
+    if soi_node_uid != selected_node_uid:
+        return
 
     TacticalTabSlots.update_tactical_node_soi_row(
         frontend,
@@ -1004,7 +1031,16 @@ def handle_tactical_artifact_message(dashboard, cot_message):
 
     frontend.tactical_artifacts[artifact_id] = artifact_record
 
-    TacticalTabSlots.update_tactical_node_artifact_row(
+    selected_node_uid = getattr(frontend, "selected_tactical_node_uid", None)
+    artifact_node_uid = artifact_record.get("node_uid")
+
+    if selected_node_uid and artifact_node_uid == selected_node_uid:
+        TacticalTabSlots.update_tactical_node_artifact_row(
+            frontend,
+            artifact_record,
+        )
+
+    IQDataTabSlots.handle_iq_record_artifact_complete(
         frontend,
         artifact_record,
     )
@@ -1020,6 +1056,7 @@ def cot_to_tactical_artifact_record(cot_message):
 
     return {
         "artifact_id": artifact_id,
+        "node_uid": cot_message.get("artifact_node_uid") or "",
         "operation_id": cot_message.get("artifact_operation_id", ""),
         "name": name,
         "time": timestamp,

@@ -280,6 +280,7 @@ class OperationMain(Operation):
             ts = time.time()
             detection = {
                 "event_type": "detection",
+                "node_uid": self.node_uid,
                 # NOTE: this is a coarse MHz integer; fine resolution is in the sweep binning
                 "frequency_hz": int(freqs[0] * 1e6),
                 # NOTE: this is a delta/score, not calibrated power

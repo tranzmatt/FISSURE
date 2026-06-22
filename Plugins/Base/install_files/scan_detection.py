@@ -214,6 +214,7 @@ class OperationMain(Operation):
 
                             detection = {
                                 "event_type": "detection",
+                                "node_uid": self.node_uid,
                                 "frequency_hz": int(det_freq_hz),
                                 "power_dbm": float(det_rssi_dbm),
                                 "timestamp": ts,

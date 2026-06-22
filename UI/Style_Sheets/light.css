@@ -1063,3 +1063,7 @@ QTableWidget#tableWidget_tactical_targets {
 QTableWidget#tableWidget_tactical_targets QHeaderView::section {
     font-size: 11px;
 }
+
+#tabWidget_iq_files_artifacts QTabBar::tab {
+    width: 130px;
+}

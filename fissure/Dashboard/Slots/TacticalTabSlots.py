@@ -153,9 +153,9 @@ def populate_tactical_node_details(dashboard: QtCore.QObject, node_uid):
 
     if not same_node:
         clear_tactical_node_targets(dashboard)
-        clear_tactical_detection_details(dashboard)
-        clear_tactical_node_soi_details(dashboard)
-        clear_tactical_node_artifact_details(dashboard)
+        rebuild_tactical_node_detections(dashboard, node_uid)
+        rebuild_tactical_node_sois(dashboard, node_uid)
+        rebuild_tactical_node_artifacts(dashboard, node_uid)
 
     restore_tactical_node_capabilities(
         dashboard,
@@ -1483,6 +1483,15 @@ def clear_tactical_map_pins(dashboard):
 
 
 def update_tactical_detection_row(dashboard: QtCore.QObject, detection_record):
+    selected_node_uid = getattr(dashboard, "selected_tactical_node_uid", None)
+    detection_node_uid = detection_record.get("node_uid")
+
+    if not selected_node_uid:
+        return
+
+    if detection_node_uid != selected_node_uid:
+        return
+
     table = dashboard.ui.tableWidget_tactical_node_detections
 
     uid = detection_record.get("uid")
@@ -1749,9 +1758,22 @@ def _slotTacticalNodeDetectionsDeleteRowClicked(
 def _slotTacticalNodeDetectionsClearRowsClicked(
     dashboard: QtCore.QObject,
 ):
-    dashboard.tactical_detections.clear()
+    node_uid = getattr(dashboard, "selected_tactical_node_uid", None)
 
-    dashboard.tactical_map.clear_detection_records()
+    if not node_uid:
+        dashboard.ui.tableWidget_tactical_node_detections.setRowCount(0)
+        clear_tactical_detection_details(dashboard)
+        return
+
+    detections_to_remove = [
+        uid
+        for uid, detection in dashboard.tactical_detections.items()
+        if detection.get("node_uid") == node_uid
+    ]
+
+    for uid in detections_to_remove:
+        dashboard.tactical_detections.pop(uid, None)
+        dashboard.tactical_map.remove_detection(uid)
 
     dashboard.ui.tableWidget_tactical_node_detections.setRowCount(0)
 
@@ -1953,7 +1975,6 @@ def _slotTacticalTargetsRowSelectionChanged(dashboard: QtCore.QObject):
         str(target.get("updated", ""))
     )
 
-    print(target)
     dashboard.ui.label2_tactical_targets_node_id.setText(
         str(target.get("node_uid", ""))
     )
@@ -2080,7 +2101,7 @@ def enable_tactical_artifacts_details(dashboard: QtCore.QObject, enabled=True):
 
     for widget in widgets:
         widget.setEnabled(enabled)
-
+    
 
 @QtCore.pyqtSlot(QtCore.QObject, str)
 def _slotTacticalTargetMapClicked(dashboard: QtCore.QObject, target_id):
@@ -2608,6 +2629,15 @@ def _slotTacticalNodeTargetsMoreDetailsClicked(dashboard: QtCore.QObject):
 
 
 def update_tactical_node_soi_row(dashboard: QtCore.QObject, soi_record: dict):
+    selected_node_uid = getattr(dashboard, "selected_tactical_node_uid", None)
+    soi_node_uid = soi_record.get("node_uid")
+
+    if not selected_node_uid:
+        return
+
+    if soi_node_uid != selected_node_uid:
+        return
+
     table = dashboard.ui.tableWidget_tactical_node_sois
 
     soi_key = soi_record.get("soi_key")
@@ -2944,9 +2974,9 @@ def update_tactical_node_artifact_row(dashboard: QtCore.QObject, artifact_record
     table.horizontalHeader().setStretchLastSection(False)
     table.horizontalHeader().setStretchLastSection(True)
 
-    if was_empty:
-        table.selectRow(row)
-        table.setCurrentCell(row, 0)
+    table.selectRow(row)
+    table.setCurrentCell(row, 0)
+    _slotTacticalNodeArtifactsRowSelectionChanged(dashboard)
 
     enable_tactical_artifacts_details(dashboard, True)
 
@@ -3718,3 +3748,87 @@ def update_tactical_ecosystem_alert_buttons(dashboard: QtCore.QObject):
 
     dashboard.ui.pushButton_tactical_ecosystem_alerts_delete_row.setEnabled(has_selection)
     dashboard.ui.pushButton_tactical_ecosystem_alerts_clear_rows.setEnabled(has_rows)
+
+
+def clear_tactical_node_detections(dashboard: QtCore.QObject):
+    dashboard.ui.tableWidget_tactical_node_detections.setRowCount(0)
+    clear_tactical_detection_details(dashboard)
+
+
+def rebuild_tactical_node_detections(dashboard: QtCore.QObject, node_uid):
+    clear_tactical_node_detections(dashboard)
+
+    if not node_uid:
+        return
+
+    detections = getattr(dashboard, "tactical_detections", {}) or {}
+
+    matching_detections = [
+        detection
+        for detection in detections.values()
+        if detection.get("node_uid") == node_uid
+    ]
+
+    matching_detections.sort(
+        key=lambda detection: str(detection.get("time", "")),
+        reverse=True,
+    )
+
+    for detection in reversed(matching_detections):
+        update_tactical_detection_row(dashboard, detection)
+
+
+def clear_tactical_node_sois(dashboard: QtCore.QObject):
+    dashboard.ui.tableWidget_tactical_node_sois.setRowCount(0)
+    clear_tactical_node_soi_details(dashboard)
+
+
+def rebuild_tactical_node_sois(dashboard: QtCore.QObject, node_uid):
+    clear_tactical_node_sois(dashboard)
+
+    if not node_uid:
+        return
+
+    sois = getattr(dashboard, "tactical_sois", {}) or {}
+
+    matching_sois = [
+        soi
+        for soi in sois.values()
+        if soi.get("node_uid") == node_uid
+    ]
+
+    matching_sois.sort(
+        key=lambda soi: str(soi.get("time", "")),
+        reverse=True,
+    )
+
+    for soi in reversed(matching_sois):
+        update_tactical_node_soi_row(dashboard, soi)
+
+
+def clear_tactical_node_artifacts(dashboard: QtCore.QObject):
+    dashboard.ui.tableWidget_tactical_node_artifacts.setRowCount(0)
+    clear_tactical_node_artifact_details(dashboard)
+
+
+def rebuild_tactical_node_artifacts(dashboard: QtCore.QObject, node_uid):
+    clear_tactical_node_artifacts(dashboard)
+
+    if not node_uid:
+        return
+
+    artifacts = getattr(dashboard, "tactical_artifacts", {}) or {}
+
+    matching_artifacts = [
+        artifact
+        for artifact in artifacts.values()
+        if artifact.get("node_uid") == node_uid
+    ]
+
+    matching_artifacts.sort(
+        key=lambda artifact: str(artifact.get("time", "")),
+        reverse=True,
+    )
+
+    for artifact in reversed(matching_artifacts):
+        update_tactical_node_artifact_row(dashboard, artifact)

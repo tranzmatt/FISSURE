@@ -4716,72 +4716,114 @@ async def sendPluginActionParametersTak(
 
 
 async def updateArtifact(component: object, artifact: dict) -> None:
-    """Handle New or Updated Artifact Event
+    """Handle a new or updated artifact event."""
+    if not isinstance(artifact, dict):
+        component.logger.error("Invalid artifact update: artifact is not a dict")
+        return
 
-    Parameters
-    ----------
-    component : object
-        Component
-    artifact : dict
-        Artifact data
-    """
-    artifact_id = artifact.get('id', None)
-    if artifact_id is None:
+    artifact_id = artifact.get("id")
+    if not artifact_id:
         component.logger.error("Artifact missing 'id' field")
         return
 
-    source_id = artifact.get('source_id')
-    if not source_id == component.local_node_uuid:
-        # Remote artifact; handle file path
-        file_path = artifact.get('file_path')
-        checksum = artifact.get('checksum')
-        if file_path and os.path.exists(file_path) and checksum is not None:
-            # a file exists; get existing artifact to compare checksum
-            existing_artifact = component.artifact_tracker.get_artifact(artifact_id)
-            if existing_artifact is not None:
-                # existing artifact; compare checksums
-                if existing_artifact.get('checksum') == checksum:
-                    # checksums match; use existing file path
-                    existing_file_path = existing_artifact.get('file_path')
-                    if existing_file_path and os.path.exists(existing_file_path):
-                        artifact["file_path"] = existing_file_path
-                else:
-                    # checksums do not match; set file path to sensor URI
-                    artifact["file_path"] = f"sensor-{source_id}://{artifact.get('file_path')}"
-            else:
-                # new artifact that points to a local file that exists; set file path to sensor URI
-                # calculate checksum of local file to verify
-                checksum_local = fissure.utils.calculate_file_checksum(file_path)
-                if checksum_local == artifact.get('checksum'):
-                    artifact["file_path"] = file_path
-                else:
-                    artifact["file_path"] = f"sensor-{source_id}://{artifact.get('file_path')}"
-        else:
-            # artifact file does not exist locally; set file path to sensor URI
-            artifact["file_path"] = f"sensor-{source_id}://{artifact.get('file_path')}"
+    metadata = artifact.get("metadata") or {}
+    if not isinstance(metadata, dict):
+        metadata = {}
 
-    # Update artifact tracker
+    # Canonical artifact source identity.
+    # For Tactical node scoping, this should be the source Sensor Node UID.
+    source_id = (
+        artifact.get("source_id")
+        or metadata.get("source_id")
+        or metadata.get("node_uid")  # Backward-compat fallback only.
+        or ""
+    )
+
+    if source_id:
+        artifact["source_id"] = source_id
+
+    local_node_uuid = getattr(component, "local_node_uuid", "")
+    is_remote_artifact = bool(source_id) and source_id != local_node_uuid
+
+    def _is_sensor_uri(path: str) -> bool:
+        return isinstance(path, str) and path.startswith("sensor-") and "://" in path
+
+    def _sensor_uri(path: str) -> str:
+        if not path:
+            return ""
+        if _is_sensor_uri(path):
+            return path
+        return f"sensor-{source_id}://{path}"
+
+    def _local_file_matches_checksum(path: str, expected_checksum: str) -> bool:
+        if not path or not expected_checksum:
+            return False
+
+        if not os.path.isfile(path):
+            return False
+
+        try:
+            return fissure.utils.calculate_file_checksum(path) == expected_checksum
+        except Exception:
+            component.logger.exception(
+                f"Failed calculating checksum for artifact file: {path}"
+            )
+            return False
+
+    # Remote artifacts should point to cached local files when available,
+    # otherwise use a sensor URI so the original node can be requested later.
+    if is_remote_artifact:
+        file_path = artifact.get("file_path") or ""
+        checksum = artifact.get("checksum") or ""
+
+        existing_artifact = component.artifact_tracker.get_artifact(artifact_id)
+
+        existing_file_path = ""
+        if existing_artifact:
+            existing_checksum = existing_artifact.get("checksum") or ""
+            candidate_path = existing_artifact.get("file_path") or ""
+
+            if (
+                checksum
+                and existing_checksum == checksum
+                and candidate_path
+                and os.path.isfile(candidate_path)
+            ):
+                existing_file_path = candidate_path
+
+        if existing_file_path:
+            artifact["file_path"] = existing_file_path
+        elif _local_file_matches_checksum(file_path, checksum):
+            artifact["file_path"] = file_path
+        elif file_path:
+            artifact["file_path"] = _sensor_uri(file_path)
+        else:
+            component.logger.warning(
+                f"Remote artifact {artifact_id} from {source_id} has no file_path"
+            )
+
+    # Update artifact tracker even if TAK metadata cannot be emitted.
     component.artifact_tracker.update_artifact(artifact)
 
-    component.logger.debug(f"Preparing to send TAK plugin names for TAK UID: {source_id}")
-
-    name = artifact.get("name", None)
-    if name is None:
-        component.logger.error("Artifact missing 'name' field, cannot send metadata to TAK")
-        return
-    
-    timestamp = artifact.get("modified_at", None)
-    if timestamp is None:
-        component.logger.error("Artifact missing 'modified_at' field, cannot send metadata to TAK")
+    name = artifact.get("name")
+    if not name:
+        component.logger.error(
+            "Artifact missing 'name' field, cannot send metadata to TAK"
+        )
         return
 
-    artid = artifact.get("id", None)
-    if artid is None:
-        component.logger.error("Artifact missing 'id' field, cannot send metadata to TAK")
+    timestamp = artifact.get("modified_at")
+    if not timestamp:
+        component.logger.error(
+            "Artifact missing 'modified_at' field, cannot send metadata to TAK"
+        )
         return
 
     operation_id = artifact.get("operation_id", "")
-    event_uid = f"{source_id}-artifact_metadata-{int(time.time()*1000)}"
+
+    event_uid_source = source_id or "unknown-source"
+    event_uid = f"{event_uid_source}-artifact_metadata-{int(time.time() * 1000)}"
+
     msg = {
         "msg_type": "event",
         "uid": event_uid,
@@ -4789,9 +4831,10 @@ async def updateArtifact(component: object, artifact: dict) -> None:
             "event_type": "artifact_metadata",
             "name": name,
             "timestamp": timestamp,
-            "artid": artid,
+            "artid": artifact_id,
             "operation_id": operation_id,
-        }
+            "source_id": source_id,
+        },
     }
 
     await fissure.utils.tak_messages.send(component, msg)

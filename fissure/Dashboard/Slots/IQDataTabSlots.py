@@ -23,6 +23,7 @@ from fissure.utils.selected_node_utils import (
     selected_node_is_ip,
     selected_node_is_meshtastic,
 )
+import uuid
 
 
 @QtCore.pyqtSlot(QtCore.QObject)
@@ -1470,40 +1471,6 @@ def copytree(src, dst, symlinks=False, ignore=None):
         else:
             if not os.path.exists(d) or os.stat(s).st_mtime - os.stat(d).st_mtime > 1:
                 shutil.copy2(s, d)
-
-
-@QtCore.pyqtSlot(QtCore.QObject)
-def _slotIQ_RecordDirClicked(dashboard: QtCore.QObject):
-    """ 
-    Selects a folder to store the recorded IQ files.
-    """
-    # Select a Directory
-    dialog = QtWidgets.QFileDialog(dashboard)
-    dialog.setFileMode(QtWidgets.QFileDialog.Directory)
-    dialog.setOption(QtWidgets.QFileDialog.ShowDirsOnly, True)
-
-    if dialog.exec_():
-        for d in dialog.selectedFiles():
-            folder = d
-    try:
-        dashboard.ui.textEdit_iq_record_dir.setText(folder)
-
-        # Change the Viewer Folder
-        get_dir = str(dashboard.ui.textEdit_iq_record_dir.toPlainText())
-        if len(get_dir) > 0:
-
-            # Load Directory and File
-            folder_index = dashboard.ui.comboBox3_iq_folders.findText(get_dir)
-            if folder_index < 0:
-                # New Directory
-                dashboard.ui.comboBox3_iq_folders.addItem(get_dir)
-                dashboard.ui.comboBox3_iq_folders.setCurrentIndex(dashboard.ui.comboBox3_iq_folders.count()-1)
-            else:
-                # Directory Exists
-                dashboard.ui.comboBox3_iq_folders.setCurrentIndex(folder_index)
-
-    except:
-        pass
 
 
 @QtCore.pyqtSlot(QtCore.QObject)
@@ -6112,186 +6079,380 @@ def _slotIQ_RecordSigMF_ConfigureClicked(dashboard: QtCore.QObject):
         dashboard.sigmf_dict = dlg.settings_dictionary
 
 
+def reset_iq_record_controls(
+    dashboard: QtCore.QObject,
+    status_text: str = "Idle",
+    clear_pending: bool = True,
+):
+    dashboard.iq_file_counter = 0
+
+    if clear_pending:
+        dashboard.iq_record_pending_operation_id = ""
+        dashboard.iq_record_pending_node_uid = ""
+        dashboard.iq_record_pending_started_at = 0
+        dashboard.iq_record_pending_base_file_name = ""
+
+    dashboard.ui.pushButton_iq_record.setText("Record")
+    dashboard.ui.pushButton_iq_record.setEnabled(True)
+    dashboard.ui.label2_iq_status_files.setText(status_text)
+
+
 @qasync.asyncSlot(QtCore.QObject)
 async def _slotIQ_RecordClicked(dashboard: QtCore.QObject, called_from_thread=False):
-    """ 
-    Loads the "iq_recorder" flow graph on the specified USRP source and begins recording data.
     """
+    Starts/stops IQ recording through the Base plugin action path.
+
+    First-pass behavior:
+      - Dashboard collects the existing IQ Record table values.
+      - Sends Base.iq_record to the selected Sensor Node.
+      - Plugin operation handles the actual flow graph launch and artifact creation.
+      - Stop requests all plugin operations stop on the selected node for now.
+    """
+
+    # ------------------------------------------------------------
     # Stop Recording
-    if (dashboard.ui.pushButton_iq_record.text() == "Stop") and (called_from_thread == False):
-        # Send Message to Sensor Node/HIPRFISR
-        await dashboard.backend.iqFlowGraphStop(dashboard.selected_node_uid, '')
-        dashboard.iq_file_counter = "abort"
+    # ------------------------------------------------------------
+    if dashboard.ui.pushButton_iq_record.text() == "Stop":
+        dashboard.ui.label2_iq_status_files.setText("Stopping...")
+        dashboard.ui.pushButton_iq_record.setEnabled(False)
 
+        try:
+            await dashboard.backend.tacticalNodeStop(
+                [dashboard.selected_node_uid]
+            )
+        except Exception as e:
+            dashboard.logger.error(f"[IQ] Failed stopping IQ record operation: {e}")
+
+        reset_iq_record_controls(
+            dashboard,
+            status_text="Stopped",
+            clear_pending=True,
+        )
+
+        try:
+            _slotIQ_ArtifactsRefreshClicked(dashboard)
+        except Exception as e:
+            dashboard.logger.warning(
+                f"[IQ] Failed refreshing artifacts after IQ record stop: {e}"
+            )
+
+        await dashboard.refreshStatusBarText()
+        return
+
+    # ------------------------------------------------------------
+    # Start Recording
+    # ------------------------------------------------------------
+    if not dashboard.selected_node_uid:
+        await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+            dashboard,
+            "No sensor node selected.",
+        )
+        return
+
+    if dashboard.ui.pushButton_iq_record.text() != "Record":
+        return
+
+    if dashboard.iq_file_counter == 0:
+        dashboard.iq_file_counter = 1
+
+    if dashboard.iq_file_counter <= 0:
+        return
+
+    # ------------------------------------------------------------
+    # Sensor Node Hardware Information
+    # ------------------------------------------------------------
+    get_current_hardware = str(dashboard.ui.comboBox_iq_record_hardware.currentText())
+
+    (
+        get_hardware_type,
+        get_hardware_uuid,
+        get_hardware_radio_name,
+        get_hardware_serial,
+        get_hardware_interface,
+        get_hardware_ip,
+        get_hardware_daughterboard,
+    ) = fissure.utils.hardware.hardwareDisplayNameLookup(
+        dashboard,
+        get_current_hardware,
+        "iq",
+    )
+
+    # ------------------------------------------------------------
+    # Read and Validate UI Values
+    # ------------------------------------------------------------
+    try:
+        get_base_file_name = str(dashboard.ui.tableWidget_iq_record.item(0, 0).text()).strip()
+
+        try:
+            get_frequency = str(dashboard.ui.tableWidget_iq_record.cellWidget(0, 1).value())
+        except Exception:
+            get_frequency = str(dashboard.ui.tableWidget_iq_record.item(0, 1).text()).strip()
+
+        get_channel = str(dashboard.ui.tableWidget_iq_record.cellWidget(0, 2).currentText()).strip()
+        get_antenna = str(dashboard.ui.tableWidget_iq_record.cellWidget(0, 3).currentText()).strip()
+
+        try:
+            get_gain = str(dashboard.ui.tableWidget_iq_record.cellWidget(0, 4).value())
+        except Exception:
+            get_gain = str(dashboard.ui.tableWidget_iq_record.item(0, 4).text()).strip()
+
+        try:
+            get_number_of_files = str(dashboard.ui.tableWidget_iq_record.cellWidget(0, 5).value())
+        except Exception:
+            get_number_of_files = str(dashboard.ui.tableWidget_iq_record.item(0, 5).text()).strip()
+
+        get_file_length = str(dashboard.ui.tableWidget_iq_record.item(0, 6).text()).strip()
+
+        try:
+            get_sample_rate = str(dashboard.ui.tableWidget_iq_record.cellWidget(0, 7).currentText()).strip()
+        except Exception:
+            get_sample_rate = str(dashboard.ui.tableWidget_iq_record.item(0, 7).text()).strip()
+
+        get_data_type = str(dashboard.ui.tableWidget_iq_record.cellWidget(0, 8).currentText()).strip()
+        get_file_interval = str(dashboard.ui.tableWidget_iq_record.item(0, 9).text()).strip()
+
+        # Validate conversions.
+        frequency_mhz = float(get_frequency)
+        gain = float(get_gain)
+        number_of_files = int(get_number_of_files)
+        file_length = int(get_file_length)
+        sample_rate_mhz = float(get_sample_rate)
+        file_interval = float(get_file_interval)
+
+        valid_freq = fissure.utils.hardware.checkFrequencyBounds(
+            frequency_mhz,
+            get_hardware_type,
+            get_hardware_daughterboard,
+        )
+
+        if valid_freq is False:
+            dashboard.iq_file_counter = 0
+            await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+                dashboard,
+                "Frequency outside of hardware bounds.",
+            )
+            return
+
+        if number_of_files < 1:
+            dashboard.iq_file_counter = 0
+            await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+                dashboard,
+                "Number of files must be >= 1.",
+            )
+            return
+
+        if file_length < 1:
+            dashboard.iq_file_counter = 0
+            await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+                dashboard,
+                "File length must be >= 1.",
+            )
+            return
+
+        if file_interval < 0:
+            dashboard.iq_file_counter = 0
+            await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+                dashboard,
+                "File interval must be positive.",
+            )
+            return
+
+    except Exception:
+        dashboard.iq_file_counter = 0
+        await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+            dashboard,
+            "Invalid input parameter.",
+        )
+        return
+
+    # ------------------------------------------------------------
+    # Flow Graph Name from Hardware
+    # Keep this for the plugin operation so the Dashboard still chooses
+    # the same recorder family as the legacy path.
+    # ------------------------------------------------------------
+    if get_hardware_type == "Computer":
+        fname = "iq_recorder"
+    elif get_hardware_type == "USRP X3x0":
+        fname = "iq_recorder_x3x0"
+    elif get_hardware_type == "USRP B2x0":
+        fname = "iq_recorder_b2x0"
+    elif get_hardware_type == "HackRF":
+        fname = "iq_recorder_hackrf"
+    elif get_hardware_type == "RTL2832U":
+        fname = "iq_recorder_rtl2832u"
+    elif get_hardware_type == "802.11x Adapter":
+        fname = "iq_recorder"
+    elif get_hardware_type == "USRP B20xmini":
+        fname = "iq_recorder_b2x0"
+    elif get_hardware_type == "LimeSDR":
+        fname = "iq_recorder_limesdr"
+    elif get_hardware_type == "bladeRF":
+        fname = "iq_recorder_bladerf"
+    elif get_hardware_type == "Open Sniffer":
+        fname = "iq_recorder"
+    elif get_hardware_type == "PlutoSDR":
+        fname = "iq_recorder_plutosdr"
+    elif get_hardware_type == "USRP2":
+        fname = "iq_recorder_usrp2"
+    elif get_hardware_type == "USRP N2xx":
+        fname = "iq_recorder_usrp_n2xx"
+    elif get_hardware_type == "bladeRF 2.0":
+        fname = "iq_recorder_bladerf2"
+    elif get_hardware_type == "USRP X410":
+        fname = "iq_recorder_usrp_x410"
+    elif get_hardware_type == "RSPduo":
+        fname = "iq_recorder_rspduo"
+    elif get_hardware_type == "RSPdx":
+        fname = "iq_recorder_rspdx"
+    elif get_hardware_type == "RSPdx R2":
+        fname = "iq_recorder_rspdx_r2"
+    elif get_hardware_type == "CaribouLite":
+        fname = "iq_recorder_cariboulite"
     else:
-        # Record
-        if dashboard.ui.pushButton_iq_record.text() == "Record" and dashboard.iq_file_counter == 0:
-            dashboard.iq_file_counter = 1
+        fname = "iq_recorder"
 
-        if dashboard.iq_file_counter > 0:
-            # Sensor Node Hardware Information
-            get_current_hardware = str(dashboard.ui.comboBox_iq_record_hardware.currentText())
-            get_hardware_type, get_hardware_uuid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
+    # LimeSDR channel normalization.
+    if get_hardware_type == "LimeSDR":
+        if get_channel == "A":
+            get_channel = "0"
+        elif get_channel == "B":
+            get_channel = "1"
 
-            # Get the Values from the Table
-            try:
-                get_base_file_name = str(dashboard.ui.tableWidget_iq_record.item(0,0).text())
-                try:
-                    get_frequency = str(dashboard.ui.tableWidget_iq_record.cellWidget(0,1).value())
-                except:
-                    get_frequency = str(dashboard.ui.tableWidget_iq_record.item(0,1).text())
-                get_channel = str(dashboard.ui.tableWidget_iq_record.cellWidget(0,2).currentText())
-                get_antenna = str(dashboard.ui.tableWidget_iq_record.cellWidget(0,3).currentText())
-                try:
-                    get_gain = str(dashboard.ui.tableWidget_iq_record.cellWidget(0,4).value())
-                except:
-                    get_gain = str(dashboard.ui.tableWidget_iq_record.item(0,4).text())
-                try:
-                    get_number_of_files = str(dashboard.ui.tableWidget_iq_record.cellWidget(0,5).value())
-                except:
-                    get_number_of_files = str(dashboard.ui.tableWidget_iq_record.item(0,5).text())
-                get_file_length = str(dashboard.ui.tableWidget_iq_record.item(0,6).text())
-                try:
-                    get_sample_rate = str(dashboard.ui.tableWidget_iq_record.cellWidget(0,7).currentText())
-                except:
-                    get_sample_rate = str(dashboard.ui.tableWidget_iq_record.item(0,7).text())
-                get_data_type = str(dashboard.ui.tableWidget_iq_record.cellWidget(0,8).currentText())
-                get_file_interval = str(dashboard.ui.tableWidget_iq_record.item(0,9).text())
-                #get_power_squelch = str(dashboard.ui.tableWidget_iq_record.item(0,9).text())
-                #get_lpf_cutoff = str(dashboard.ui.tableWidget_iq_record.item(0,10).text())
-                #get_lpf_trans_width = str(dashboard.ui.tableWidget_iq_record.item(0,11).text())
-                get_filepath = str(dashboard.ui.textEdit_iq_record_dir.toPlainText()) + "/" + get_base_file_name
-                #~ get_filepath = get_filepath.replace('/','//')
+    # ------------------------------------------------------------
+    # Hardware Serial Formatting
+    # Preserve the old serial argument behavior for flow graph support.
+    # ------------------------------------------------------------
+    if len(get_hardware_serial) > 0:
+        if get_hardware_type in [
+            "HackRF",
+            "bladeRF",
+            "bladeRF 2.0",
+            "RSPduo",
+            "RSPdx",
+            "RSPdx R2",
+        ]:
+            get_serial = get_hardware_serial
+        else:
+            get_serial = "serial=" + get_hardware_serial
+    else:
+        if get_hardware_type == "HackRF":
+            get_serial = ""
+        elif get_hardware_type in [
+            "bladeRF",
+            "bladeRF 2.0",
+            "RSPduo",
+            "RSPdx",
+            "RSPdx R2",
+        ]:
+            get_serial = "0"
+        else:
+            get_serial = "False"
 
-                # Validate Inputs
-                float(get_frequency)
-                float(get_gain)
-                int(get_number_of_files)
-                int(get_file_length)
-                float(get_sample_rate)
-                float(get_file_interval)
-                valid_freq = fissure.utils.hardware.checkFrequencyBounds(float(get_frequency), get_hardware_type, get_hardware_daughterboard)
-                if valid_freq == False:
-                    dashboard.iq_file_counter = 0
-                    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(dashboard, "Frequency outside of hardware bounds.")
-                    return
-                if int(get_number_of_files) < 1:
-                    dashboard.iq_file_counter = 0
-                    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(dashboard, "Number of files must be >= 1.")
-                    return
-                if float(get_file_interval) < 0:
-                    dashboard.iq_file_counter = 0
-                    ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(dashboard, "File interval must be positive.")
-                    return
-            except:
-                dashboard.iq_file_counter = 0
-                ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(dashboard, "Invalid input parameter.")
-                return
+    # ------------------------------------------------------------
+    # Artifact Format
+    # ------------------------------------------------------------
+    artifact_format_text = dashboard.ui.comboBox_iq_record_artifact_format.currentText().strip()
 
-            # Get Flow Graph from Hardware
-            if get_hardware_type == "Computer":
-                fname = "iq_recorder"  # Should never be called
-            elif get_hardware_type == "USRP X3x0":
-                fname = "iq_recorder_x3x0"
-            elif get_hardware_type == "USRP B2x0":
-                fname = "iq_recorder_b2x0"
-            elif get_hardware_type == "HackRF":
-                fname = "iq_recorder_hackrf"
-            elif get_hardware_type == "RTL2832U":
-                fname = "iq_recorder_rtl2832u"  # To Do
-            elif get_hardware_type == "802.11x Adapter":
-                fname = "iq_recorder"  # Should never be called
-            elif get_hardware_type == "USRP B20xmini":
-                fname = "iq_recorder_b2x0"
-            elif get_hardware_type == "LimeSDR":
-                fname = "iq_recorder_limesdr"
-            elif get_hardware_type == "bladeRF":
-                fname = "iq_recorder_bladerf"
-            elif get_hardware_type == "Open Sniffer":
-                fname = "iq_recorder"  # Should never be called
-            elif get_hardware_type == "PlutoSDR":
-                fname = "iq_recorder_plutosdr"
-            elif get_hardware_type == "USRP2":
-                fname = "iq_recorder_usrp2"
-            elif get_hardware_type == "USRP N2xx":
-                fname = "iq_recorder_usrp_n2xx"
-            elif get_hardware_type == "bladeRF 2.0":
-                fname = "iq_recorder_bladerf2"
-            elif get_hardware_type == "USRP X410":
-                fname = "iq_recorder_usrp_x410"
-            elif get_hardware_type == "RSPduo":
-                fname = "iq_recorder_rspduo"
-            elif get_hardware_type == "RSPdx":
-                fname = "iq_recorder_rspdx"                                
-            elif get_hardware_type == "RSPdx R2":
-                fname = "iq_recorder_rspdx_r2"
-            elif get_hardware_type == "CaribouLite":
-                fname = "iq_recorder_cariboulite"                
+    artifact_format = {
+        "Raw IQ File": "raw",
+        "Zip Bundle": "zip",
+    }.get(artifact_format_text, "raw")
 
-            # LimeSDR Channel
-            if get_hardware_type == "LimeSDR":
-                if get_channel == "A":
-                    get_channel = "0"
-                elif get_channel == "B":
-                    get_channel = "1"
+    # ------------------------------------------------------------
+    # SigMF Timestamp Update
+    # ------------------------------------------------------------
+    try:
+        if "core:datetime" in dashboard.sigmf_dict["captures"][0]:
+            iq_record_timestamp = datetime.datetime.utcnow().isoformat("T") + "Z"
+            dashboard.sigmf_dict["captures"][0]["core:datetime"] = str(iq_record_timestamp)
+    except Exception:
+        pass
 
-            # Hardware Serial
-            if len(get_hardware_serial) > 0:
-                if get_hardware_type == "HackRF":
-                    get_serial = get_hardware_serial
-                elif get_hardware_type == "bladeRF":
-                    get_serial = get_hardware_serial
-                elif get_hardware_type == "bladeRF 2.0":
-                    get_serial = get_hardware_serial
-                elif get_hardware_type == "RSPduo":
-                    get_serial = get_hardware_serial
-                elif get_hardware_type == "RSPdx":
-                    get_serial = get_hardware_serial
-                elif get_hardware_type == "RSPdx R2":
-                    get_serial = get_hardware_serial
-                else:
-                    get_serial = 'serial=' + get_hardware_serial
-            else:
-                if get_hardware_type == "HackRF":
-                    get_serial = ""
-                elif get_hardware_type == "bladeRF":
-                    get_serial = "0"
-                elif get_hardware_type == "bladeRF 2.0":
-                    get_serial = "0"
-                elif get_hardware_type == "RSPduo":
-                    get_serial = "0"
-                elif get_hardware_type == "RSPdx":
-                    get_serial = "0"
-                elif get_hardware_type == "RSPdx R2":
-                    get_serial = "0"
-                else:
-                    get_serial = "False"
+    # Copy SigMF metadata so plugin-side changes do not mutate Dashboard state.
+    try:
+        sigmf_metadata = json.loads(json.dumps(dashboard.sigmf_dict))
+    except Exception:
+        sigmf_metadata = {}
 
-            # Put them in a List
-            variable_names = ['filepath','ip_address','rx_channel','rx_frequency','sample_rate','rx_gain','rx_antenna','file_length','serial']
-            variable_values = [get_filepath,get_hardware_ip,get_channel,get_frequency,get_sample_rate,get_gain,get_antenna,get_file_length,get_serial]
+    # Remember File Name for Multiple File Recordings on First Attempt.
+    # The plugin should handle number_of_files now, but keeping this avoids
+    # breaking status logic that still looks at this value.
+    if dashboard.iq_file_counter == 1:
+        dashboard.iq_first_file_name = get_base_file_name
 
-            # Remember File Name for Multiple File Recordings on First Attempt
-            if dashboard.iq_file_counter == 1:
-                dashboard.iq_first_file_name = get_base_file_name
+    # ------------------------------------------------------------
+    # Plugin Action Parameters
+    # ------------------------------------------------------------
+    operation_id = str(uuid.uuid4())
 
-            # Send the Parameters to Sensor Node
-                #If no errors entering parameters...
-            get_file_type = "Flow Graph"
-            await dashboard.backend.iqFlowGraphStart(dashboard.selected_node_uid, str(fname), variable_names, variable_values, get_file_type)
+    # Track only the IQ recording started from this Dashboard's IQ Data tab.
+    # This prevents IQ artifacts launched from Tactical, TAK, another Dashboard,
+    # or automation from resetting this local IQ Record UI.
+    dashboard.iq_record_pending_operation_id = operation_id
+    dashboard.iq_record_pending_node_uid = dashboard.selected_node_uid
+    dashboard.iq_record_pending_started_at = time.time()
+    dashboard.iq_record_pending_base_file_name = get_base_file_name
 
-            # Change Status Label and Record Button Text
-            dashboard.ui.label2_iq_status_files.setText("Starting...")
-            dashboard.ui.pushButton_iq_record.setText("Stop")
-            dashboard.ui.pushButton_iq_record.setEnabled(False)
-            if dashboard.selected_node_uid:
-                # dashboard.statusbar_text[dashboard.selected_node_uid][4] = 'Starting...' #TODO
-                dashboard.refreshStatusBarText()
+    parameters = {
+        # Request identity / completion correlation
+        "operation_id": operation_id,
+        "requester": "iq_data_tab",
 
-            # Get Record Timestamp
-            if 'core:datetime' in dashboard.sigmf_dict['captures'][0]:
-                iq_record_timestamp = datetime.datetime.utcnow().isoformat("T") + "Z"
-                dashboard.sigmf_dict['captures'][0]['core:datetime'] = str(iq_record_timestamp)
+        # Legacy-ish recorder selection
+        "flow_graph_name": fname,
+
+        # File/output
+        "base_file_name": get_base_file_name,
+        "artifact_format": artifact_format,
+
+        # Hardware identity
+        "hardware_display_name": get_current_hardware,
+        "hardware_type": get_hardware_type,
+        "hardware_uuid": get_hardware_uuid,
+        "hardware_radio_name": get_hardware_radio_name,
+        "hardware_serial": get_hardware_serial,
+        "hardware_serial_argument": get_serial,
+        "hardware_interface": get_hardware_interface,
+        "hardware_ip": get_hardware_ip,
+        "hardware_daughterboard": get_hardware_daughterboard,
+
+        # RF / recorder parameters
+        "frequency_mhz": frequency_mhz,
+        "rx_frequency": get_frequency,
+        "rx_channel": get_channel,
+        "rx_antenna": get_antenna,
+        "rx_gain": gain,
+        "sample_rate_mhz": sample_rate_mhz,
+        "sample_rate": get_sample_rate,
+        "file_length": file_length,
+        "number_of_files": number_of_files,
+        "file_interval": file_interval,
+        "data_type": get_data_type,
+
+        # Metadata
+        "sigmf_enabled": bool(dashboard.ui.checkBox_iq_record_sigmf.isChecked()),
+        "sigmf_metadata": sigmf_metadata,
+    }
+
+    # ------------------------------------------------------------
+    # Send Plugin Action
+    # ------------------------------------------------------------
+    await dashboard.backend.tacticalNodeExecute(
+        [dashboard.selected_node_uid],
+        "Base",
+        "iq_record",
+        parameters,
+    )
+
+    # ------------------------------------------------------------
+    # UI State
+    # ------------------------------------------------------------
+    dashboard.ui.label2_iq_status_files.setText("Starting...")
+    dashboard.ui.pushButton_iq_record.setText("Stop")
+    dashboard.ui.pushButton_iq_record.setEnabled(True)
+
+    if dashboard.selected_node_uid:
+        dashboard.refreshStatusBarText()
 
 
 @qasync.asyncSlot(QtCore.QObject)
@@ -7303,3 +7464,333 @@ def _slotIQ_DemodClicked(dashboard: QtCore.QObject):
         
     else:
         pass
+
+
+def _iq_get_artifact_files_dir(artifact_dir: str) -> str:
+    """
+    Returns the artifact files folder. Most plugin artifacts use:
+
+        <artifact_dir>/files
+
+    Falls back to artifact_dir for easier testing.
+    """
+    files_dir = os.path.join(artifact_dir, "files")
+    if os.path.isdir(files_dir):
+        return files_dir
+    return artifact_dir
+
+
+def _iq_format_artifact_combo_name(artifact_name: str, files_dir: str) -> str:
+    """
+    Compact display name for the artifact combo box.
+    The full path is stored in UserRole/tooltip.
+    """
+    try:
+        mtime = os.path.getmtime(files_dir)
+        timestamp = datetime.datetime.fromtimestamp(mtime).strftime("%m/%d %H:%M")
+        return f"{artifact_name}  {timestamp}"
+    except Exception:
+        return artifact_name
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotIQ_ArtifactsRefreshClicked(dashboard: QtCore.QObject):
+    """
+    Refreshes the IQ Data Artifacts combo box from local unpacked artifacts.
+
+    Expected local layout:
+        FISSURE/artifacts/<artifact_id>/files/<artifact files>
+    """
+    combo = dashboard.ui.comboBox_iq_artifacts
+    file_list = dashboard.ui.listWidget_iq_artifacts_files
+
+    previous_artifact_dir = None
+    try:
+        current_data = combo.currentData(QtCore.Qt.UserRole)
+        if isinstance(current_data, dict):
+            previous_artifact_dir = current_data.get("artifact_dir")
+    except Exception:
+        previous_artifact_dir = None
+
+    combo.blockSignals(True)
+    combo.clear()
+    file_list.clear()
+
+    artifacts_root = fissure.utils.HUB_ARTIFACTS_DIR
+
+    if not os.path.isdir(artifacts_root):
+        combo.blockSignals(False)
+        dashboard.logger.warning(f"[IQ] Artifacts folder not found: {artifacts_root}")
+        return
+
+    artifacts = []
+
+    try:
+        for artifact_name in os.listdir(artifacts_root):
+            artifact_dir = os.path.join(artifacts_root, artifact_name)
+
+            if not os.path.isdir(artifact_dir):
+                continue
+
+            files_dir = _iq_get_artifact_files_dir(artifact_dir)
+
+            if not os.path.isdir(files_dir):
+                continue
+
+            # Only include artifact folders that have at least one regular file.
+            has_files = any(
+                os.path.isfile(os.path.join(files_dir, fname))
+                for fname in os.listdir(files_dir)
+            )
+            if not has_files:
+                continue
+
+            try:
+                sort_time = os.path.getmtime(files_dir)
+            except Exception:
+                sort_time = 0
+
+            display_name = _iq_format_artifact_combo_name(artifact_name, files_dir)
+
+            artifacts.append(
+                (
+                    sort_time,
+                    display_name,
+                    {
+                        "artifact_name": artifact_name,
+                        "artifact_dir": artifact_dir,
+                        "files_dir": files_dir,
+                    },
+                )
+            )
+
+    except Exception as e:
+        combo.blockSignals(False)
+        dashboard.logger.error(f"[IQ] Failed refreshing artifacts: {e}")
+        return
+
+    # Newest first
+    artifacts.sort(key=lambda item: item[0], reverse=True)
+
+    restore_index = -1
+
+    for _, display_name, artifact_data in artifacts:
+        combo.addItem(display_name, artifact_data)
+        index = combo.count() - 1
+
+        combo.setItemData(
+            index,
+            artifact_data["artifact_dir"],
+            QtCore.Qt.ToolTipRole,
+        )
+
+        if previous_artifact_dir and artifact_data["artifact_dir"] == previous_artifact_dir:
+            restore_index = index
+
+    if combo.count() > 0:
+        if restore_index >= 0:
+            combo.setCurrentIndex(restore_index)
+        else:
+            combo.setCurrentIndex(0)
+
+    combo.blockSignals(False)
+
+    _slotIQ_ArtifactsChanged(dashboard)
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotIQ_ArtifactsChanged(dashboard: QtCore.QObject):
+    """
+    Populates the IQ Data artifact file list from the selected local artifact folder.
+    """
+    combo = dashboard.ui.comboBox_iq_artifacts
+    file_list = dashboard.ui.listWidget_iq_artifacts_files
+
+    file_list.clear()
+
+    artifact_data = combo.currentData(QtCore.Qt.UserRole)
+
+    if not isinstance(artifact_data, dict):
+        return
+
+    files_dir = artifact_data.get("files_dir", "")
+
+    if not files_dir or not os.path.isdir(files_dir):
+        return
+
+    try:
+        file_names = []
+
+        for fname in os.listdir(files_dir):
+            full_path = os.path.join(files_dir, fname)
+
+            if os.path.isfile(full_path):
+                file_names.append(fname)
+
+        file_names = sorted(file_names, key=str.lower)
+
+        for fname in file_names:
+            full_path = os.path.join(files_dir, fname)
+
+            item = QtWidgets.QListWidgetItem(fname)
+            item.setData(QtCore.Qt.UserRole, full_path)
+            item.setToolTip(full_path)
+
+            file_list.addItem(item)
+
+        if file_list.count() > 0:
+            file_list.setCurrentRow(0)
+
+    except Exception as e:
+        dashboard.logger.error(f"[IQ] Failed loading artifact files from {files_dir}: {e}")
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotIQ_ArtifactFileDoubleClicked(dashboard: QtCore.QObject, item=None):
+    """
+    Loads a local artifact file into the existing IQ viewer path.
+
+    This intentionally reuses the existing Files-tab state:
+      - comboBox3_iq_folders
+      - label_iq_folder
+      - listWidget_iq_files
+      - comboBox_iq_data_type
+
+    That keeps existing plot/filter/demod functions working because most of them
+    still read label_iq_folder + listWidget_iq_files.currentItem().
+    """
+    if item is None:
+        item = dashboard.ui.listWidget_iq_artifacts_files.currentItem()
+
+    if item is None:
+        QtWidgets.QMessageBox.warning(
+            dashboard,
+            "No Artifact File Selected",
+            "Select an artifact file to load.",
+        )
+        return
+
+    file_path = item.data(QtCore.Qt.UserRole)
+
+    if not file_path:
+        # Fallback from current artifact folder + visible item text.
+        artifact_data = dashboard.ui.comboBox_iq_artifacts.currentData(QtCore.Qt.UserRole)
+        if isinstance(artifact_data, dict):
+            files_dir = artifact_data.get("files_dir", "")
+            file_path = os.path.join(files_dir, item.text())
+
+    if not file_path or not os.path.isfile(file_path):
+        QtWidgets.QMessageBox.warning(
+            dashboard,
+            "Artifact File Not Found",
+            f"Could not find artifact file:\n{file_path}",
+        )
+        return
+
+    artifact_data_type = dashboard.ui.comboBox_iq_artifacts_data_type.currentText().strip()
+
+    # Sync artifact data type into the existing IQ viewer data type combo.
+    if artifact_data_type:
+        data_type_index = dashboard.ui.comboBox_iq_data_type.findText(artifact_data_type)
+
+        if data_type_index >= 0:
+            dashboard.ui.comboBox_iq_data_type.setCurrentIndex(data_type_index)
+
+    folder = os.path.dirname(file_path)
+    filename = os.path.basename(file_path)
+
+    # Add/select the artifact folder in the existing Files folder combo.
+    # This lets existing IQ plotting functions continue using the old state path.
+    folder_combo = dashboard.ui.comboBox3_iq_folders
+    folder_index = folder_combo.findText(folder)
+
+    if folder_index < 0:
+        folder_combo.addItem(folder)
+        folder_index = folder_combo.count() - 1
+
+    folder_combo.setCurrentIndex(folder_index)
+
+    # Ensure the old file list reflects the artifact folder, then select the file.
+    dashboard.ui.label_iq_folder.setText(folder)
+    _slotIQ_FoldersChanged(dashboard)
+
+    matches = dashboard.ui.listWidget_iq_files.findItems(
+        filename,
+        QtCore.Qt.MatchExactly,
+    )
+
+    if matches:
+        dashboard.ui.listWidget_iq_files.setCurrentItem(matches[0])
+    else:
+        # Should not usually happen, but keeps LoadIQ_Data safe if the refresh filter changes.
+        dashboard.ui.listWidget_iq_files.addItem(filename)
+        dashboard.ui.listWidget_iq_files.setCurrentRow(
+            dashboard.ui.listWidget_iq_files.count() - 1
+        )
+
+    _slotIQ_LoadIQ_Data(dashboard)
+
+
+def handle_iq_record_artifact_complete(dashboard: QtCore.QObject, artifact_record: dict):
+    """
+    Resets the IQ Record controls and refreshes the local IQ artifact browser
+    when an IQ recording artifact is received.
+
+    First-pass completion signal:
+      artifact CoT received -> IQ record operation produced an artifact.
+    """
+    if artifact_record.get("operation_id", "") != getattr(
+        dashboard,
+        "iq_record_pending_operation_id",
+        "",
+    ):
+        return
+
+    reset_iq_record_controls(
+        dashboard,
+        status_text="Finished",
+        clear_pending=True,
+    )
+
+    try:
+        _slotIQ_ArtifactsRefreshClicked(dashboard)
+    except Exception as e:
+        dashboard.logger.warning(
+            f"[IQ] Failed refreshing artifacts after IQ record completion: {e}"
+        )
+
+    # Select the new artifact in the IQ Data -> Artifacts combo if possible.
+    try:
+        operation_id = artifact_record.get("operation_id", "")
+        artifact_id = artifact_record.get("artifact_id", "")
+
+        candidate_dirs = []
+
+        if operation_id:
+            candidate_dirs.append(
+                os.path.join(fissure.utils.HUB_ARTIFACTS_DIR, operation_id)
+            )
+
+        if artifact_id:
+            candidate_dirs.append(
+                os.path.join(fissure.utils.HUB_ARTIFACTS_DIR, artifact_id)
+            )
+
+        combo = dashboard.ui.comboBox_iq_artifacts
+
+        for i in range(combo.count()):
+            data = combo.itemData(i, QtCore.Qt.UserRole)
+
+            if not isinstance(data, dict):
+                continue
+
+            artifact_dir = data.get("artifact_dir", "")
+
+            if artifact_dir in candidate_dirs:
+                combo.setCurrentIndex(i)
+                break
+
+    except Exception as e:
+        dashboard.logger.warning(
+            f"[IQ] Failed selecting completed IQ artifact: {e}"
+        )

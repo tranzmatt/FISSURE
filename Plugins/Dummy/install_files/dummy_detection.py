@@ -63,6 +63,7 @@ class OperationMain(Operation):
 
             detection = {
                 "event_type": "detection",
+                "node_uid": self.node_uid,
                 "frequency_hz": int(self.freq_hz),
                 "power_dbm": float(self.power_dbm),
                 "timestamp": int(ts),
