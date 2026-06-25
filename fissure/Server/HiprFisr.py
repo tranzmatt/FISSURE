@@ -6,7 +6,7 @@ import asyncio
 import fissure.callbacks
 import fissure.comms
 import fissure.utils
-from fissure.utils.plugin_editor import PluginEditor
+# from fissure.utils.plugin_editor import PluginEditor
 import sys
 import time
 import uuid
@@ -1350,7 +1350,7 @@ class HiprFisr:
             fissure.comms.MessageTypes.COMMANDS,
             msg
         )
-        
+
 
     async def publish_node_track_from_state(self, node_uid: str):
         """
@@ -1752,16 +1752,16 @@ class HiprFisr:
             self.logger.error(f"Exception while starting TAK containers: {e}")
 
 
-    def openPluginEditor(self, plugin_name: str):
-        self.plugin_editor = PluginEditor(plugin_name)
+    # def openPluginEditor(self, plugin_name: str):
+    #     self.plugin_editor = PluginEditor(plugin_name)
 
 
-    # def closePluginEditor(self):
-    #     self.plugin_editor = None
+    # # def closePluginEditor(self):
+    # #     self.plugin_editor = None
 
 
-    # def pluginEditorGetProtocols(self):
-    #     return self.plugin_editor.get_protocols()
+    # # def pluginEditorGetProtocols(self):
+    # #     return self.plugin_editor.get_protocols()
 
 
     def pluginAddProtocolHiprfisr(self, protocol_name: str):

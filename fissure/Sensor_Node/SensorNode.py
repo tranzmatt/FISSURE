@@ -967,7 +967,7 @@ class SensorNode(object):
             return None
         self.logger.info(f"Plugin path resolved: {plugin_path}")
 
-        plugin_script_path = os.path.join(plugin_path, "install_files", operation)
+        plugin_script_path = os.path.join(plugin_path, "operations", operation)
         if not os.path.exists(plugin_script_path):
             self.logger.error(f"Plugin script does not exist: {plugin_script_path}")
             return None

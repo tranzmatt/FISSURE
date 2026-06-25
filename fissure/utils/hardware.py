@@ -2160,3 +2160,77 @@ def selectedNodeHardwareDisplayNames(
     return display_names
 
 
+def get_compatible_sdr(settings, compatible_types):
+    """
+    Return (uid, sdr_entry) for the default compatible SDR, falling back to the
+    first compatible SDR.
+
+    compatible_types should be a list/set of hardware type strings, such as:
+        ["USRP B20xmini", "USRP B2x0"]
+    """
+    compatible_types = set(compatible_types or [])
+
+    hw = settings.get("Sensor Node", {}).get("hardware", {}) or {}
+    defaults = hw.get("defaults", {}) or {}
+    sdrs = hw.get("sdrs", {}) or {}
+
+    if not isinstance(sdrs, dict) or not sdrs:
+        return None, None
+
+    default_sdr_uid = defaults.get("sdr", "")
+
+    # Prefer the configured default SDR if compatible.
+    for candidate_uid in (default_sdr_uid, str(default_sdr_uid)):
+        if candidate_uid in sdrs and isinstance(sdrs[candidate_uid], dict):
+            candidate = sdrs[candidate_uid]
+            candidate_type = str(candidate.get("type", "") or "").strip()
+
+            if candidate_type in compatible_types:
+                return candidate_uid, candidate
+
+    # Otherwise use the first compatible SDR.
+    for candidate_uid, candidate in sdrs.items():
+        if not isinstance(candidate, dict):
+            continue
+
+        candidate_type = str(candidate.get("type", "") or "").strip()
+
+        if candidate_type in compatible_types:
+            return candidate_uid, candidate
+
+    return None, None
+
+
+def sdr_entry_to_operation_parameters(uid, entry):
+    """
+    Convert a Sensor Node SDR config entry into normalized plugin operation
+    hardware_* parameters.
+    """
+    if not isinstance(entry, dict):
+        return {}
+
+    radio_name = str(entry.get("radio_name", "") or "").strip()
+    hardware_type = str(entry.get("type", "") or "").strip()
+    serial = str(entry.get("serial", "") or "").strip()
+    ip_address = str(entry.get("ip_address", "") or "").strip()
+
+    if hardware_type in {"USRP B20xmini", "USRP B2x0"}:
+        serial_argument = f"serial={serial}" if serial else "False"
+    else:
+        serial_argument = serial if serial else "False"
+
+    return {
+        "hardware_uuid": str(uid),
+        "hardware_type": hardware_type,
+        "hardware_display_name": radio_name,
+        "hardware_radio_name": radio_name,
+        "hardware_serial": serial,
+        "hardware_interface": str(
+            entry.get("network_interface")
+            or entry.get("interface")
+            or ""
+        ).strip(),
+        "hardware_ip": ip_address,
+        "hardware_daughterboard": str(entry.get("daughterboard", "") or "").strip(),
+        "hardware_serial_argument": serial_argument,
+    }

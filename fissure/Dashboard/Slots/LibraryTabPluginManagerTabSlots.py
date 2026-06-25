@@ -72,17 +72,17 @@ def connect_slots(dashboard: QtCore.QObject):
         lambda: _slot_plugin_pkg_path_changed(dashboard)
     )
 
-    dashboard.ui.toolButton_plugins_upload.clicked.connect(
-        lambda: _slot_plugin_upload(dashboard)
-    )
+    # dashboard.ui.toolButton_plugins_upload.clicked.connect(
+    #     lambda: _slot_plugin_upload(dashboard)
+    # )
 
-    dashboard.ui.toolButton_plugin_pkgs_hiprfisr_refresh.clicked.connect(
-        lambda: _slot_request_hiprfisr_plugin_list(dashboard)
-    )
+    # dashboard.ui.toolButton_plugin_pkgs_hiprfisr_refresh.clicked.connect(
+    #     lambda: _slot_request_hiprfisr_plugin_list(dashboard)
+    # )
 
-    dashboard.ui.toolButton_plugin_pkgs_hiprfisr_delete.clicked.connect(
-        lambda: _slot_request_hipfisr_plugin_delete(dashboard)
-    )
+    # dashboard.ui.toolButton_plugin_pkgs_hiprfisr_delete.clicked.connect(
+    #     lambda: _slot_request_hipfisr_plugin_delete(dashboard)
+    # )
 
     dashboard.ui.toolButton_plugin_pkgs_hiprfisr_download.clicked.connect(
         lambda: _slot_request_hipfisr_plugin_download(dashboard)
@@ -246,119 +246,119 @@ async def _slot_plugin_download_dir_changed(dashboard: QtCore.QObject):
     else:
         dashboard.ui.toolButton_plugin_pkgs_hiprfisr_download.setEnabled(False)
 
-@qasync.asyncSlot(QtCore.QObject)
-async def _slot_plugin_upload(dashboard: QtCore.QObject):
-    """Upload Plugin to Central Hub
+# @qasync.asyncSlot(QtCore.QObject)
+# async def _slot_plugin_upload(dashboard: QtCore.QObject):
+#     """Upload Plugin to Central Hub
 
-    Parameters
-    ----------
-    dashboard : QtCore.QObject
-        FISSURE dashboard
-    """
-    # check if the plugin directory exists
-    plugin_dir = dashboard.ui.textEdit_plugin_pkg_path.text().strip()
-    if not plugin_dir:
-        QtCore.QMessageBox.warning(
-            dashboard,
-            "No Plugin Directory",
-            "Please set a valid plugin directory."
-        )
-        return
+#     Parameters
+#     ----------
+#     dashboard : QtCore.QObject
+#         FISSURE dashboard
+#     """
+#     # check if the plugin directory exists
+#     plugin_dir = dashboard.ui.textEdit_plugin_pkg_path.text().strip()
+#     if not plugin_dir:
+#         QtCore.QMessageBox.warning(
+#             dashboard,
+#             "No Plugin Directory",
+#             "Please set a valid plugin directory."
+#         )
+#         return
     
-    # get selected plugins
-    selected_indexes = dashboard.ui.tableWidget_plugin_pkgs_local.selectedIndexes()
-    selected_plugins = [index.data() for index in selected_indexes]
+#     # get selected plugins
+#     selected_indexes = dashboard.ui.tableWidget_plugin_pkgs_local.selectedIndexes()
+#     selected_plugins = [index.data() for index in selected_indexes]
 
-    for plugin in selected_plugins:
-        if dashboard.backend.hiprfisr_connected is True:
-            plugin_path = os.path.join(plugin_dir, plugin)
-            if not os.path.exists(plugin_path):
-                QtCore.QMessageBox.warning(
-                    dashboard,
-                    "Plugin Not Found",
-                    f"Plugin directory '{plugin_path}' does not exist."
-                )
-                continue
+#     for plugin in selected_plugins:
+#         if dashboard.backend.hiprfisr_connected is True:
+#             plugin_path = os.path.join(plugin_dir, plugin)
+#             if not os.path.exists(plugin_path):
+#                 QtCore.QMessageBox.warning(
+#                     dashboard,
+#                     "Plugin Not Found",
+#                     f"Plugin directory '{plugin_path}' does not exist."
+#                 )
+#                 continue
 
-            # Create a temporary zip file for the plugin directory
-            with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as temp_zip:
-                with zipfile.ZipFile(temp_zip.name, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                    for root, dirs, files in os.walk(plugin_path):
-                        for file in files:
-                            file_path = os.path.join(root, file)
-                            arcname = os.path.relpath(file_path, plugin_path)
-                            zipf.write(file_path, arcname)
-                with open(temp_zip.name, "rb") as f:
-                    zip_data = f.read()
-                hex_zip_data = binascii.hexlify(zip_data).decode("utf-8").upper()
+#             # Create a temporary zip file for the plugin directory
+#             with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as temp_zip:
+#                 with zipfile.ZipFile(temp_zip.name, 'w', zipfile.ZIP_DEFLATED) as zipf:
+#                     for root, dirs, files in os.walk(plugin_path):
+#                         for file in files:
+#                             file_path = os.path.join(root, file)
+#                             arcname = os.path.relpath(file_path, plugin_path)
+#                             zipf.write(file_path, arcname)
+#                 with open(temp_zip.name, "rb") as f:
+#                     zip_data = f.read()
+#                 hex_zip_data = binascii.hexlify(zip_data).decode("utf-8").upper()
 
-            PARAMETERS = {
-                "plugin_name": plugin,
-                "plugin_data": hex_zip_data,
-            }
-            msg = {
-                fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                fissure.comms.MessageFields.MESSAGE_NAME: "savePlugin",
-                fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-            }
-            await dashboard.backend.hiprfisr_socket.send_msg(
-                fissure.comms.MessageTypes.COMMANDS, msg
-            )
-    await _slot_request_hiprfisr_plugin_list(dashboard)
+#             PARAMETERS = {
+#                 "plugin_name": plugin,
+#                 "plugin_data": hex_zip_data,
+#             }
+#             msg = {
+#                 fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+#                 fissure.comms.MessageFields.MESSAGE_NAME: "savePlugin",
+#                 fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+#             }
+#             await dashboard.backend.hiprfisr_socket.send_msg(
+#                 fissure.comms.MessageTypes.COMMANDS, msg
+#             )
+#     await _slot_request_hiprfisr_plugin_list(dashboard)
 
-@qasync.asyncSlot(QtCore.QObject)
-async def _slot_request_hiprfisr_plugin_list(dashboard: QtCore.QObject):
-    """Refresh List of Sensor Nodes on HIPRFISR
+# @qasync.asyncSlot(QtCore.QObject)
+# async def _slot_request_hiprfisr_plugin_list(dashboard: QtCore.QObject):
+#     """Refresh List of Sensor Nodes on HIPRFISR
 
-    Parameters
-    ----------
-    dashboard : QtCore.QObject
-        FISSURE dashboard
-    """
-    # gray all rows prior to requesting update
-    table: QtWidgets.QTableWidget = dashboard.ui.tableWidget_plugin_pkgs_hiprfisr
-    table.clearContents()
-    table.setRowCount(0)
+#     Parameters
+#     ----------
+#     dashboard : QtCore.QObject
+#         FISSURE dashboard
+#     """
+#     # gray all rows prior to requesting update
+#     table: QtWidgets.QTableWidget = dashboard.ui.tableWidget_plugin_pkgs_hiprfisr
+#     table.clearContents()
+#     table.setRowCount(0)
 
-    # request update
-    await dashboard.backend.requestPluginNamesHiprfisr()
+#     # request update
+#     await dashboard.backend.requestPluginNamesHiprfisr()
 
-@qasync.asyncSlot(QtCore.QObject)
-async def _slot_request_hipfisr_plugin_delete(dashboard: QtCore.QObject):
-    """Delete Selected Plugins from HIPRFISR
+# @qasync.asyncSlot(QtCore.QObject)
+# async def _slot_request_hipfisr_plugin_delete(dashboard: QtCore.QObject):
+#     """Delete Selected Plugins from HIPRFISR
 
-    Parameters
-    ----------
-    dashboard : QtCore.QObject
-        FISSURE dashboard
-    """
-    table: QtWidgets.QTableWidget = dashboard.ui.tableWidget_plugin_pkgs_hiprfisr
-    # Prompt user if all items are selected for deletion
-    selected_items = [item.text() for item in [table.item(i, 0) for i in range(table.rowCount())] if item.isSelected()]
-    if len(selected_items) > 0:
-        reply = await async_yes_no_dialog(
-            dashboard,
-            "You are about to delete the following plugins from HIPRFISR. Are you sure?\n\n" + "\n".join(selected_items)
-        )
-        if reply != QtWidgets.QMessageBox.Yes:
-            return
-    else:
-        return
+#     Parameters
+#     ----------
+#     dashboard : QtCore.QObject
+#         FISSURE dashboard
+#     """
+#     table: QtWidgets.QTableWidget = dashboard.ui.tableWidget_plugin_pkgs_hiprfisr
+#     # Prompt user if all items are selected for deletion
+#     selected_items = [item.text() for item in [table.item(i, 0) for i in range(table.rowCount())] if item.isSelected()]
+#     if len(selected_items) > 0:
+#         reply = await async_yes_no_dialog(
+#             dashboard,
+#             "You are about to delete the following plugins from HIPRFISR. Are you sure?\n\n" + "\n".join(selected_items)
+#         )
+#         if reply != QtWidgets.QMessageBox.Yes:
+#             return
+#     else:
+#         return
 
-    for plugin_name in selected_items:
-        if dashboard.backend.hiprfisr_connected is True:
-            PARAMETERS = {
-                "plugin_name": plugin_name,
-                "delete_from_library": True
-            }
-            msg = {
-                fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                fissure.comms.MessageFields.MESSAGE_NAME: "pluginDelete",
-                fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-            }
-            await dashboard.backend.hiprfisr_socket.send_msg(
-                fissure.comms.MessageTypes.COMMANDS, msg
-            )
+#     for plugin_name in selected_items:
+#         if dashboard.backend.hiprfisr_connected is True:
+#             PARAMETERS = {
+#                 "plugin_name": plugin_name,
+#                 "delete_from_library": True
+#             }
+#             msg = {
+#                 fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+#                 fissure.comms.MessageFields.MESSAGE_NAME: "pluginDelete",
+#                 fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+#             }
+#             await dashboard.backend.hiprfisr_socket.send_msg(
+#                 fissure.comms.MessageTypes.COMMANDS, msg
+#             )
 
 @qasync.asyncSlot(QtCore.QObject)
 async def _slot_request_hipfisr_plugin_download(dashboard: QtCore.QObject):

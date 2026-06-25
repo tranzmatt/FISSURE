@@ -1082,112 +1082,112 @@ def _slotLibraryBrowseCopyClicked(dashboard: QtCore.QObject):
     target_table.resizeRowsToContents()
 
 
-@qasync.asyncSlot(QtCore.QObject)
-async def _slotLibraryPluginImportClicked(dashboard: QtCore.QObject):
-    """
-    Imports a plugin from a ZIP file into the FISSURE system.
+# @qasync.asyncSlot(QtCore.QObject)
+# async def _slotLibraryPluginImportClicked(dashboard: QtCore.QObject):
+#     """
+#     Imports a plugin from a ZIP file into the FISSURE system.
 
-    Steps:
-    1. Opens a file dialog for the user to select a ZIP file.
-    2. Checks if the selected ZIP file requires a password.
-       - If a password is required, prompts the user via a GUI input dialog.
-    3. Creates the plugin directory if it does not already exist.
-    4. Extracts the ZIP contents, handling password-protected archives.
-    5. Moves extracted files to the correct plugin directory.
-    6. Opens the plugin in the FISSURE system.
-    7. Prompts the user to apply changes to save the imported plugin.
-    """
+#     Steps:
+#     1. Opens a file dialog for the user to select a ZIP file.
+#     2. Checks if the selected ZIP file requires a password.
+#        - If a password is required, prompts the user via a GUI input dialog.
+#     3. Creates the plugin directory if it does not already exist.
+#     4. Extracts the ZIP contents, handling password-protected archives.
+#     5. Moves extracted files to the correct plugin directory.
+#     6. Opens the plugin in the FISSURE system.
+#     7. Prompts the user to apply changes to save the imported plugin.
+#     """
 
-    # Select a .zip
-    file_path = await fissure.Dashboard.UI_Components.Qt5.async_open_file_dialog(dashboard, ".", "ZIP Files (*.zip)")
-    if not file_path:
-        return  # User canceled file selection
+#     # Select a .zip
+#     file_path = await fissure.Dashboard.UI_Components.Qt5.async_open_file_dialog(dashboard, ".", "ZIP Files (*.zip)")
+#     if not file_path:
+#         return  # User canceled file selection
 
-    plugin_name = os.path.basename(file_path).replace(".zip", "")
-    plugins_root = os.path.join(fissure.utils.FISSURE_ROOT, "Plugins")
-    new_folder = os.path.join(plugins_root, plugin_name)
+#     plugin_name = os.path.basename(file_path).replace(".zip", "")
+#     plugins_root = os.path.join(fissure.utils.FISSURE_ROOT, "Plugins")
+#     new_folder = os.path.join(plugins_root, plugin_name)
 
-    if os.path.exists(new_folder):
-        return  # Plugin folder already exists, do not proceed
+#     if os.path.exists(new_folder):
+#         return  # Plugin folder already exists, do not proceed
 
-    # Step 1: Check if ZIP requires a password
-    password = None
-    test_cmd = ["7z", "t", file_path, "-p"]
+#     # Step 1: Check if ZIP requires a password
+#     password = None
+#     test_cmd = ["7z", "t", file_path, "-p"]
     
-    try:
-        proc = await asyncio.create_subprocess_exec(
-            *test_cmd,
-            stdout=asyncio.subprocess.DEVNULL,  # Suppress normal output
-            stderr=asyncio.subprocess.PIPE  # Capture errors only
-        )
-        _, stderr = await asyncio.wait_for(proc.communicate(), timeout=5)
+#     try:
+#         proc = await asyncio.create_subprocess_exec(
+#             *test_cmd,
+#             stdout=asyncio.subprocess.DEVNULL,  # Suppress normal output
+#             stderr=asyncio.subprocess.PIPE  # Capture errors only
+#         )
+#         _, stderr = await asyncio.wait_for(proc.communicate(), timeout=5)
 
-    except asyncio.TimeoutError:
-        return  # Exit if 7z test command hangs
+#     except asyncio.TimeoutError:
+#         return  # Exit if 7z test command hangs
 
-    # Check if the ZIP is password-protected
-    stderr_output = stderr.decode().strip()
-    if "Wrong password" in stderr_output or "Can not open encrypted archive" in stderr_output or "Data Error" in stderr_output:
-        password = await fissure.Dashboard.UI_Components.Qt5.async_input_dialog(dashboard, "Enter ZIP password:", "Password Required")
-        if not password:
-            return  # User canceled password input
+#     # Check if the ZIP is password-protected
+#     stderr_output = stderr.decode().strip()
+#     if "Wrong password" in stderr_output or "Can not open encrypted archive" in stderr_output or "Data Error" in stderr_output:
+#         password = await fissure.Dashboard.UI_Components.Qt5.async_input_dialog(dashboard, "Enter ZIP password:", "Password Required")
+#         if not password:
+#             return  # User canceled password input
 
-    # Step 2: Create the plugin directory in the system
-    dashboard.ui.comboBox_library_plugin_new_existing.setCurrentIndex(1)
-    dashboard.ui.textEdit_library_plugin_plugin_name.setPlainText(plugin_name)
-    await _slotLibraryPluginCreate(dashboard, open_after_create=False)
+#     # Step 2: Create the plugin directory in the system
+#     dashboard.ui.comboBox_library_plugin_new_existing.setCurrentIndex(1)
+#     dashboard.ui.textEdit_library_plugin_plugin_name.setPlainText(plugin_name)
+#     await _slotLibraryPluginCreate(dashboard, open_after_create=False)
 
-    # Step 3: Extract ZIP after plugin creation
-    temp_extract_path = os.path.join(plugins_root, f"{plugin_name}_temp")
-    os.makedirs(temp_extract_path, exist_ok=True)
+#     # Step 3: Extract ZIP after plugin creation
+#     temp_extract_path = os.path.join(plugins_root, f"{plugin_name}_temp")
+#     os.makedirs(temp_extract_path, exist_ok=True)
 
-    try:
-        extract_cmd = ["7z", "x", file_path, f"-o{temp_extract_path}", "-y"]
-        if password:
-            extract_cmd.append(f"-p{password}")
+#     try:
+#         extract_cmd = ["7z", "x", file_path, f"-o{temp_extract_path}", "-y"]
+#         if password:
+#             extract_cmd.append(f"-p{password}")
 
-        proc = await asyncio.create_subprocess_exec(
-            *extract_cmd,
-            stdout=asyncio.subprocess.DEVNULL,  # Suppress normal output
-            stderr=asyncio.subprocess.PIPE
-        )
+#         proc = await asyncio.create_subprocess_exec(
+#             *extract_cmd,
+#             stdout=asyncio.subprocess.DEVNULL,  # Suppress normal output
+#             stderr=asyncio.subprocess.PIPE
+#         )
 
-        _, stderr = await proc.communicate()
-        stderr_output = stderr.decode().strip()
+#         _, stderr = await proc.communicate()
+#         stderr_output = stderr.decode().strip()
 
-        if "Wrong password" in stderr_output or "Can not open encrypted archive" in stderr_output:
-            return  # Exit if incorrect password
+#         if "Wrong password" in stderr_output or "Can not open encrypted archive" in stderr_output:
+#             return  # Exit if incorrect password
 
-        # Step 4: Move extracted files to the plugin directory
-        extracted_folder = None
-        for root, dirs, _ in os.walk(temp_extract_path):
-            if "install_files" in dirs and "tables" in dirs:
-                extracted_folder = root
-                break
+#         # Step 4: Move extracted files to the plugin directory
+#         extracted_folder = None
+#         for root, dirs, _ in os.walk(temp_extract_path):
+#             if "install_files" in dirs and "tables" in dirs:
+#                 extracted_folder = root
+#                 break
 
-        if extracted_folder:
-            for item in os.listdir(extracted_folder):
-                src_path = os.path.join(extracted_folder, item)
-                dest_path = os.path.join(new_folder, item)
-                if os.path.isdir(src_path):
-                    shutil.copytree(src_path, dest_path, dirs_exist_ok=True)
-                else:
-                    shutil.copy2(src_path, dest_path)
-        else:
-            return  # Exit if required folders are missing
+#         if extracted_folder:
+#             for item in os.listdir(extracted_folder):
+#                 src_path = os.path.join(extracted_folder, item)
+#                 dest_path = os.path.join(new_folder, item)
+#                 if os.path.isdir(src_path):
+#                     shutil.copytree(src_path, dest_path, dirs_exist_ok=True)
+#                 else:
+#                     shutil.copy2(src_path, dest_path)
+#         else:
+#             return  # Exit if required folders are missing
 
-        shutil.rmtree(temp_extract_path)  # Remove temporary extraction folder
+#         shutil.rmtree(temp_extract_path)  # Remove temporary extraction folder
 
-    except asyncio.TimeoutError:
-        return  # Exit if 7z extraction times out
-    except Exception:
-        return  # Exit on unexpected extraction failure
+#     except asyncio.TimeoutError:
+#         return  # Exit if 7z extraction times out
+#     except Exception:
+#         return  # Exit on unexpected extraction failure
 
-    # Step 5: Open the Plugin
-    await _slotLibraryPluginOpenClose(dashboard)
+#     # Step 5: Open the Plugin
+#     await _slotLibraryPluginOpenClose(dashboard)
 
-    # Step 6: Prompt user to save changes
-    await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(dashboard, 'Click "Apply Changes" to save to database.')
+#     # Step 6: Prompt user to save changes
+#     await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(dashboard, 'Click "Apply Changes" to save to database.')
 
 
 @QtCore.pyqtSlot(QtCore.QObject)
@@ -1328,72 +1328,72 @@ def _slotLibraryPluginExportZipClicked(dashboard: QtCore.QObject):
         QtWidgets.QMessageBox.critical(None, "Error", f"Failed to create ZIP file: {e}")
 
 
-@qasync.asyncSlot(QtCore.QObject)
-async def _slotLibraryPluginApplyChangesClicked(dashboard: QtCore.QObject):
-    """
-    Applies changes to existing plugins by copying all the table data and overwriting the csv files at the HIPRFISR.
-    """
-    # Gather Table Data
-    table_data = {}
+# @qasync.asyncSlot(QtCore.QObject)
+# async def _slotLibraryPluginApplyChangesClicked(dashboard: QtCore.QObject):
+#     """
+#     Applies changes to existing plugins by copying all the table data and overwriting the csv files at the HIPRFISR.
+#     """
+#     # Gather Table Data
+#     table_data = {}
 
-    # Iterate through each page of the stacked widget
-    for page_index in range(dashboard.ui.stackedWidget_library_plugin_tables.count()):
-        page = dashboard.ui.stackedWidget_library_plugin_tables.widget(page_index)  # Get the page at index
-        target_table = page.findChild(QtWidgets.QTableWidget)  # Find the QTableWidget in the page
+#     # Iterate through each page of the stacked widget
+#     for page_index in range(dashboard.ui.stackedWidget_library_plugin_tables.count()):
+#         page = dashboard.ui.stackedWidget_library_plugin_tables.widget(page_index)  # Get the page at index
+#         target_table = page.findChild(QtWidgets.QTableWidget)  # Find the QTableWidget in the page
         
-        if target_table:
-            database_table_name = str(dashboard.ui.comboBox_library_plugin_edit.itemText(page_index))
+#         if target_table:
+#             database_table_name = str(dashboard.ui.comboBox_library_plugin_edit.itemText(page_index))
             
-            # Extract column headers
-            headers = [target_table.horizontalHeaderItem(col).text() for col in range(target_table.columnCount())]
+#             # Extract column headers
+#             headers = [target_table.horizontalHeaderItem(col).text() for col in range(target_table.columnCount())]
             
-            # Extract table rows
-            rows = []
-            rows.append(headers)
-            for row in range(target_table.rowCount()):
-                row_data = [target_table.item(row, col).text() if target_table.item(row, col) else "" for col in range(target_table.columnCount())]
-                rows.append(row_data)
+#             # Extract table rows
+#             rows = []
+#             rows.append(headers)
+#             for row in range(target_table.rowCount()):
+#                 row_data = [target_table.item(row, col).text() if target_table.item(row, col) else "" for col in range(target_table.columnCount())]
+#                 rows.append(row_data)
             
-            # Store data in a dictionary with table_name as key
-            # table_data[table_name] = {"headers": headers, "rows": rows}
-            table_data[database_table_name] = {"rows": rows}
+#             # Store data in a dictionary with table_name as key
+#             # table_data[table_name] = {"headers": headers, "rows": rows}
+#             table_data[database_table_name] = {"rows": rows}
     
-    # Convert the dictionary to JSON format for easy transfer (if needed)
-    table_data_json = json.dumps(table_data)
+#     # Convert the dictionary to JSON format for easy transfer (if needed)
+#     table_data_json = json.dumps(table_data)
 
-    # Gather Supporting Files
-    supporting_files_data = {}
+#     # Gather Supporting Files
+#     supporting_files_data = {}
 
-    # Iterate through each page of the stacked widget
-    for page_index in range(dashboard.ui.stackedWidget_library_plugin_support.count()):
-        page = dashboard.ui.stackedWidget_library_plugin_support.widget(page_index)  # Get the page at index
-        target_table = page.findChild(QtWidgets.QTableWidget)  # Find the QTableWidget in the page
+#     # Iterate through each page of the stacked widget
+#     for page_index in range(dashboard.ui.stackedWidget_library_plugin_support.count()):
+#         page = dashboard.ui.stackedWidget_library_plugin_support.widget(page_index)  # Get the page at index
+#         target_table = page.findChild(QtWidgets.QTableWidget)  # Find the QTableWidget in the page
         
-        if target_table:
-            database_table_name = str(dashboard.ui.comboBox_library_plugin_edit.itemText(page_index))
+#         if target_table:
+#             database_table_name = str(dashboard.ui.comboBox_library_plugin_edit.itemText(page_index))
             
-            rows = []
-            for row in range(target_table.rowCount()):
-                # First column: Filepath string
-                filepath = target_table.item(row, 0).text() if target_table.item(row, 0) else ""
+#             rows = []
+#             for row in range(target_table.rowCount()):
+#                 # First column: Filepath string
+#                 filepath = target_table.item(row, 0).text() if target_table.item(row, 0) else ""
 
-                # Second column: Combobox value
-                combobox = target_table.cellWidget(row, 1)
-                combobox_value = str(combobox.currentText()) if isinstance(combobox, QtWidgets.QComboBox) else ""
+#                 # Second column: Combobox value
+#                 combobox = target_table.cellWidget(row, 1)
+#                 combobox_value = str(combobox.currentText()) if isinstance(combobox, QtWidgets.QComboBox) else ""
 
-                # Third column: New filepath string
-                new_filepath = target_table.item(row, 2).text() if target_table.item(row, 2) else ""
+#                 # Third column: New filepath string
+#                 new_filepath = target_table.item(row, 2).text() if target_table.item(row, 2) else ""
 
-                # Append the row data to the list
-                rows.append({"filepath": filepath, "action": combobox_value, "new_filepath": new_filepath})
+#                 # Append the row data to the list
+#                 rows.append({"filepath": filepath, "action": combobox_value, "new_filepath": new_filepath})
             
-            # Store rows data under the page name
-            supporting_files_data[database_table_name] = rows
+#             # Store rows data under the page name
+#             supporting_files_data[database_table_name] = rows
 
-    # Convert the dictionary to JSON format for easy transfer (if needed)
-    supporting_files_data_json = json.dumps(supporting_files_data, indent=4)
+#     # Convert the dictionary to JSON format for easy transfer (if needed)
+#     supporting_files_data_json = json.dumps(supporting_files_data, indent=4)
 
-    await dashboard.backend.pluginApplyChanges(table_data_json, supporting_files_data_json)
+#     await dashboard.backend.pluginApplyChanges(table_data_json, supporting_files_data_json)
     
 
 @QtCore.pyqtSlot(QtCore.QObject)
@@ -1553,297 +1553,297 @@ def _slotLibraryPluginAppendClicked(dashboard: QtCore.QObject):
     QtWidgets.QMessageBox.information(None, "Success", "Data successfully appended to tables!")
 
 
-@qasync.asyncSlot(QtCore.QObject)
-async def _slotLibraryPluginCreate(dashboard: QtCore.QObject, open_after_create=True):
-    """
-    Creates a new empty plugin at the HIPRFISR and prepares the Plugin Editor for editing.
-    """
-    # Get plugin name
-    plugin_name = dashboard.ui.textEdit_library_plugin_plugin_name.toPlainText()
+# @qasync.asyncSlot(QtCore.QObject)
+# async def _slotLibraryPluginCreate(dashboard: QtCore.QObject, open_after_create=True):
+#     """
+#     Creates a new empty plugin at the HIPRFISR and prepares the Plugin Editor for editing.
+#     """
+#     # Get plugin name
+#     plugin_name = dashboard.ui.textEdit_library_plugin_plugin_name.toPlainText()
 
-    if len(plugin_name) > 0:
-        # Open editor on hiprfisr to create plugin
-        await dashboard.backend.openPluginHiprfisr(plugin_name)
+#     if len(plugin_name) > 0:
+#         # Open editor on hiprfisr to create plugin
+#         await dashboard.backend.openPluginHiprfisr(plugin_name)
 
-        # Refresh the List
-        await _slotLibraryPluginPluginRefresh(dashboard)
+#         # Refresh the List
+#         await _slotLibraryPluginPluginRefresh(dashboard)
 
-        # Wait up to 5 seconds for the plugin to appear
-        comboBox = dashboard.ui.comboBox_library_plugin_selection
-        timeout = 5  # seconds
-        elapsed = 0
-        check_interval = 0.2  # seconds
-        timeout_triggered = False
+#         # Wait up to 5 seconds for the plugin to appear
+#         comboBox = dashboard.ui.comboBox_library_plugin_selection
+#         timeout = 5  # seconds
+#         elapsed = 0
+#         check_interval = 0.2  # seconds
+#         timeout_triggered = False
 
-        while elapsed < timeout:
-            QApplication.processEvents()  # Process UI updates
-            plugin_names = [comboBox.itemText(i) for i in range(comboBox.count())]
+#         while elapsed < timeout:
+#             QApplication.processEvents()  # Process UI updates
+#             plugin_names = [comboBox.itemText(i) for i in range(comboBox.count())]
 
-            if plugin_name in plugin_names:
-                comboBox.setCurrentText(plugin_name)
-                break  # Exit loop once the plugin is found
+#             if plugin_name in plugin_names:
+#                 comboBox.setCurrentText(plugin_name)
+#                 break  # Exit loop once the plugin is found
 
-            await asyncio.sleep(check_interval)  # Wait before retrying
-            elapsed += check_interval
+#             await asyncio.sleep(check_interval)  # Wait before retrying
+#             elapsed += check_interval
 
-        if elapsed >= timeout:
-            dashboard.logger.debug(f"Timeout: Plugin '{plugin_name}' not found after {timeout} seconds.")
-            timeout_triggered = True
+#         if elapsed >= timeout:
+#             dashboard.logger.debug(f"Timeout: Plugin '{plugin_name}' not found after {timeout} seconds.")
+#             timeout_triggered = True
 
-        # Switch UI to show existing plugin
-        dashboard.ui.textEdit_library_plugin_plugin_name.setPlainText("")
-        dashboard.ui.comboBox_library_plugin_new_existing.setCurrentText("Existing")
-        dashboard.ui.stackedWidget_library_plugin_selection.setCurrentIndex(0)
+#         # Switch UI to show existing plugin
+#         dashboard.ui.textEdit_library_plugin_plugin_name.setPlainText("")
+#         dashboard.ui.comboBox_library_plugin_new_existing.setCurrentText("Existing")
+#         dashboard.ui.stackedWidget_library_plugin_selection.setCurrentIndex(0)
 
-        # Open Plugin
-        if timeout_triggered == False:
-            if open_after_create == True:
-                await _slotLibraryPluginOpenClose(dashboard)
+#         # Open Plugin
+#         if timeout_triggered == False:
+#             if open_after_create == True:
+#                 await _slotLibraryPluginOpenClose(dashboard)
 
 
-@qasync.asyncSlot(QtCore.QObject)
-async def _slotLibraryPluginOpenClose(dashboard: QtCore.QObject):
-    """
-    Opens and closes a plugin at the HIPRFISR to retrieve and edit plugin data.
-    """
-    # UI objects
-    pushButton_library_plugin_selection_open_close: QtWidgets.QPushButton = dashboard.ui.pushButton_library_plugin_selection_open_close
-    comboBox_library_plugin_new_existing: QtWidgets.QComboBox = dashboard.ui.comboBox_library_plugin_new_existing
+# @qasync.asyncSlot(QtCore.QObject)
+# async def _slotLibraryPluginOpenClose(dashboard: QtCore.QObject):
+#     """
+#     Opens and closes a plugin at the HIPRFISR to retrieve and edit plugin data.
+#     """
+#     # UI objects
+#     pushButton_library_plugin_selection_open_close: QtWidgets.QPushButton = dashboard.ui.pushButton_library_plugin_selection_open_close
+#     comboBox_library_plugin_new_existing: QtWidgets.QComboBox = dashboard.ui.comboBox_library_plugin_new_existing
 
-    if pushButton_library_plugin_selection_open_close.text() == "Open Plugin":
-        # Open editor on hiprfisr
-        await dashboard.backend.openPluginHiprfisr(dashboard.ui.comboBox_library_plugin_selection.currentText())
+#     if pushButton_library_plugin_selection_open_close.text() == "Open Plugin":
+#         # Open editor on hiprfisr
+#         await dashboard.backend.openPluginHiprfisr(dashboard.ui.comboBox_library_plugin_selection.currentText())
 
-        # Disable plugin selection boxes
-        comboBox_library_plugin_new_existing.setEnabled(False)
-        dashboard.ui.comboBox_library_plugin_selection.setEnabled(False)
-        dashboard.ui.pushButton_library_plugin_refresh.setEnabled(False)
-        dashboard.ui.pushButton_library_plugin_delete.setEnabled(False)
+#         # Disable plugin selection boxes
+#         comboBox_library_plugin_new_existing.setEnabled(False)
+#         dashboard.ui.comboBox_library_plugin_selection.setEnabled(False)
+#         dashboard.ui.pushButton_library_plugin_refresh.setEnabled(False)
+#         dashboard.ui.pushButton_library_plugin_delete.setEnabled(False)
 
-        # Change button text
-        pushButton_library_plugin_selection_open_close.setText("Close Plugin")
+#         # Change button text
+#         pushButton_library_plugin_selection_open_close.setText("Close Plugin")
 
-        # Enable Edit Plugin Widgets
-        dashboard.ui.frame1_library_plugin_edit_plugin.setEnabled(True)
-        dashboard.ui.label1_library_plugin_edit_plugin.setEnabled(True)        
+#         # Enable Edit Plugin Widgets
+#         dashboard.ui.frame1_library_plugin_edit_plugin.setEnabled(True)
+#         dashboard.ui.label1_library_plugin_edit_plugin.setEnabled(True)        
 
-    else:
-        # Close editor on hiprfisr
-        await dashboard.backend.closePluginHiprfisr()
+#     else:
+#         # Close editor on hiprfisr
+#         await dashboard.backend.closePluginHiprfisr()
 
-        # Enable plugin selection boxes
-        comboBox_library_plugin_new_existing.setEnabled(True)
-        dashboard.ui.comboBox_library_plugin_selection.setEnabled(True)
-        dashboard.ui.pushButton_library_plugin_refresh.setEnabled(True)
-        dashboard.ui.pushButton_library_plugin_delete.setEnabled(True)
+#         # Enable plugin selection boxes
+#         comboBox_library_plugin_new_existing.setEnabled(True)
+#         dashboard.ui.comboBox_library_plugin_selection.setEnabled(True)
+#         dashboard.ui.pushButton_library_plugin_refresh.setEnabled(True)
+#         dashboard.ui.pushButton_library_plugin_delete.setEnabled(True)
 
-        # Change button text
-        pushButton_library_plugin_selection_open_close.setText("Open Plugin")
+#         # Change button text
+#         pushButton_library_plugin_selection_open_close.setText("Open Plugin")
 
-        # Disable Edit Plugin Widgets
-        dashboard.ui.frame1_library_plugin_edit_plugin.setEnabled(False)
-        dashboard.ui.label1_library_plugin_edit_plugin.setEnabled(False)
+#         # Disable Edit Plugin Widgets
+#         dashboard.ui.frame1_library_plugin_edit_plugin.setEnabled(False)
+#         dashboard.ui.label1_library_plugin_edit_plugin.setEnabled(False)
 
-        # Clear the Tables
-        for page_index in range(dashboard.ui.stackedWidget_library_plugin_tables.count()):
-            page = dashboard.ui.stackedWidget_library_plugin_tables.widget(page_index)  # Get the page at index
-            target_table = page.findChild(QtWidgets.QTableWidget)  # Find the QTableWidget in the page
+#         # Clear the Tables
+#         for page_index in range(dashboard.ui.stackedWidget_library_plugin_tables.count()):
+#             page = dashboard.ui.stackedWidget_library_plugin_tables.widget(page_index)  # Get the page at index
+#             target_table = page.findChild(QtWidgets.QTableWidget)  # Find the QTableWidget in the page
             
-            if target_table:
-                # Set the row count to zero to clear the table
-                target_table.setRowCount(0)
+#             if target_table:
+#                 # Set the row count to zero to clear the table
+#                 target_table.setRowCount(0)
 
-        # Clear the Supporting Files
-        for page_index in range(dashboard.ui.stackedWidget_library_plugin_support.count()):
-            page = dashboard.ui.stackedWidget_library_plugin_support.widget(page_index)  # Get the page at index
-            target_table = page.findChild(QtWidgets.QTableWidget)  # Find the QTableWidget in the page
+#         # Clear the Supporting Files
+#         for page_index in range(dashboard.ui.stackedWidget_library_plugin_support.count()):
+#             page = dashboard.ui.stackedWidget_library_plugin_support.widget(page_index)  # Get the page at index
+#             target_table = page.findChild(QtWidgets.QTableWidget)  # Find the QTableWidget in the page
             
-            if target_table:
-                # Set the row count to zero to clear the table
-                target_table.setRowCount(0)
+#             if target_table:
+#                 # Set the row count to zero to clear the table
+#                 target_table.setRowCount(0)
 
 
-@qasync.asyncSlot(QtCore.QObject)
-async def _slotLibraryPluginPluginRefresh(dashboard: QtCore.QObject):
-    """
-    Queries the HIPRFISR and refreshes the combobox of plugins.
-    """
-    # Send the Message
-    await dashboard.backend.requestPluginNamesHiprfisr()
+# @qasync.asyncSlot(QtCore.QObject)
+# async def _slotLibraryPluginPluginRefresh(dashboard: QtCore.QObject):
+#     """
+#     Queries the HIPRFISR and refreshes the combobox of plugins.
+#     """
+#     # Send the Message
+#     await dashboard.backend.requestPluginNamesHiprfisr()
 
 
-@qasync.asyncSlot(QtCore.QObject)
-async def _slotLibraryPluginPluginDelete(dashboard: QtCore.QObject):
-    """
-    Deletes a plugin from the Plugin directory.
-    """
-    # Ask the user for confirmation
-    plugin_name = dashboard.ui.comboBox_library_plugin_selection.currentText()
-    if plugin_name:
-        ret = await fissure.Dashboard.UI_Components.Qt5.async_yes_no_dialog(
-            dashboard,
-            f"Are you sure you want to delete the plugin '{plugin_name}'?"
-        )
-        if ret == QtWidgets.QMessageBox.Yes:
-            pass
-        else:
-            return
+# @qasync.asyncSlot(QtCore.QObject)
+# async def _slotLibraryPluginPluginDelete(dashboard: QtCore.QObject):
+#     """
+#     Deletes a plugin from the Plugin directory.
+#     """
+#     # Ask the user for confirmation
+#     plugin_name = dashboard.ui.comboBox_library_plugin_selection.currentText()
+#     if plugin_name:
+#         ret = await fissure.Dashboard.UI_Components.Qt5.async_yes_no_dialog(
+#             dashboard,
+#             f"Are you sure you want to delete the plugin '{plugin_name}'?"
+#         )
+#         if ret == QtWidgets.QMessageBox.Yes:
+#             pass
+#         else:
+#             return
 
-        # Ask the user to delete files from library
-        ret = await fissure.Dashboard.UI_Components.Qt5.async_yes_no_dialog(
-            dashboard,
-            "The plugin folder will be removed. Do you also want to remove all associated plugin data from the library and database?"
-        )
-        if ret == QtWidgets.QMessageBox.Yes:
-            delete_from_library = True
-        else:
-            delete_from_library = False
+#         # Ask the user to delete files from library
+#         ret = await fissure.Dashboard.UI_Components.Qt5.async_yes_no_dialog(
+#             dashboard,
+#             "The plugin folder will be removed. Do you also want to remove all associated plugin data from the library and database?"
+#         )
+#         if ret == QtWidgets.QMessageBox.Yes:
+#             delete_from_library = True
+#         else:
+#             delete_from_library = False
             
-        # Send the Message
-        await dashboard.backend.pluginDelete(plugin_name, delete_from_library)
+#         # Send the Message
+#         await dashboard.backend.pluginDelete(plugin_name, delete_from_library)
 
     
-@QtCore.pyqtSlot(QtCore.QObject)
-def _slotLibraryPluginSupportAddClicked(dashboard: QtCore.QObject):
-    """
-    Adds a new empty row to the Supporting Files table.
-    """
-    # Get the Current Page
-    current_page = dashboard.ui.stackedWidget_library_plugin_support.currentWidget()
+# @QtCore.pyqtSlot(QtCore.QObject)
+# def _slotLibraryPluginSupportAddClicked(dashboard: QtCore.QObject):
+#     """
+#     Adds a new empty row to the Supporting Files table.
+#     """
+#     # Get the Current Page
+#     current_page = dashboard.ui.stackedWidget_library_plugin_support.currentWidget()
 
-    # Find the QTableWidget on the Current Page
-    get_table = current_page.findChild(QtWidgets.QTableWidget)
-    if get_table:
-        # Add a new row to the table
-        row_position = get_table.rowCount()
-        get_table.insertRow(row_position)
+#     # Find the QTableWidget on the Current Page
+#     get_table = current_page.findChild(QtWidgets.QTableWidget)
+#     if get_table:
+#         # Add a new row to the table
+#         row_position = get_table.rowCount()
+#         get_table.insertRow(row_position)
         
-        # Add the filepath as a new item
-        filepath_item = QtWidgets.QTableWidgetItem("")
-        filepath_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-        filepath_item.setFlags(filepath_item.flags() & ~QtCore.Qt.ItemIsEditable)
-        get_table.setItem(row_position, 0, filepath_item)
+#         # Add the filepath as a new item
+#         filepath_item = QtWidgets.QTableWidgetItem("")
+#         filepath_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+#         filepath_item.setFlags(filepath_item.flags() & ~QtCore.Qt.ItemIsEditable)
+#         get_table.setItem(row_position, 0, filepath_item)
 
-        # Action Comboboxes
-        new_action_combobox = QtWidgets.QComboBox(get_table, objectName='comboBox2_')
-        new_action_combobox.setFixedSize(73, 23)
-        get_table.setCellWidget(row_position, 1, new_action_combobox)
-        new_action_combobox.addItem("Keep")
-        new_action_combobox.addItem("Replace")
-        new_action_combobox.addItem("Delete")
-        new_action_combobox.setCurrentIndex(0)
-        new_action_combobox.setEnabled(False)
+#         # Action Comboboxes
+#         new_action_combobox = QtWidgets.QComboBox(get_table, objectName='comboBox2_')
+#         new_action_combobox.setFixedSize(73, 23)
+#         get_table.setCellWidget(row_position, 1, new_action_combobox)
+#         new_action_combobox.addItem("Keep")
+#         new_action_combobox.addItem("Replace")
+#         new_action_combobox.addItem("Delete")
+#         new_action_combobox.setCurrentIndex(0)
+#         new_action_combobox.setEnabled(False)
 
-        new_pushbutton = QtWidgets.QPushButton(get_table, objectName='pushButton_')
-        new_pushbutton.setText("...")
-        new_pushbutton.setFixedSize(36, 23)
-        get_table.setCellWidget(row_position, 3, new_pushbutton)
-        new_pushbutton.clicked.connect(lambda checked, table=get_table, row=row_position: _slotLibraryPluginSupportFileSelectionClicked(dashboard, table, row))
-        get_table.resizeRowsToContents()
-    else:
-        dashboard.logger.info("No QTableWidget found on the current page.")
-
-
-@QtCore.pyqtSlot(QtCore.QObject)
-def _slotLibraryPluginSupportFileSelectionClicked(dashboard: QtCore.QObject, target_table, row_position):
-    file_dialog = QtWidgets.QFileDialog()
-    file_dialog.setFileMode(QtWidgets.QFileDialog.ExistingFile)
-    file_dialog.setDirectory(fissure.utils.FISSURE_ROOT)
-    selected_file, _ = file_dialog.getOpenFileName()
-    if selected_file:
-        # Place the selected file in the correct row and column (assume column 2)
-        new_file_item = QtWidgets.QTableWidgetItem(selected_file)
-        new_file_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-        target_table.setItem(row_position, 2, new_file_item)
+#         new_pushbutton = QtWidgets.QPushButton(get_table, objectName='pushButton_')
+#         new_pushbutton.setText("...")
+#         new_pushbutton.setFixedSize(36, 23)
+#         get_table.setCellWidget(row_position, 3, new_pushbutton)
+#         new_pushbutton.clicked.connect(lambda checked, table=get_table, row=row_position: _slotLibraryPluginSupportFileSelectionClicked(dashboard, table, row))
+#         get_table.resizeRowsToContents()
+#     else:
+#         dashboard.logger.info("No QTableWidget found on the current page.")
 
 
-@QtCore.pyqtSlot(QtCore.QObject)
-def _slotLibraryPluginSupportDeleteClicked(dashboard: QtCore.QObject):
-    """
-    Deletes a newly added row in the Supporting Files table or clears the New Column if Existing is populated.
-    """
-    # Get the Current Page and Table Widget
-    current_page = dashboard.ui.stackedWidget_library_plugin_support.currentWidget()
-    get_table = current_page.findChild(QtWidgets.QTableWidget)
-    if get_table:
-        # Get the Currently Selected Row
-        selected_row = get_table.currentRow()
-
-        # Check if a Valid Row is Selected
-        if selected_row >= 0:
-            get_item = get_table.item(selected_row, 0)
-            if get_item and get_item.text() != "":
-                # Clear New
-                new_file_item = QtWidgets.QTableWidgetItem("")
-                new_file_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-                get_table.setItem(selected_row, 2, new_file_item)
-            else:
-                # Remove the Row
-                get_table.removeRow(selected_row)
-
-            # Select the Next Logical Row, if Any
-            new_row = max(0, selected_row - 1)
-            if get_table.rowCount() > 0:
-                get_table.setCurrentCell(new_row, 0)
-        else:
-            dashboard.logger.info("No row selected!")
+# @QtCore.pyqtSlot(QtCore.QObject)
+# def _slotLibraryPluginSupportFileSelectionClicked(dashboard: QtCore.QObject, target_table, row_position):
+#     file_dialog = QtWidgets.QFileDialog()
+#     file_dialog.setFileMode(QtWidgets.QFileDialog.ExistingFile)
+#     file_dialog.setDirectory(fissure.utils.FISSURE_ROOT)
+#     selected_file, _ = file_dialog.getOpenFileName()
+#     if selected_file:
+#         # Place the selected file in the correct row and column (assume column 2)
+#         new_file_item = QtWidgets.QTableWidgetItem(selected_file)
+#         new_file_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+#         target_table.setItem(row_position, 2, new_file_item)
 
 
-@QtCore.pyqtSlot(QtCore.QObject)
-def _slotLibraryPluginSupportResetClicked(dashboard: QtCore.QObject):
-    """
-    Resets all new rows and new column items in the current Supporting Files table.
-    """
-    # Get the Current Page and Table Widget
-    current_page = dashboard.ui.stackedWidget_library_plugin_support.currentWidget()
-    get_table = current_page.findChild(QtWidgets.QTableWidget)
-    if get_table:
-        for row in reversed(range(0, get_table.rowCount())):
-            if row >= 0:
-                get_item = get_table.item(row, 0)
-                if get_item and get_item.text() != "":
-                    # Clear New
-                    new_file_item = QtWidgets.QTableWidgetItem("")
-                    new_file_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-                    get_table.setItem(row, 2, new_file_item)
+# @QtCore.pyqtSlot(QtCore.QObject)
+# def _slotLibraryPluginSupportDeleteClicked(dashboard: QtCore.QObject):
+#     """
+#     Deletes a newly added row in the Supporting Files table or clears the New Column if Existing is populated.
+#     """
+#     # Get the Current Page and Table Widget
+#     current_page = dashboard.ui.stackedWidget_library_plugin_support.currentWidget()
+#     get_table = current_page.findChild(QtWidgets.QTableWidget)
+#     if get_table:
+#         # Get the Currently Selected Row
+#         selected_row = get_table.currentRow()
 
-                    # Reset Combobox
-                    combo_box = get_table.cellWidget(row, 1)  # Get the combobox from the table
-                    if combo_box:
-                        combo_box.setCurrentIndex(0) 
-                else:
-                    # Remove the Row
-                    get_table.removeRow(row)
+#         # Check if a Valid Row is Selected
+#         if selected_row >= 0:
+#             get_item = get_table.item(selected_row, 0)
+#             if get_item and get_item.text() != "":
+#                 # Clear New
+#                 new_file_item = QtWidgets.QTableWidgetItem("")
+#                 new_file_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+#                 get_table.setItem(selected_row, 2, new_file_item)
+#             else:
+#                 # Remove the Row
+#                 get_table.removeRow(selected_row)
+
+#             # Select the Next Logical Row, if Any
+#             new_row = max(0, selected_row - 1)
+#             if get_table.rowCount() > 0:
+#                 get_table.setCurrentCell(new_row, 0)
+#         else:
+#             dashboard.logger.info("No row selected!")
 
 
-@QtCore.pyqtSlot(QtCore.QObject)
-def _slotLibraryPluginSupportResetAllClicked(dashboard: QtCore.QObject):
-    """
-    Resets all new rows and new column items in all Supporting Files tables.
-    """
-    # Iterate through all Pages in the Stacked Widget
-    for index in range(dashboard.ui.stackedWidget_library_plugin_support.count()):
-        page = dashboard.ui.stackedWidget_library_plugin_support.widget(index)
+# @QtCore.pyqtSlot(QtCore.QObject)
+# def _slotLibraryPluginSupportResetClicked(dashboard: QtCore.QObject):
+#     """
+#     Resets all new rows and new column items in the current Supporting Files table.
+#     """
+#     # Get the Current Page and Table Widget
+#     current_page = dashboard.ui.stackedWidget_library_plugin_support.currentWidget()
+#     get_table = current_page.findChild(QtWidgets.QTableWidget)
+#     if get_table:
+#         for row in reversed(range(0, get_table.rowCount())):
+#             if row >= 0:
+#                 get_item = get_table.item(row, 0)
+#                 if get_item and get_item.text() != "":
+#                     # Clear New
+#                     new_file_item = QtWidgets.QTableWidgetItem("")
+#                     new_file_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+#                     get_table.setItem(row, 2, new_file_item)
+
+#                     # Reset Combobox
+#                     combo_box = get_table.cellWidget(row, 1)  # Get the combobox from the table
+#                     if combo_box:
+#                         combo_box.setCurrentIndex(0) 
+#                 else:
+#                     # Remove the Row
+#                     get_table.removeRow(row)
+
+
+# @QtCore.pyqtSlot(QtCore.QObject)
+# def _slotLibraryPluginSupportResetAllClicked(dashboard: QtCore.QObject):
+#     """
+#     Resets all new rows and new column items in all Supporting Files tables.
+#     """
+#     # Iterate through all Pages in the Stacked Widget
+#     for index in range(dashboard.ui.stackedWidget_library_plugin_support.count()):
+#         page = dashboard.ui.stackedWidget_library_plugin_support.widget(index)
         
-        # Find all QTableWidget Instances on the Current Page
-        tables = page.findChildren(QtWidgets.QTableWidget)
-        for table in tables:
-            for row in reversed(range(0, table.rowCount())):
-                if row >= 0:
-                    get_item = table.item(row, 0)
-                    if get_item and get_item.text() != "":
-                        # Clear New
-                        new_file_item = QtWidgets.QTableWidgetItem("")
-                        new_file_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-                        table.setItem(row, 2, new_file_item)
+#         # Find all QTableWidget Instances on the Current Page
+#         tables = page.findChildren(QtWidgets.QTableWidget)
+#         for table in tables:
+#             for row in reversed(range(0, table.rowCount())):
+#                 if row >= 0:
+#                     get_item = table.item(row, 0)
+#                     if get_item and get_item.text() != "":
+#                         # Clear New
+#                         new_file_item = QtWidgets.QTableWidgetItem("")
+#                         new_file_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+#                         table.setItem(row, 2, new_file_item)
 
-                        # Reset Combobox
-                        combo_box = table.cellWidget(row, 1)  # Get the combobox from the table
-                        if combo_box:
-                            combo_box.setCurrentIndex(0) 
-                    else:
-                        # Remove the Row
-                        table.removeRow(row)
+#                         # Reset Combobox
+#                         combo_box = table.cellWidget(row, 1)  # Get the combobox from the table
+#                         if combo_box:
+#                             combo_box.setCurrentIndex(0) 
+#                     else:
+#                         # Remove the Row
+#                         table.removeRow(row)
 
 
 @qasync.asyncSlot(QtCore.QObject)

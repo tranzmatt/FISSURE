@@ -1233,31 +1233,31 @@ async def requestPluginsTransferInstall(component: object, node_uid: str, plugin
     await SensorNodesPluginsTabSlots._slotSensorNodesPluginsPluginsListRefresh(component.frontend)
 
 
-async def responsePluginNamesHiprfisr(component: object, plugin_names: List[str]):
-    """Handle Request for Plugin Names
+# async def responsePluginNamesHiprfisr(component: object, plugin_names: List[str]):
+#     """Handle Request for Plugin Names
 
-    Parameters
-    ----------
-    component : object
-        Component
-    """
-    plugin_names.sort()
-    plugin_manager_table: QtWidgets.QTableWidget = component.frontend.ui.tableWidget_plugin_pkgs_hiprfisr
-    plugin_manager_table.clearContents()
-    plugin_manager_table.setColumnCount(1)
-    plugin_manager_table.setRowCount(0)
-    for plugin_name in plugin_names:
-        plugin_manager_table.insertRow(plugin_manager_table.rowCount())
-        plugin_manager_table.setItem(plugin_manager_table.rowCount() - 1, 0, QtWidgets.QTableWidgetItem(plugin_name))
-    plugin_manager_table.setHorizontalHeaderLabels(["Plugin Name"])
-    plugin_manager_table.resizeColumnsToContents()
-    plugin_manager_table.horizontalHeader().setVisible(True)
-    plugin_manager_table.verticalHeader().setVisible(False)
+#     Parameters
+#     ----------
+#     component : object
+#         Component
+#     """
+#     plugin_names.sort()
+#     plugin_manager_table: QtWidgets.QTableWidget = component.frontend.ui.tableWidget_plugin_pkgs_hiprfisr
+#     plugin_manager_table.clearContents()
+#     plugin_manager_table.setColumnCount(1)
+#     plugin_manager_table.setRowCount(0)
+#     for plugin_name in plugin_names:
+#         plugin_manager_table.insertRow(plugin_manager_table.rowCount())
+#         plugin_manager_table.setItem(plugin_manager_table.rowCount() - 1, 0, QtWidgets.QTableWidgetItem(plugin_name))
+#     plugin_manager_table.setHorizontalHeaderLabels(["Plugin Name"])
+#     plugin_manager_table.resizeColumnsToContents()
+#     plugin_manager_table.horizontalHeader().setVisible(True)
+#     plugin_manager_table.verticalHeader().setVisible(False)
 
-    # Also update the combobox in the Plugin Operations tab
-    combobox: QtWidgets.QComboBox = component.frontend.ui.comboBox_select_plugin
-    combobox.clear()
-    combobox.addItems(plugin_names)
+#     # Also update the combobox in the Plugin Operations tab
+#     combobox: QtWidgets.QComboBox = component.frontend.ui.comboBox_select_plugin
+#     combobox.clear()
+#     combobox.addItems(plugin_names)
 
 
 async def responsePluginOperations(component: object, plugin: str, operations: List[str]) -> None:
@@ -1523,160 +1523,160 @@ async def savePlugin(component: object, plugin_name: str, plugin_data: str) -> N
     component.frontend.ui.toolButton_plugin_pkg_path_refresh.clicked.emit()
 
 
-async def responsePluginTableData(component: object, plugin_name: str, table_data_json: dict, install_files: List[str]):
-    """Populates table data after opening a plugin.
+# async def responsePluginTableData(component: object, plugin_name: str, table_data_json: dict, install_files: List[str]):
+#     """Populates table data after opening a plugin.
 
-    Parameters
-    ----------
-    component : object
-        Component
-    """
-    # Populate CSV Tables
-    table_data = json.loads(table_data_json)  # Convert JSON back to dictionary
+#     Parameters
+#     ----------
+#     component : object
+#         Component
+#     """
+#     # Populate CSV Tables
+#     table_data = json.loads(table_data_json)  # Convert JSON back to dictionary
 
-    for table_name, rows in table_data.items():
-        # Match Table to ComboBox Item
-        current_combobox_index = component.frontend.ui.comboBox_library_plugin_edit.findText(table_name)
-        if current_combobox_index == -1:
-            continue
+#     for table_name, rows in table_data.items():
+#         # Match Table to ComboBox Item
+#         current_combobox_index = component.frontend.ui.comboBox_library_plugin_edit.findText(table_name)
+#         if current_combobox_index == -1:
+#             continue
 
-        # Get Corresponding Table Widget
-        component.frontend.ui.stackedWidget_library_plugin_tables.setCurrentIndex(current_combobox_index)
-        current_page = component.frontend.ui.stackedWidget_library_plugin_tables.currentWidget()
-        target_table = current_page.findChild(QtWidgets.QTableWidget)
+#         # Get Corresponding Table Widget
+#         component.frontend.ui.stackedWidget_library_plugin_tables.setCurrentIndex(current_combobox_index)
+#         current_page = component.frontend.ui.stackedWidget_library_plugin_tables.currentWidget()
+#         target_table = current_page.findChild(QtWidgets.QTableWidget)
 
-        if target_table:
-            # Get the headers from the table (expected headers from the database)
-            expected_headers = [
-                target_table.horizontalHeaderItem(col).text() if target_table.horizontalHeaderItem(col) else ""
-                for col in range(target_table.columnCount())
-            ]
+#         if target_table:
+#             # Get the headers from the table (expected headers from the database)
+#             expected_headers = [
+#                 target_table.horizontalHeaderItem(col).text() if target_table.horizontalHeaderItem(col) else ""
+#                 for col in range(target_table.columnCount())
+#             ]
 
-            # Check if the first row matches the expected headers
-            if rows and len(rows) > 0:
-                first_row = rows[0]  # First row of data
+#             # Check if the first row matches the expected headers
+#             if rows and len(rows) > 0:
+#                 first_row = rows[0]  # First row of data
 
-                if len(first_row) != len(expected_headers):
-                    # Handle the mismatch in column count
-                    asyncio.ensure_future(
-                        fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
-                            component.frontend,
-                            f"Column count mismatch in table '{table_name}' between data and table headers."
-                        )
-                    )
-                    continue
+#                 if len(first_row) != len(expected_headers):
+#                     # Handle the mismatch in column count
+#                     asyncio.ensure_future(
+#                         fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+#                             component.frontend,
+#                             f"Column count mismatch in table '{table_name}' between data and table headers."
+#                         )
+#                     )
+#                     continue
 
-                # Check if the first row values match the headers
-                for col_index in range(len(first_row)):
-                    if first_row[col_index] != expected_headers[col_index]:
-                        # Handle the header mismatch
-                        asyncio.ensure_future(
-                            fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
-                                component.frontend,
-                                f"In table '{table_name}', the value '{first_row[col_index]}' in the first row does not match the expected header '{expected_headers[col_index]}'."
-                            )
-                        )
-                        continue
+#                 # Check if the first row values match the headers
+#                 for col_index in range(len(first_row)):
+#                     if first_row[col_index] != expected_headers[col_index]:
+#                         # Handle the header mismatch
+#                         asyncio.ensure_future(
+#                             fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+#                                 component.frontend,
+#                                 f"In table '{table_name}', the value '{first_row[col_index]}' in the first row does not match the expected header '{expected_headers[col_index]}'."
+#                             )
+#                         )
+#                         continue
 
-            # Insert rows into the table if header matches
-            for row in rows[1:]:  # Skip the first row (header row)
-                target_row = target_table.rowCount()
-                target_table.insertRow(target_row)
-                for col_index, value in enumerate(row):
-                    item = QtWidgets.QTableWidgetItem(value)
-                    item.setTextAlignment(QtCore.Qt.AlignCenter)
-                    target_table.setItem(target_row, col_index, item)
+#             # Insert rows into the table if header matches
+#             for row in rows[1:]:  # Skip the first row (header row)
+#                 target_row = target_table.rowCount()
+#                 target_table.insertRow(target_row)
+#                 for col_index, value in enumerate(row):
+#                     item = QtWidgets.QTableWidgetItem(value)
+#                     item.setTextAlignment(QtCore.Qt.AlignCenter)
+#                     target_table.setItem(target_row, col_index, item)
 
-    # Populate Support Files Tables
-    page_mapping = {
-        "Single-Stage Flow Graphs": component.frontend.ui.tableWidget_library_plugin_attacks_support,
-        "Fuzzing Flow Graphs": component.frontend.ui.tableWidget_library_plugin_attacks_support,
-        "PD Flow Graphs": component.frontend.ui.tableWidget_library_plugin_demodulation_flow_graphs_support,
-        "Inspection Flow Graphs": component.frontend.ui.tableWidget_library_plugin_inspection_flow_graphs_support,
-        "Triggers": component.frontend.ui.tableWidget_library_plugin_triggers_support,
-    }
+#     # Populate Support Files Tables
+#     page_mapping = {
+#         "Single-Stage Flow Graphs": component.frontend.ui.tableWidget_library_plugin_attacks_support,
+#         "Fuzzing Flow Graphs": component.frontend.ui.tableWidget_library_plugin_attacks_support,
+#         "PD Flow Graphs": component.frontend.ui.tableWidget_library_plugin_demodulation_flow_graphs_support,
+#         "Inspection Flow Graphs": component.frontend.ui.tableWidget_library_plugin_inspection_flow_graphs_support,
+#         "Triggers": component.frontend.ui.tableWidget_library_plugin_triggers_support,
+#     }
 
-    for filepath in install_files:
-        # Determine the table widget based on the keywords in the filepath
-        target_table = None
-        for keyword, table_widget in page_mapping.items():
-            if keyword in filepath:
-                target_table = table_widget
-                break
+#     for filepath in install_files:
+#         # Determine the table widget based on the keywords in the filepath
+#         target_table = None
+#         for keyword, table_widget in page_mapping.items():
+#             if keyword in filepath:
+#                 target_table = table_widget
+#                 break
         
-        if target_table:
-            # Add a new row to the table
-            row_position = target_table.rowCount()
-            target_table.insertRow(row_position)
+#         if target_table:
+#             # Add a new row to the table
+#             row_position = target_table.rowCount()
+#             target_table.insertRow(row_position)
             
-            # Add the filepath as a new item
-            filepath_item = QtWidgets.QTableWidgetItem(filepath)
-            filepath_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-            filepath_item.setFlags(filepath_item.flags() & ~QtCore.Qt.ItemIsEditable)
-            target_table.setItem(row_position, 0, filepath_item)
+#             # Add the filepath as a new item
+#             filepath_item = QtWidgets.QTableWidgetItem(filepath)
+#             filepath_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+#             filepath_item.setFlags(filepath_item.flags() & ~QtCore.Qt.ItemIsEditable)
+#             target_table.setItem(row_position, 0, filepath_item)
 
-            # Empty New Filepath Item
-            new_filepath_item = QtWidgets.QTableWidgetItem("")
-            new_filepath_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-            # new_filepath_item.setFlags(new_filepath_item.flags() & ~QtCore.Qt.ItemIsEditable)
-            target_table.setItem(row_position, 2, new_filepath_item)
+#             # Empty New Filepath Item
+#             new_filepath_item = QtWidgets.QTableWidgetItem("")
+#             new_filepath_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+#             # new_filepath_item.setFlags(new_filepath_item.flags() & ~QtCore.Qt.ItemIsEditable)
+#             target_table.setItem(row_position, 2, new_filepath_item)
 
-            # Action Comboboxes
-            new_action_combobox = QtWidgets.QComboBox(target_table, objectName='comboBox2_')
-            new_action_combobox.setFixedSize(73, 23)
-            target_table.setCellWidget(row_position, 1, new_action_combobox)
-            new_action_combobox.addItem("Keep")
-            new_action_combobox.addItem("Replace")
-            new_action_combobox.addItem("Delete")
+#             # Action Comboboxes
+#             new_action_combobox = QtWidgets.QComboBox(target_table, objectName='comboBox2_')
+#             new_action_combobox.setFixedSize(73, 23)
+#             target_table.setCellWidget(row_position, 1, new_action_combobox)
+#             new_action_combobox.addItem("Keep")
+#             new_action_combobox.addItem("Replace")
+#             new_action_combobox.addItem("Delete")
 
-            # Function to handle enabling/disabling columns
-            def handle_combobox_change(target_table, row_position, index):
-                if index == 0 or index == 2:  # Keep or Delete
-                    for col in [2, 3]:
-                        cell_widget = target_table.cellWidget(row_position, col)
-                        if isinstance(cell_widget, QtWidgets.QPushButton):
-                            cell_widget.setEnabled(False)
-                        else:
-                            item = target_table.item(row_position, col)
-                            if item:
-                                item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEnabled)
-                elif index == 1:  # Replace
-                    for col in [2, 3]:
-                        cell_widget = target_table.cellWidget(row_position, col)
-                        if isinstance(cell_widget, QtWidgets.QPushButton):
-                            cell_widget.setEnabled(True)
-                        else:
-                            item = target_table.item(row_position, col)
-                            if item:
-                                item.setFlags(item.flags() | QtCore.Qt.ItemIsEnabled)
+#             # Function to handle enabling/disabling columns
+#             def handle_combobox_change(target_table, row_position, index):
+#                 if index == 0 or index == 2:  # Keep or Delete
+#                     for col in [2, 3]:
+#                         cell_widget = target_table.cellWidget(row_position, col)
+#                         if isinstance(cell_widget, QtWidgets.QPushButton):
+#                             cell_widget.setEnabled(False)
+#                         else:
+#                             item = target_table.item(row_position, col)
+#                             if item:
+#                                 item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEnabled)
+#                 elif index == 1:  # Replace
+#                     for col in [2, 3]:
+#                         cell_widget = target_table.cellWidget(row_position, col)
+#                         if isinstance(cell_widget, QtWidgets.QPushButton):
+#                             cell_widget.setEnabled(True)
+#                         else:
+#                             item = target_table.item(row_position, col)
+#                             if item:
+#                                 item.setFlags(item.flags() | QtCore.Qt.ItemIsEnabled)
 
-                # Ensure the table updates visually
-                target_table.viewport().update()
+#                 # Ensure the table updates visually
+#                 target_table.viewport().update()
 
-            # Create Pushbutton
-            new_pushbutton = QtWidgets.QPushButton(target_table, objectName='pushButton_')
-            new_pushbutton.setText("...")
-            new_pushbutton.setFixedSize(36, 23)
-            target_table.setCellWidget(row_position, 3, new_pushbutton)
-            new_pushbutton.clicked.connect(lambda checked, table=target_table, row=row_position: LibraryTabSlots._slotLibraryPluginSupportFileSelectionClicked(component.frontend, table, row))
+#             # Create Pushbutton
+#             new_pushbutton = QtWidgets.QPushButton(target_table, objectName='pushButton_')
+#             new_pushbutton.setText("...")
+#             new_pushbutton.setFixedSize(36, 23)
+#             target_table.setCellWidget(row_position, 3, new_pushbutton)
+#             new_pushbutton.clicked.connect(lambda checked, table=target_table, row=row_position: LibraryTabSlots._slotLibraryPluginSupportFileSelectionClicked(component.frontend, table, row))
 
-            # Activate Combobox Slot
-            new_action_combobox.currentIndexChanged.connect(
-                lambda index, table=target_table, row=row_position: handle_combobox_change(table, row, index)
-            )
-            new_action_combobox.setCurrentIndex(0)
-            handle_combobox_change(target_table, row_position, 0)
+#             # Activate Combobox Slot
+#             new_action_combobox.currentIndexChanged.connect(
+#                 lambda index, table=target_table, row=row_position: handle_combobox_change(table, row, index)
+#             )
+#             new_action_combobox.setCurrentIndex(0)
+#             handle_combobox_change(target_table, row_position, 0)
             
-            # Resize Rows
-            target_table.resizeRowsToContents()
-        else:
-            component.logger.error(f"Supporting Files: No matching table widget for filepath '{filepath}'")
+#             # Resize Rows
+#             target_table.resizeRowsToContents()
+#         else:
+#             component.logger.error(f"Supporting Files: No matching table widget for filepath '{filepath}'")
 
-    # Reset Combobox/Pages
-    if component.frontend.ui.comboBox_library_plugin_edit.currentIndex() == 0:
-        LibraryTabSlots._slotLibraryPluginEditChanged(component.frontend)
-    else:
-        component.frontend.ui.comboBox_library_plugin_edit.setCurrentIndex(0)  # Function not called when already 0
+#     # Reset Combobox/Pages
+#     if component.frontend.ui.comboBox_library_plugin_edit.currentIndex() == 0:
+#         LibraryTabSlots._slotLibraryPluginEditChanged(component.frontend)
+#     else:
+#         component.frontend.ui.comboBox_library_plugin_edit.setCurrentIndex(0)  # Function not called when already 0
 
 
 async def responsePluginProtocolParameters(component: object, plugin_name: str, protocol_name: str, parameters: dict):

@@ -1,6 +1,42 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2026-6-24
+
+IQ Data plugin workflow and plugin folder cleanup.
+
+### Added
+
+- Added Base plugin IQ recording support through the new plugin action/operation path.
+- Added Base plugin IQ playback support through the new plugin action/operation path.
+- Added B2x0/B20xmini IQ record and playback flow graph support under maint-3.8 and maint-3.10 plugin flow graph directories.
+- Added artifact-based IQ recording output under operation-scoped artifact folders.
+- Added node-scoped artifact metadata for IQ record, photo, video, motion, and SOI capture outputs.
+
+### Changed
+
+- Converted IQ Data recording from direct Dashboard/runtime handling to the Base plugin operation workflow.
+- Converted IQ Data playback from direct Dashboard/runtime handling to the Base plugin operation workflow.
+- Hid unfinished legacy plugin manager, plugin, and operations tabs while plugin workflows are rebuilt around actions.
+- Reworked Base and WiFi plugin actions/operations to run from the new plugin folder layout without install_files.
+- Moved WiFi helper code under Plugins/WiFi/scripts/wifi_lib and static OUI data under Plugins/WiFi/resources.
+- Standardized Base operation import/path handling with PLUGIN_ROOT and FISSURE repo root resolution.
+- Updated GNU Radio operation pathing to load flow graphs from Plugins/Base/flow_graphs/... instead of operation-local paths.
+- Improved operation status cleanup, callback isolation, and artifact/source metadata consistency.
+- Updated external-tool operations to resolve executables with shutil.which() and cleanly drain subprocess stderr.
+
+### Fixed
+
+- Fixed IQ record/playback pathing for maint-3.8 and maint-3.10 B2x0 flow graph directories.
+- Fixed IQ record stop behavior so completed recordings can still be registered as artifacts.
+- Fixed IQ playback parameter/path handling for plugin-based selected-node execution.
+- Fixed fixed_detection.py and scan_detection.py flow graph imports after moving generated flow graphs under flow_graphs/.
+- Fixed classify_features_dt.py to load decision tree models from Plugins/Base/resources/decision_tree_models.
+- Prevented the SOI classification chain from failing solely because classification was skipped or no model report was written.
+- Fixed photo, video, and motion capture artifact metadata so Tactical can associate returned artifacts with the originating node.
+- Fixed HackRF and RTL-SDR detector callback/reporting payloads for Tactical detection handling.
+- Fixed plugin action routing for Base geolocation and WiFi operations after the plugin folder restructure.
+
 ## 2026-6-18
 
 Add IQ artifact recording and fix Tactical node scoping.

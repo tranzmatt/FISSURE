@@ -1,0 +1,603 @@
+#!/usr/bin/env python3
+"""
+Decision Tree Feature Classification (headless)
+
+Reads per-file extracted features (tsi_features.json) and runs all eligible
+Decision Tree models found in a models folder. Produces per-file predictions
+and a batch consensus across files.
+
+- No GUI, no dashboard messaging unless status_callback is wired by the runner.
+- Writes classification_report.json next to artifacts for later consumption.
+- If models are missing/invalid, still writes classification_report.json with
+  status="skipped" so the SOI chain can report an unclassified result instead
+  of failing because the report is absent.
+
+Stop semantics
+--------------
+- If stop is requested, exit promptly and DO NOT write classification_report.json.
+"""
+
+import ast
+import asyncio
+import json
+import logging
+import os
+import pickle
+import sys
+import time
+from typing import Any, Dict, List, Optional, Union
+
+
+PLUGIN_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+FISSURE_REPO_ROOT = os.path.abspath(os.path.join(PLUGIN_ROOT, "..", ".."))
+
+for path in (FISSURE_REPO_ROOT, PLUGIN_ROOT):
+    if path not in sys.path:
+        sys.path.insert(0, path)
+
+import numpy as np
+
+try:
+    from fissure.utils.plugins.operations import Operation
+except ImportError:
+    if FISSURE_REPO_ROOT not in sys.path:
+        sys.path.insert(0, FISSURE_REPO_ROOT)
+
+    if PLUGIN_ROOT not in sys.path:
+        sys.path.insert(0, PLUGIN_ROOT)
+
+    from fissure.utils.plugins.operations import Operation
+
+
+def _default_models_folder() -> str:
+    return os.path.join(
+        PLUGIN_ROOT,
+        "resources",
+        "decision_tree_models",
+    )
+
+
+def _legacy_models_folder() -> str:
+    return os.path.join(
+        os.path.dirname(__file__),
+        "decision_tree_models",
+    )
+
+
+def _resolve_models_folder(models_folder: Optional[str]) -> str:
+    if models_folder:
+        return str(models_folder)
+
+    preferred = _default_models_folder()
+    if os.path.isdir(preferred):
+        return preferred
+
+    legacy = _legacy_models_folder()
+    if os.path.isdir(legacy):
+        return legacy
+
+    return preferred
+
+
+def _to_bool(value: Any, default: bool = True) -> bool:
+    if isinstance(value, bool):
+        return value
+
+    if value is None:
+        return default
+
+    if isinstance(value, (int, float)):
+        return bool(value)
+
+    if isinstance(value, str):
+        v = value.strip().lower()
+
+        if v in {"true", "1", "yes", "y", "on", "enabled"}:
+            return True
+
+        if v in {"false", "0", "no", "n", "off", "disabled"}:
+            return False
+
+    return default
+
+
+def _read_model_details(txt_path: str) -> Dict[str, Any]:
+    """
+    Parses a model .txt file:
+      Technique: Decision Tree
+      Features: [...]
+      Truth Categories: [...]
+    """
+    details: Dict[str, Any] = {"path": txt_path}
+
+    with open(txt_path, "r", encoding="utf-8") as f:
+        blob = f.read()
+
+    details["raw"] = blob
+
+    for line in blob.splitlines():
+        if line.startswith("Technique: "):
+            details["technique"] = line.split("Technique: ", 1)[1].strip()
+        elif line.startswith("Features: "):
+            try:
+                details["features"] = ast.literal_eval(
+                    line.split("Features: ", 1)[1].strip()
+                )
+            except Exception:
+                details["features"] = []
+        elif line.startswith("Truth Categories: "):
+            details["truth_categories"] = line.split("Truth Categories: ", 1)[1].strip()
+
+    if "features" not in details:
+        details["features"] = []
+
+    return details
+
+
+def _load_feature_rows(features_json_path: str) -> List[Dict[str, Any]]:
+    with open(features_json_path, "r", encoding="utf-8") as f:
+        rows = json.load(f)
+
+    if not isinstance(rows, list):
+        raise ValueError("features file must be a JSON list")
+
+    return rows
+
+
+def _eligible_models(
+    model_details: List[Dict[str, Any]],
+    available_features: List[str],
+) -> List[Dict[str, Any]]:
+    avail = set(available_features)
+    out: List[Dict[str, Any]] = []
+
+    for md in model_details:
+        req = md.get("features", [])
+        if isinstance(req, list) and req and set(req).issubset(avail):
+            out.append(md)
+
+    return out
+
+
+def _safe_float(v: Any) -> float:
+    try:
+        if v is None:
+            return float("nan")
+        if isinstance(v, (int, float)):
+            return float(v)
+        if isinstance(v, (np.integer, np.floating)):
+            return float(v)
+        return float(v)
+    except Exception:
+        return float("nan")
+
+
+def _find_model_file(models_folder: str, model_stem: str) -> Optional[str]:
+    """
+    Support both legacy naming and sane pickle naming.
+    Prefer .pkl/.pickle, but allow .h5 if that's how the repo is laid out.
+    """
+    candidates = [
+        os.path.join(models_folder, model_stem + ".pkl"),
+        os.path.join(models_folder, model_stem + ".pickle"),
+        os.path.join(models_folder, model_stem + ".h5"),
+    ]
+
+    for path in candidates:
+        if os.path.isfile(path):
+            return path
+
+    return None
+
+
+class OperationMain(Operation):
+    def __init__(
+        self,
+        node_uid: str = "",
+        logger: logging.Logger = logging.getLogger(__name__),
+        alert_callback=None,
+        tak_cot_callback=None,
+        status_callback=None,
+        folder: Optional[str] = None,
+        models_folder: Optional[str] = None,
+        features_file: str = "tsi_features.json",
+        min_models: int = 2,
+        use_batch_consensus: Union[str, bool] = True,
+    ):
+        super().__init__(
+            node_uid=node_uid,
+            logger=logger,
+            alert_callback=alert_callback,
+            tak_cot_callback=tak_cot_callback,
+            status_callback=status_callback,
+        )
+
+        self.folder = folder
+        self.models_folder = _resolve_models_folder(models_folder)
+        self.features_file = features_file
+        self.min_models = int(min_models)
+        self.use_batch_consensus = _to_bool(use_batch_consensus, True)
+
+    async def run(self) -> None:
+        params: Dict[str, Any] = getattr(self, "parameters", {}) or {}
+
+        folder = params.get("folder", self.folder)
+        models_folder = _resolve_models_folder(
+            params.get("models_folder", self.models_folder)
+        )
+        features_file = params.get("features_file", self.features_file)
+        min_models = int(params.get("min_models", self.min_models))
+        use_batch_consensus = _to_bool(
+            params.get("use_batch_consensus", self.use_batch_consensus),
+            True,
+        )
+
+        if getattr(self, "status_callback", None):
+            try:
+                await self.status_callback("Running: Classifying Features")
+            except Exception:
+                self.logger.exception("status_callback failed: set running")
+
+        if self._stop:
+            return
+
+        if not folder or not isinstance(folder, str):
+            self.logger.warning("No folder provided to classifier op; nothing to do.")
+            return
+
+        os.makedirs(folder, exist_ok=True)
+
+        features_path = os.path.join(folder, features_file)
+        out_path = os.path.join(folder, "classification_report.json")
+
+        if not os.path.isfile(features_path):
+            self.logger.warning(f"Missing features file: {features_path}")
+            self._write_report(
+                out_path,
+                {
+                    "operation": "classify_features_dt_v1",
+                    "status": "skipped",
+                    "reason": "missing_features_file",
+                    "folder": folder,
+                    "models_folder": models_folder,
+                    "features_file": features_file,
+                    "features_path": features_path,
+                    "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                    "per_file": [],
+                    "batch": {
+                        "label": None,
+                        "confidence": None,
+                        "files_used": 0,
+                        "vote_counts": {},
+                    },
+                },
+            )
+            return
+
+        try:
+            rows = _load_feature_rows(features_path)
+        except Exception as e:
+            self.logger.warning(f"Failed reading features file: {features_path}: {e!r}")
+            self._write_report(
+                out_path,
+                {
+                    "operation": "classify_features_dt_v1",
+                    "status": "skipped",
+                    "reason": "invalid_features_file",
+                    "error": repr(e),
+                    "folder": folder,
+                    "models_folder": models_folder,
+                    "features_file": features_file,
+                    "features_path": features_path,
+                    "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                    "per_file": [],
+                    "batch": {
+                        "label": None,
+                        "confidence": None,
+                        "files_used": 0,
+                        "vote_counts": {},
+                    },
+                },
+            )
+            return
+
+        if self._stop:
+            return
+
+        avail_features = set()
+        for row in rows:
+            feats = row.get("features", {})
+            if isinstance(feats, dict):
+                avail_features |= set(feats.keys())
+
+        avail_features_list = sorted(avail_features)
+
+        if not models_folder or not os.path.isdir(models_folder):
+            self.logger.warning(f"Missing/invalid models_folder: {models_folder!r}")
+            self._write_report(
+                out_path,
+                {
+                    "operation": "classify_features_dt_v1",
+                    "status": "skipped",
+                    "reason": "missing_or_invalid_models_folder",
+                    "folder": folder,
+                    "models_folder": models_folder,
+                    "features_file": features_file,
+                    "features_path": features_path,
+                    "available_features": avail_features_list,
+                    "models_discovered": 0,
+                    "models_eligible_any": 0,
+                    "min_models": min_models,
+                    "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                    "per_file": [],
+                    "batch": {
+                        "label": None,
+                        "confidence": None,
+                        "files_used": 0,
+                        "vote_counts": {},
+                    },
+                },
+            )
+            return
+
+        model_details: List[Dict[str, Any]] = []
+
+        for name in os.listdir(models_folder):
+            if self._stop:
+                return
+
+            if not name.lower().endswith(".txt"):
+                continue
+
+            path = os.path.join(models_folder, name)
+
+            try:
+                md = _read_model_details(path)
+                if md.get("technique") == "Decision Tree":
+                    model_details.append(md)
+            except Exception as e:
+                self.logger.warning(f"Failed reading model details {path}: {e!r}")
+
+        if not model_details:
+            self.logger.warning(f"No decision-tree model .txt files found in {models_folder}")
+            self._write_report(
+                out_path,
+                {
+                    "operation": "classify_features_dt_v1",
+                    "status": "skipped",
+                    "reason": "no_decision_tree_models_found",
+                    "folder": folder,
+                    "models_folder": models_folder,
+                    "features_file": features_file,
+                    "features_path": features_path,
+                    "available_features": avail_features_list,
+                    "models_discovered": 0,
+                    "models_eligible_any": 0,
+                    "min_models": min_models,
+                    "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                    "per_file": [],
+                    "batch": {
+                        "label": None,
+                        "confidence": None,
+                        "files_used": 0,
+                        "vote_counts": {},
+                    },
+                },
+            )
+            return
+
+        eligible_any = _eligible_models(model_details, avail_features_list)
+
+        if len(eligible_any) < min_models:
+            self.logger.warning(
+                f"Insufficient eligible models ({len(eligible_any)} < {min_models}). "
+                f"Available features: {len(avail_features_list)}"
+            )
+
+        per_file: List[Dict[str, Any]] = []
+
+        for row in rows:
+            if self._stop:
+                return
+
+            file_name = row.get("file")
+            feats = row.get("features", {})
+
+            if not isinstance(feats, dict) or not feats:
+                per_file.append(
+                    {
+                        "file": file_name,
+                        "error": "missing_features",
+                        "models_used": 0,
+                        "votes": {},
+                        "vote_counts": {},
+                        "consensus": {"label": None, "confidence": None},
+                        "skipped": [],
+                    }
+                )
+                continue
+
+            file_avail = sorted(feats.keys())
+            file_eligible = _eligible_models(model_details, file_avail)
+
+            votes: Dict[str, str] = {}
+            skipped: List[Dict[str, Any]] = []
+
+            for md in file_eligible:
+                if self._stop:
+                    return
+
+                model_stem = os.path.splitext(os.path.basename(md["path"]))[0]
+                model_path = _find_model_file(models_folder, model_stem)
+
+                if not model_path:
+                    skipped.append(
+                        {
+                            "model": model_stem,
+                            "reason": "missing_model_file",
+                            "expected_one_of": [
+                                f"{model_stem}.pkl",
+                                f"{model_stem}.pickle",
+                                f"{model_stem}.h5",
+                            ],
+                        }
+                    )
+                    continue
+
+                req_feats = md.get("features", [])
+
+                if not isinstance(req_feats, list) or not req_feats:
+                    skipped.append(
+                        {
+                            "model": model_stem,
+                            "reason": "missing_required_features",
+                        }
+                    )
+                    continue
+
+                x = np.array(
+                    [[_safe_float(feats.get(feature)) for feature in req_feats]],
+                    dtype=np.float64,
+                )
+
+                try:
+                    with open(model_path, "rb") as f:
+                        clf = pickle.load(f)
+
+                    y_pred = clf.predict(x)
+                    votes[model_stem] = str(y_pred[0])
+
+                except Exception as e:
+                    skipped.append(
+                        {
+                            "model": model_stem,
+                            "reason": "predict_failed",
+                            "error": repr(e),
+                        }
+                    )
+
+            vote_counts: Dict[str, int] = {}
+            for label in votes.values():
+                vote_counts[label] = vote_counts.get(label, 0) + 1
+
+            if vote_counts:
+                best_label = max(vote_counts.items(), key=lambda kv: kv[1])[0]
+                models_used = len(votes)
+                best_votes = vote_counts[best_label]
+                confidence = best_votes / models_used if models_used > 0 else None
+            else:
+                best_label = None
+                confidence = None
+                models_used = 0
+
+            per_file.append(
+                {
+                    "file": file_name,
+                    "models_used": models_used,
+                    "votes": votes,
+                    "vote_counts": vote_counts,
+                    "consensus": {
+                        "label": best_label,
+                        "confidence": confidence,
+                    },
+                    "skipped": skipped,
+                }
+            )
+
+        batch = {
+            "label": None,
+            "confidence": None,
+            "files_used": 0,
+            "vote_counts": {},
+        }
+
+        if use_batch_consensus and not self._stop:
+            batch_counts: Dict[str, int] = {}
+            used_files = 0
+
+            for pf in per_file:
+                if self._stop:
+                    return
+
+                lbl = pf.get("consensus", {}).get("label")
+
+                if lbl:
+                    batch_counts[lbl] = batch_counts.get(lbl, 0) + 1
+                    used_files += 1
+
+            if batch_counts:
+                batch_label = max(batch_counts.items(), key=lambda kv: kv[1])[0]
+                batch_votes = batch_counts[batch_label]
+                batch_conf = batch_votes / used_files if used_files > 0 else None
+
+                batch = {
+                    "label": batch_label,
+                    "confidence": batch_conf,
+                    "files_used": used_files,
+                    "vote_counts": batch_counts,
+                }
+
+        if self._stop:
+            return
+
+        models_used_total = sum(int(pf.get("models_used", 0)) for pf in per_file)
+
+        if batch.get("label"):
+            status = "classified"
+            reason = ""
+        elif models_used_total > 0:
+            status = "unclassified"
+            reason = "no_batch_consensus"
+        elif len(eligible_any) < min_models:
+            status = "unclassified"
+            reason = "insufficient_eligible_models"
+        else:
+            status = "unclassified"
+            reason = "no_model_votes"
+
+        report = {
+            "operation": "classify_features_dt_v1",
+            "status": status,
+            "reason": reason,
+            "folder": folder,
+            "models_folder": models_folder,
+            "features_file": features_file,
+            "features_path": features_path,
+            "available_features": avail_features_list,
+            "models_discovered": len(model_details),
+            "models_eligible_any": len(eligible_any),
+            "min_models": min_models,
+            "use_batch_consensus": use_batch_consensus,
+            "per_file": per_file,
+            "batch": batch,
+            "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }
+
+        self._write_report(out_path, report)
+
+        self.logger.info(
+            f"DT batch: status={status}, label={batch.get('label')}, "
+            f"confidence={batch.get('confidence')}, report={out_path}"
+        )
+
+    def _write_report(self, out_path: str, report: Dict[str, Any]) -> None:
+        try:
+            with open(out_path, "w", encoding="utf-8") as f:
+                json.dump(report, f, indent=2, allow_nan=True)
+            self.logger.info(f"Wrote classification report: {out_path}")
+        except Exception as e:
+            self.logger.warning(f"Failed writing classification_report.json: {e!r}")
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+
+    async def _main():
+        op = OperationMain(
+            node_uid="test-node",
+            logger=logging.getLogger("dt_classify_test"),
+            folder="/tmp/some_artifact_folder",
+        )
+        await op.run()
+
+    asyncio.run(_main())

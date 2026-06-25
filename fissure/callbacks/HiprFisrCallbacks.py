@@ -3933,101 +3933,101 @@ async def removePlugin(component: object, node_uid: str, plugin_name: str):
     )    
     
 
-async def requestPluginNamesHiprfisr(component: object):
-    """Handle Request for Plugin Names
+# async def requestPluginNamesHiprfisr(component: object):
+#     """Handle Request for Plugin Names
 
-    Parameters
-    ----------
-    component : object
-        Component
-    """
-    PARAMETERS = {
-        "plugin_names": plugin.get_local_plugin_names(),
-    }
-    msg = {
-        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
-        fissure.comms.MessageFields.MESSAGE_NAME: "responsePluginNamesHiprfisr",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-    }
-    if component.dashboard_connected:
-        await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
-
-
-async def openPluginHiprfisr(component: object, plugin_name: str):
-    """Handle Request for Plugin Names
-
-    Parameters
-    ----------
-    component : object
-        Component
-    """
-    # Read the Files
-    component.openPluginEditor(plugin_name)
-
-    # Return the Table Data
-    PARAMETERS = {
-        "plugin_name": component.plugin_editor.name,
-        "table_data_json": component.plugin_editor.table_data,
-        "install_files": component.plugin_editor.install_files,
-    }
-    msg = {
-        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
-        fissure.comms.MessageFields.MESSAGE_NAME: "responsePluginTableData",
-        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-    }
-    if component.dashboard_connected:
-        await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+#     Parameters
+#     ----------
+#     component : object
+#         Component
+#     """
+#     PARAMETERS = {
+#         "plugin_names": plugin.get_local_plugin_names(),
+#     }
+#     msg = {
+#         fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+#         fissure.comms.MessageFields.MESSAGE_NAME: "responsePluginNamesHiprfisr",
+#         fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+#     }
+#     if component.dashboard_connected:
+#         await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def closePluginHiprfisr(component: object):
-    """Handle Request for Plugin Names
+# async def openPluginHiprfisr(component: object, plugin_name: str):
+#     """Handle Request for Plugin Names
 
-    Parameters
-    ----------
-    component : object
-        Component
-    """
-    component.plugin_editor = None
+#     Parameters
+#     ----------
+#     component : object
+#         Component
+#     """
+#     # Read the Files
+#     component.openPluginEditor(plugin_name)
 
-
-async def pluginDelete(component: object, plugin_name: str, delete_from_library: bool):
-    """
-    Deletes a plugin folder and library/database files (optional).
-
-    Parameters
-    ----------
-    component : object
-        Component
-    delete_from_library : bool
-        Delete from database in addition to plugin folder
-    """
-    component.openPluginEditor(plugin_name)
-    component.plugin_editor.deletePlugin(plugin_name, delete_from_library, component.os_info)
-    component.plugin_editor = None
-
-    # Update the Combobox of Plugins
-    await requestPluginNamesHiprfisr(component)
-
-    # Send Message to Dashboard to Update Library
-    await retrieveDatabaseCache(component, True)
+#     # Return the Table Data
+#     PARAMETERS = {
+#         "plugin_name": component.plugin_editor.name,
+#         "table_data_json": component.plugin_editor.table_data,
+#         "install_files": component.plugin_editor.install_files,
+#     }
+#     msg = {
+#         fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+#         fissure.comms.MessageFields.MESSAGE_NAME: "responsePluginTableData",
+#         fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+#     }
+#     if component.dashboard_connected:
+#         await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-async def pluginApplyChanges(component: object, table_data_json: dict, supporting_files_data_json: dict):
-    """Handle Request for Plugin Names
+# async def closePluginHiprfisr(component: object):
+#     """Handle Request for Plugin Names
 
-    Parameters
-    ----------
-    component : object
-        Component
-    table_data_json : dict
-        Tables data from Plugin Editor tab
-    supporting_files_data_json : dict
-        Supporting Files data from Plugin Editor tab
-    """
-    component.plugin_editor.applyChanges(table_data_json, supporting_files_data_json, component.os_info)
+#     Parameters
+#     ----------
+#     component : object
+#         Component
+#     """
+#     component.plugin_editor = None
 
-    # Send Message to Dashboard to Update Library
-    await retrieveDatabaseCache(component, True)
+
+# async def pluginDelete(component: object, plugin_name: str, delete_from_library: bool):
+#     """
+#     Deletes a plugin folder and library/database files (optional).
+
+#     Parameters
+#     ----------
+#     component : object
+#         Component
+#     delete_from_library : bool
+#         Delete from database in addition to plugin folder
+#     """
+#     component.openPluginEditor(plugin_name)
+#     component.plugin_editor.deletePlugin(plugin_name, delete_from_library, component.os_info)
+#     component.plugin_editor = None
+
+#     # Update the Combobox of Plugins
+#     await requestPluginNamesHiprfisr(component)
+
+#     # Send Message to Dashboard to Update Library
+#     await retrieveDatabaseCache(component, True)
+
+
+# async def pluginApplyChanges(component: object, table_data_json: dict, supporting_files_data_json: dict):
+#     """Handle Request for Plugin Names
+
+#     Parameters
+#     ----------
+#     component : object
+#         Component
+#     table_data_json : dict
+#         Tables data from Plugin Editor tab
+#     supporting_files_data_json : dict
+#         Supporting Files data from Plugin Editor tab
+#     """
+#     component.plugin_editor.applyChanges(table_data_json, supporting_files_data_json, component.os_info)
+
+#     # Send Message to Dashboard to Update Library
+#     await retrieveDatabaseCache(component, True)
     
 
 async def pluginAddProtocolHiprfisr(component: object, protocol_name: str):
@@ -4146,7 +4146,7 @@ async def plugin_get_operation_parameters(component: object, plugin: str, operat
         return
 
     # get the operation path
-    operation_path = os.path.join(plugin_path, "install_files", operation)
+    operation_path = os.path.join(plugin_path, "operations", operation)
     if not os.path.exists(operation_path):
         component.logger.error(f"Operation {operation} does not exist in plugin {plugin}")
         return
@@ -4218,15 +4218,15 @@ async def plugin_get_operations(component: object, plugin: str):
         component.logger.error(f"Plugin {plugin} does not exist in {fissure.utils.PLUGIN_DIR}")
         return
     
-    # get the install_files path
-    install_files_path = os.path.join(plugin_path, "install_files")
-    if not os.path.exists(install_files_path):
-        component.logger.error(f"Plugin {plugin} does not have an install_files directory")
+    # get the operations path
+    operations_path = os.path.join(plugin_path, "operations")
+    if not os.path.exists(operations_path):
+        component.logger.error(f"Plugin {plugin} does not have an operations directory")
         return
     
-    # get the list of operations (python scripts) in the install_files directory
+    # get the list of operations (python scripts) in the operations directory
     operations = []
-    for filename in os.listdir(install_files_path):
+    for filename in os.listdir(operations_path):
         if filename.endswith(".py"):
             operations += [filename]
 
@@ -6273,7 +6273,7 @@ def _get_target_geolocate_action_config(
     if "lfm" in label_text or "beacon" in label_text:
         return {
             "mode": "lfm_beacon",
-            "plugin_name": WIFI_PLUGIN,
+            "plugin_name": BASE_PLUGIN,
             "action_name": "lfm_beacon_geolocate",
             "parameters": {
                 "target_id": target_id,
@@ -6285,7 +6285,7 @@ def _get_target_geolocate_action_config(
     if frequency_mhz not in (None, ""):
         return {
             "mode": "generic_frequency",
-            "plugin_name": WIFI_PLUGIN,
+            "plugin_name": BASE_PLUGIN,
             "action_name": "usrp_b2x0_geolocate",
             "parameters": {
                 "target_id": target_id,

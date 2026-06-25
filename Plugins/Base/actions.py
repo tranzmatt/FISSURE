@@ -10,6 +10,7 @@ from typing import Any, Dict, Union
 
 from fissure.Sensor_Node.SensorNode import SensorNode
 from fissure.utils import FISSURE_ROOT
+import fissure.utils.hardware
 
 
 PLUGIN_NAME = "Base"
@@ -23,8 +24,11 @@ ACTION_TAGS = {
     "hackrf_sweep_detection": ["All"],
     "rtl_power_detection": ["All"],
     "lfm_beacon_detection": ["All"],
+    "lfm_beacon_geolocate": ["All"],
+    "usrp_b2x0_geolocate": ["All"],
 
     "iq_record": ["All"],
+    "iq_playback": ["All"],
 
     "promote_to_soi": ["All"],
 
@@ -41,7 +45,10 @@ ACTION_HARDWARE = {
     "fixed_detection": ["USRP B20xmini", "USRP B2x0"],
     "scan_detection": ["USRP B20xmini", "USRP B2x0"],
     "lfm_beacon_detection": ["RTL2832U"],
+    "lfm_beacon_geolocate": ["RTL2832U"],
+    "usrp_b2x0_geolocate": ["USRP B20xmini", "USRP B2x0"],
     "iq_record": ["USRP B20xmini", "USRP B2x0"],
+    "iq_playback": ["USRP B20xmini", "USRP B2x0"],
 }
 
 
@@ -316,6 +323,113 @@ async def lfm_beacon_geolocate(
         component,
         PLUGIN_NAME,
         "lfm_beacon_geolocate.py",
+        {"parameters": op_params},
+        node_uid,
+    )
+
+
+usrp_b2x0_geolocate_schema = {
+    "params": [
+        {
+            "name": "target_id",
+            "label": "Target ID",
+            "type": "string",
+            "default": "",
+        },
+        {
+            "name": "frequency_mhz",
+            "label": "Frequency (MHz)",
+            "type": "number",
+            "default": 2412.0,
+        },
+        {
+            "name": "emit_every_s",
+            "label": "Emit Interval (s)",
+            "type": "number",
+            "default": 1.0,
+        },
+        {
+            "name": "meas_every_s",
+            "label": "Measurement Interval (s)",
+            "type": "number",
+            "default": 0.20,
+        },
+        {
+            "name": "sample_rate",
+            "label": "Sample Rate (S/s)",
+            "type": "number",
+            "default": 1000000.0,
+        },
+        {
+            "name": "gain_db",
+            "label": "RX Gain (dB)",
+            "type": "number",
+            "default": 65.0,
+        },
+        {
+            "name": "detect_frequency",
+            "label": "Detect Frequency",
+            "type": "string",
+            "default": "true",
+            "options": [
+                "true",
+                "false",
+            ],
+        },
+        {
+            "name": "description",
+            "label": "Description",
+            "type": "string",
+            "default": "USRP B2x0 geolocation",
+        },
+    ]
+}
+
+async def usrp_b2x0_geolocate(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    component.logger.info(
+        f"USRP B2x0 geolocation with parameters: {parameters}"
+    )
+
+    op_params = dict(parameters or {})
+
+    if not str(op_params.get("hardware_type", "") or "").strip():
+        compatible_types = ["USRP B20xmini", "USRP B2x0"]
+
+        sdr_uid, sdr_entry = fissure.utils.hardware.get_compatible_sdr(
+            getattr(component, "settings_dict", {}) or {},
+            compatible_types,
+        )
+
+        if not sdr_entry:
+            raise ValueError(
+                "No compatible SDR configured for usrp_b2x0_geolocate. "
+                f"Compatible types: {compatible_types}"
+            )
+
+        op_params.update(
+            fissure.utils.hardware.sdr_entry_to_operation_parameters(
+                sdr_uid,
+                sdr_entry,
+            )
+        )
+
+    op_params.setdefault(
+        "source_id",
+        node_uid or getattr(component, "uuid", "") or "sensor_node",
+    )
+
+    component.logger.info(
+        f"USRP B2x0 geolocation resolved parameters: {op_params}"
+    )
+
+    await component.run_plugin_operation(
+        component,
+        PLUGIN_NAME,
+        "usrp_b2x0_geolocate.py",
         {"parameters": op_params},
         node_uid,
     )
@@ -625,22 +739,28 @@ async def promote_to_soi(
         return
 
     try:
-        artifact_id = (
-            component.artifact_manager.create_zip_artifact_from_folder(
-                source_id=component.uuid,
-                operation_id=operation_id,
-                folder=capture_folder,
-                name=f"SOI evidence @ {freq} MHz",
-                metadata={
-                    "role": "soi_evidence_v1",
-                    "frequency_mhz": freq,
-                    "soi_id": soi_id,
-                    "operation_id": operation_id,
-                    "model_classification": model_label,
-                    "model_confidence": model_conf_pct,
-                },
-                arc_prefix=f"soi_{operation_id}",
-            )
+        artifact = component.artifact_manager.create_zip_artifact_from_folder(
+            source_id=node_uid or getattr(component, "uuid", "") or "sensor_node",
+            operation_id=operation_id,
+            folder=capture_folder,
+            name=f"SOI evidence @ {freq} MHz",
+            metadata={
+                "kind": "artifact",
+                "event_type": "artifact",
+                "role": "soi_evidence_v1",
+                "node_uid": node_uid,
+                "source_id": node_uid or getattr(component, "uuid", "") or "sensor_node",
+                "frequency_mhz": freq,
+                "soi_id": soi_id,
+                "operation_id": operation_id,
+                "model_classification": model_label,
+                "model_confidence": model_conf_pct,
+            },
+            arc_prefix=f"soi_{operation_id}",
+        )
+
+        artifact_id = str(
+            getattr(artifact, "id", artifact) if artifact else ""
         )
 
         component.logger.info(
@@ -868,8 +988,8 @@ iq_record_schema = {
             "default": 915.0,
         },
         {
-            "name": "sample_rate_mhz",
-            "label": "Sample Rate (MHz)",
+            "name": "sample_rate_msps",
+            "label": "Sample Rate (MS/s)",
             "type": "number",
             "default": 1.0,
         },
@@ -877,7 +997,7 @@ iq_record_schema = {
             "name": "rx_gain",
             "label": "RX Gain",
             "type": "number",
-            "default": 20.0,
+            "default": 70.0,
         },
         {
             "name": "rx_channel",
@@ -945,10 +1065,186 @@ async def iq_record(
         f"IQ Record action with parameters: {parameters}"
     )
 
+    op_params = dict(parameters or {})
+
+    flow_graph_name = str(
+        op_params.get("flow_graph_name", "iq_recorder_b2x0")
+        or "iq_recorder_b2x0"
+    ).strip()
+
+    if not str(op_params.get("hardware_type", "") or "").strip():
+        if flow_graph_name == "iq_recorder_b2x0":
+            compatible_types = ["USRP B20xmini", "USRP B2x0"]
+        else:
+            raise ValueError(
+                f"Unsupported IQ recorder flow graph: {flow_graph_name}"
+            )
+
+        sdr_uid, sdr_entry = fissure.utils.hardware.get_compatible_sdr(
+            getattr(component, "settings_dict", {}) or {},
+            compatible_types,
+        )
+
+        if not sdr_entry:
+            raise ValueError(
+                f"No compatible SDR configured for {flow_graph_name}. "
+                f"Compatible types: {compatible_types}"
+            )
+
+        op_params.update(
+            fissure.utils.hardware.sdr_entry_to_operation_parameters(
+                sdr_uid,
+                sdr_entry,
+            )
+        )
+
+    component.logger.info(
+        f"IQ Record resolved parameters: {op_params}"
+    )
+
     await component.run_plugin_operation(
         component,
         PLUGIN_NAME,
         "iq_record.py",
-        parameters,
+        op_params,
+        node_uid,
+    )
+
+
+iq_playback_schema = {
+    "params": [
+        {
+            "name": "flow_graph_name",
+            "label": "Flow Graph",
+            "type": "string",
+            "default": "iq_playback_b2x0",
+            "options": [
+                "iq_playback_b2x0",
+                "iq_playback_single_b2x0",
+            ],
+        },
+        {
+            "name": "playback_file_mode",
+            "label": "Playback File Mode",
+            "type": "string",
+            "default": "node_path",
+            "options": [
+                "node_path",
+                # "transfer",
+            ],
+        },
+        {
+            "name": "filepath",
+            "label": "File Path",
+            "type": "string",
+            "default": "",
+        },
+        {
+            "name": "frequency_mhz",
+            "label": "Frequency (MHz)",
+            "type": "number",
+            "default": 915.0,
+        },
+        {
+            "name": "tx_frequency",
+            "label": "TX Frequency (MHz)",
+            "type": "number",
+            "default": 915.0,
+        },
+        {
+            "name": "sample_rate_msps",
+            "label": "Sample Rate (MS/s)",
+            "type": "number",
+            "default": 1.0,
+        },
+        {
+            "name": "tx_gain",
+            "label": "TX Gain",
+            "type": "number",
+            "default": 70.0,
+        },
+        {
+            "name": "tx_channel",
+            "label": "TX Channel",
+            "type": "string",
+            "default": "A:A",
+        },
+        {
+            "name": "tx_antenna",
+            "label": "TX Antenna",
+            "type": "string",
+            "default": "TX/RX",
+        },
+        {
+            "name": "data_type",
+            "label": "Data Type",
+            "type": "string",
+            "default": "Complex Float 32",
+            "options": [
+                "Complex Float 32",
+            ],
+        },
+        {
+            "name": "description",
+            "label": "Description",
+            "type": "string",
+            "default": "IQ playback",
+        },
+    ]
+}
+async def iq_playback(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    component.logger.info(
+        f"IQ Playback action with parameters: {parameters}"
+    )
+
+    op_params = dict(parameters or {})
+
+    flow_graph_name = str(
+        op_params.get("flow_graph_name", "iq_playback_b2x0")
+        or "iq_playback_b2x0"
+    ).strip()
+
+    if flow_graph_name not in {
+        "iq_playback_b2x0",
+        "iq_playback_single_b2x0",
+    }:
+        raise ValueError(
+            f"Unsupported IQ playback flow graph: {flow_graph_name}"
+        )
+
+    if not str(op_params.get("hardware_type", "") or "").strip():
+        compatible_types = ["USRP B20xmini", "USRP B2x0"]
+
+        sdr_uid, sdr_entry = fissure.utils.hardware.get_compatible_sdr(
+            getattr(component, "settings_dict", {}) or {},
+            compatible_types,
+        )
+
+        if not sdr_entry:
+            raise ValueError(
+                f"No compatible SDR configured for {flow_graph_name}. "
+                f"Compatible types: {compatible_types}"
+            )
+
+        op_params.update(
+            fissure.utils.hardware.sdr_entry_to_operation_parameters(
+                sdr_uid,
+                sdr_entry,
+            )
+        )
+
+    component.logger.info(
+        f"IQ Playback resolved parameters: {op_params}"
+    )
+
+    await component.run_plugin_operation(
+        component,
+        PLUGIN_NAME,
+        "iq_playback.py",
+        op_params,
         node_uid,
     )

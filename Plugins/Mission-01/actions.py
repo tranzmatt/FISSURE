@@ -9,12 +9,16 @@ Implementation files live in:
 - WiFi
 - Dummy
 
-Mission-01 should not contain duplicate operation/install files.
+Mission-01 should not contain duplicate operation/install files. These actions
+only delegate to operation files in the source plugins.
 """
 
-from typing import Any, Dict, Union
+import uuid
+from typing import Any, Dict, List, Tuple
 
 from fissure.Sensor_Node.SensorNode import SensorNode
+from fissure.utils.hardware import get_default_wifi_interface
+import fissure.utils.hardware
 
 
 BASE_PLUGIN = "Base"
@@ -33,6 +37,7 @@ ACTION_TAGS = {
     # RF / Geolocation
     "signal_geolocate": ["All"],
     "lfm_beacon_geolocate": ["All"],
+    "usrp_b2x0_geolocate": ["All"],
 
     # Detections
     "fixed_detection": ["All"],
@@ -40,6 +45,10 @@ ACTION_TAGS = {
     "hackrf_sweep_detection": ["All"],
     "rtl_power_detection": ["All"],
     "lfm_beacon_detection": ["All"],
+
+    # IQ Data
+    "iq_record": ["All"],
+    "iq_playback": ["All"],
 
     # SOI / Processing
     "promote_to_soi": ["All"],
@@ -72,10 +81,104 @@ ACTION_HARDWARE = {
     "wifi_geolocate_all": ["802.11x Adapter"],
 
     "signal_geolocate": ["USRP B20xmini", "USRP B2x0"],
+    "usrp_b2x0_geolocate": ["USRP B20xmini", "USRP B2x0"],
     "fixed_detection": ["USRP B20xmini", "USRP B2x0"],
     "scan_detection": ["USRP B20xmini", "USRP B2x0"],
     "lfm_beacon_detection": ["RTL2832U"],
+    "iq_record": ["USRP B20xmini", "USRP B2x0"],
+    "iq_playback": ["USRP B20xmini", "USRP B2x0"],
 }
+
+
+_COMMON_WIFI_PARAMS = [
+    {
+        "name": "wifi_interface",
+        "label": "Wi-Fi Interface",
+        "type": "string",
+        "default": "",
+    },
+]
+
+
+_COMMON_USRP_B2X0_TYPES = ["USRP B20xmini", "USRP B2x0"]
+
+
+def _to_bool(value: Any, default: bool = False) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+
+    text = str(value).strip().lower()
+    if text in {"1", "true", "t", "yes", "y", "on"}:
+        return True
+    if text in {"0", "false", "f", "no", "n", "off"}:
+        return False
+    return default
+
+
+def _default_source_id(
+    component: SensorNode,
+    node_uid: str = "",
+) -> str:
+    return (
+        str(node_uid or "").strip()
+        or str(getattr(component, "uuid", "") or "").strip()
+        or "sensor_node"
+    )
+
+
+def _resolve_wifi_parameters(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> Dict[str, Any]:
+    op_params = dict(parameters or {})
+
+    if not str(op_params.get("wifi_interface", "") or "").strip():
+        op_params["wifi_interface"] = get_default_wifi_interface(
+            getattr(component, "settings_dict", {}) or {}
+        )
+
+    op_params.setdefault("node_uid", node_uid)
+    op_params.setdefault("source_id", _default_source_id(component, node_uid))
+
+    return op_params
+
+
+def _resolve_compatible_sdr_parameters(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    compatible_types: List[str],
+    *,
+    flow_graph_name: str = "",
+) -> Dict[str, Any]:
+    op_params = dict(parameters or {})
+
+    if str(op_params.get("hardware_type", "") or "").strip():
+        return op_params
+
+    sdr_uid, sdr_entry = fissure.utils.hardware.get_compatible_sdr(
+        getattr(component, "settings_dict", {}) or {},
+        compatible_types,
+    )
+
+    if not sdr_entry:
+        label = f" for {flow_graph_name}" if flow_graph_name else ""
+        raise ValueError(
+            f"No compatible SDR configured{label}. Compatible types: {compatible_types}"
+        )
+
+    op_params.update(
+        fissure.utils.hardware.sdr_entry_to_operation_parameters(
+            sdr_uid,
+            sdr_entry,
+        )
+    )
+
+    return op_params
 
 
 async def _run_operation(
@@ -109,8 +212,16 @@ async def _run_operation(
 # =============================================================================
 
 wifi_discovery_edge_light_schema = {
-    "params": [
+    "params": _COMMON_WIFI_PARAMS + [
         {"name": "lna_gain_db", "label": "LNA Gain (dB)", "type": "number", "default": 20},
+        {"name": "channel_hop_s", "label": "Channel Hop Interval (s)", "type": "number", "default": 1.0},
+        {
+            "name": "alert_on_new_target",
+            "label": "Alert on New Target",
+            "type": "string",
+            "default": "true",
+            "options": ["true", "false"],
+        },
     ]
 }
 
@@ -119,18 +230,24 @@ async def wifi_discovery_edge_light(
     parameters: Dict[str, Any],
     node_uid: str = "",
 ) -> None:
+    op_params = _resolve_wifi_parameters(component, parameters, node_uid)
+    op_params["alert_on_new_target"] = _to_bool(
+        op_params.get("alert_on_new_target"),
+        default=True,
+    )
+
     await _run_operation(
         component,
         WIFI_PLUGIN,
         "wifi_discovery_edge_light.py",
-        parameters,
+        op_params,
         node_uid,
         wrap_parameters=True,
     )
 
 
 wifi_discovery_edge_oui_schema = {
-    "params": [
+    "params": _COMMON_WIFI_PARAMS + [
         {
             "name": "oui_filter",
             "label": "OUI Filter",
@@ -144,6 +261,7 @@ wifi_discovery_edge_oui_schema = {
             "default": "true",
             "options": ["true", "false"],
         },
+        {"name": "channel_hop_s", "label": "Channel Hop Interval (s)", "type": "number", "default": 1.0},
     ]
 }
 
@@ -152,18 +270,24 @@ async def wifi_discovery_edge_oui(
     parameters: Dict[str, Any],
     node_uid: str = "",
 ) -> None:
+    op_params = _resolve_wifi_parameters(component, parameters, node_uid)
+    op_params["alert_on_new_target"] = _to_bool(
+        op_params.get("alert_on_new_target"),
+        default=True,
+    )
+
     await _run_operation(
         component,
         WIFI_PLUGIN,
         "wifi_discovery_edge_oui.py",
-        parameters,
+        op_params,
         node_uid,
         wrap_parameters=True,
     )
 
 
 wifi_discovery_edge_logger_schema = {
-    "params": [
+    "params": _COMMON_WIFI_PARAMS + [
         {
             "name": "batch_unique_devices",
             "label": "Batch Unique Devices",
@@ -203,41 +327,89 @@ async def wifi_discovery_edge_logger(
     parameters: Dict[str, Any],
     node_uid: str = "",
 ) -> None:
+    op_params = _resolve_wifi_parameters(component, parameters, node_uid)
+    op_params["create_artifacts"] = _to_bool(
+        op_params.get("create_artifacts"),
+        default=True,
+    )
+
     await _run_operation(
         component,
         WIFI_PLUGIN,
         "wifi_discovery_edge_logger.py",
-        parameters,
+        op_params,
         node_uid,
         wrap_parameters=True,
     )
 
+
+wifi_geolocate_target_schema = {
+    "params": _COMMON_WIFI_PARAMS + [
+        {"name": "target_id", "label": "Target ID", "type": "string", "default": ""},
+        {"name": "emit_every_s", "label": "Emit Interval (s)", "type": "number", "default": 1.0},
+        {"name": "meas_every_s", "label": "Measurement Interval (s)", "type": "number", "default": 0.2},
+        {
+            "name": "search_similar_targets",
+            "label": "Search Similar Targets",
+            "type": "string",
+            "default": "false",
+            "options": ["true", "false"],
+        },
+    ]
+}
 
 async def wifi_geolocate_target(
     component: SensorNode,
     parameters: Dict[str, Any],
     node_uid: str = "",
 ) -> None:
+    op_params = _resolve_wifi_parameters(component, parameters, node_uid)
+    op_params["search_similar_targets"] = _to_bool(
+        op_params.get("search_similar_targets"),
+        default=False,
+    )
+
     await _run_operation(
         component,
         WIFI_PLUGIN,
         "wifi_geolocate_target.py",
-        parameters,
+        op_params,
         node_uid,
         wrap_parameters=True,
     )
 
+
+wifi_geolocate_all_schema = {
+    "params": _COMMON_WIFI_PARAMS + [
+        {"name": "target_ids", "label": "Target IDs", "type": "string", "default": ""},
+        {"name": "emit_every_s", "label": "Emit Interval (s)", "type": "number", "default": 1.0},
+        {"name": "meas_every_s", "label": "Measurement Interval (s)", "type": "number", "default": 0.2},
+        {
+            "name": "search_similar_targets",
+            "label": "Search Similar Targets",
+            "type": "string",
+            "default": "true",
+            "options": ["true", "false"],
+        },
+    ]
+}
 
 async def wifi_geolocate_all(
     component: SensorNode,
     parameters: Dict[str, Any],
     node_uid: str = "",
 ) -> None:
+    op_params = _resolve_wifi_parameters(component, parameters, node_uid)
+    op_params["search_similar_targets"] = _to_bool(
+        op_params.get("search_similar_targets"),
+        default=True,
+    )
+
     await _run_operation(
         component,
         WIFI_PLUGIN,
         "wifi_geolocate_all.py",
-        parameters,
+        op_params,
         node_uid,
         wrap_parameters=True,
     )
@@ -272,6 +444,56 @@ async def lfm_beacon_geolocate(
         BASE_PLUGIN,
         "lfm_beacon_geolocate.py",
         parameters,
+        node_uid,
+        wrap_parameters=True,
+    )
+
+
+usrp_b2x0_geolocate_schema = {
+    "params": [
+        {"name": "target_id", "label": "Target ID", "type": "string", "default": ""},
+        {"name": "frequency_mhz", "label": "Frequency (MHz)", "type": "number", "default": 915.0},
+        {"name": "sample_rate", "label": "Sample Rate (S/s)", "type": "number", "default": 1000000.0},
+        {"name": "gain_db", "label": "RX Gain (dB)", "type": "number", "default": 65.0},
+        {"name": "emit_every_s", "label": "Emit Interval (s)", "type": "number", "default": 1.0},
+        {"name": "meas_every_s", "label": "Measurement Interval (s)", "type": "number", "default": 0.2},
+        {
+            "name": "detect_frequency",
+            "label": "Detect Frequency",
+            "type": "string",
+            "default": "true",
+            "options": ["true", "false"],
+        },
+        {
+            "name": "description",
+            "label": "Description",
+            "type": "string",
+            "default": "USRP B2x0 geolocation",
+        },
+    ]
+}
+
+async def usrp_b2x0_geolocate(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    op_params = _resolve_compatible_sdr_parameters(
+        component,
+        parameters,
+        _COMMON_USRP_B2X0_TYPES,
+        flow_graph_name="usrp_b2x0_geolocate",
+    )
+    op_params["detect_frequency"] = _to_bool(
+        op_params.get("detect_frequency"),
+        default=True,
+    )
+
+    await _run_operation(
+        component,
+        BASE_PLUGIN,
+        "usrp_b2x0_geolocate.py",
+        op_params,
         node_uid,
         wrap_parameters=True,
     )
@@ -415,6 +637,117 @@ async def lfm_beacon_detection(
         parameters,
         node_uid,
         wait=True,
+    )
+
+
+# =============================================================================
+# Base IQ Data
+# =============================================================================
+
+iq_record_schema = {
+    "params": [
+        {
+            "name": "flow_graph_name",
+            "label": "Flow Graph",
+            "type": "string",
+            "default": "iq_recorder_b2x0",
+            "options": ["iq_recorder_b2x0"],
+        },
+        {"name": "base_file_name", "label": "Base File Name", "type": "string", "default": "capture.sigmf-data"},
+        {"name": "artifact_format", "label": "Artifact Format", "type": "string", "default": "raw", "options": ["raw", "zip"]},
+        {"name": "frequency_mhz", "label": "Frequency (MHz)", "type": "number", "default": 915.0},
+        {"name": "sample_rate_msps", "label": "Sample Rate (MS/s)", "type": "number", "default": 1.0},
+        {"name": "rx_gain", "label": "RX Gain", "type": "number", "default": 70.0},
+        {"name": "rx_channel", "label": "RX Channel", "type": "string", "default": "A:A"},
+        {"name": "rx_antenna", "label": "RX Antenna", "type": "string", "default": "TX/RX"},
+        {"name": "file_length", "label": "File Length", "type": "number", "default": 100000},
+        {"name": "number_of_files", "label": "Number of Files", "type": "number", "default": 1},
+        {"name": "file_interval", "label": "File Interval (s)", "type": "number", "default": 0.0},
+        {"name": "data_type", "label": "Data Type", "type": "string", "default": "Complex Float 32", "options": ["Complex Float 32"]},
+        {"name": "sigmf_enabled", "label": "SigMF Enabled", "type": "string", "default": "true", "options": ["true", "false"]},
+        {"name": "description", "label": "Description", "type": "string", "default": "IQ recording"},
+    ]
+}
+
+async def iq_record(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    op_params = dict(parameters or {})
+    flow_graph_name = str(
+        op_params.get("flow_graph_name", "iq_recorder_b2x0")
+        or "iq_recorder_b2x0"
+    ).strip()
+
+    if flow_graph_name != "iq_recorder_b2x0":
+        raise ValueError(f"Unsupported IQ recorder flow graph: {flow_graph_name}")
+
+    op_params = _resolve_compatible_sdr_parameters(
+        component,
+        op_params,
+        _COMMON_USRP_B2X0_TYPES,
+        flow_graph_name=flow_graph_name,
+    )
+
+    await _run_operation(
+        component,
+        BASE_PLUGIN,
+        "iq_record.py",
+        op_params,
+        node_uid,
+    )
+
+
+iq_playback_schema = {
+    "params": [
+        {
+            "name": "flow_graph_name",
+            "label": "Flow Graph",
+            "type": "string",
+            "default": "iq_playback_b2x0",
+            "options": ["iq_playback_b2x0", "iq_playback_single_b2x0"],
+        },
+        {"name": "playback_file_mode", "label": "Playback File Mode", "type": "string", "default": "node_path", "options": ["node_path"]},
+        {"name": "filepath", "label": "File Path", "type": "string", "default": ""},
+        {"name": "frequency_mhz", "label": "Frequency (MHz)", "type": "number", "default": 915.0},
+        {"name": "tx_frequency", "label": "TX Frequency (MHz)", "type": "number", "default": 915.0},
+        {"name": "sample_rate_msps", "label": "Sample Rate (MS/s)", "type": "number", "default": 1.0},
+        {"name": "tx_gain", "label": "TX Gain", "type": "number", "default": 70.0},
+        {"name": "tx_channel", "label": "TX Channel", "type": "string", "default": "A:A"},
+        {"name": "tx_antenna", "label": "TX Antenna", "type": "string", "default": "TX/RX"},
+        {"name": "data_type", "label": "Data Type", "type": "string", "default": "Complex Float 32", "options": ["Complex Float 32"]},
+        {"name": "description", "label": "Description", "type": "string", "default": "IQ playback"},
+    ]
+}
+
+async def iq_playback(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    op_params = dict(parameters or {})
+    flow_graph_name = str(
+        op_params.get("flow_graph_name", "iq_playback_b2x0")
+        or "iq_playback_b2x0"
+    ).strip()
+
+    if flow_graph_name not in {"iq_playback_b2x0", "iq_playback_single_b2x0"}:
+        raise ValueError(f"Unsupported IQ playback flow graph: {flow_graph_name}")
+
+    op_params = _resolve_compatible_sdr_parameters(
+        component,
+        op_params,
+        _COMMON_USRP_B2X0_TYPES,
+        flow_graph_name=flow_graph_name,
+    )
+
+    await _run_operation(
+        component,
+        BASE_PLUGIN,
+        "iq_playback.py",
+        op_params,
+        node_uid,
     )
 
 
@@ -712,11 +1045,14 @@ async def take_photo(
     parameters: Dict[str, Any],
     node_uid: str = "",
 ) -> None:
+    op_params = dict(parameters or {})
+    op_params.setdefault("operation_id", str(uuid.uuid4()))
+
     await _run_operation(
         component,
         BASE_PLUGIN,
         "take_photo.py",
-        parameters,
+        op_params,
         node_uid,
         wait=True,
     )
@@ -759,11 +1095,14 @@ async def motion_detector(
     parameters: Dict[str, Any],
     node_uid: str = "",
 ) -> None:
+    op_params = dict(parameters or {})
+    op_params.setdefault("operation_id", str(uuid.uuid4()))
+
     await _run_operation(
         component,
         BASE_PLUGIN,
         "motion_detector.py",
-        parameters,
+        op_params,
         node_uid,
         wait=True,
     )
@@ -797,11 +1136,14 @@ async def take_video(
     parameters: Dict[str, Any],
     node_uid: str = "",
 ) -> None:
+    op_params = dict(parameters or {})
+    op_params.setdefault("operation_id", str(uuid.uuid4()))
+
     await _run_operation(
         component,
         BASE_PLUGIN,
         "take_video.py",
-        parameters,
+        op_params,
         node_uid,
         wait=True,
     )

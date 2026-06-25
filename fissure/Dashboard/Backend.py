@@ -8,7 +8,7 @@ import asyncio
 import fissure.comms
 import fissure.utils
 from fissure.utils import PLUGIN_DIR
-from fissure.utils.plugin import modify_database
+# from fissure.utils.plugin import modify_database
 import logging
 import multiprocessing
 import time
@@ -1886,89 +1886,89 @@ class DashboardBackend:
                 await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def requestPluginNamesHiprfisr(self):
-        """
-        Request Plugin Names from HIPRFISR
-        """
-        # Send the Message
-        if self.hiprfisr_connected is True:
-            PARAMETERS = {
-            }
-            msg = {
-                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "requestPluginNamesHiprfisr",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-            }
-            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+    # async def requestPluginNamesHiprfisr(self):
+    #     """
+    #     Request Plugin Names from HIPRFISR
+    #     """
+    #     # Send the Message
+    #     if self.hiprfisr_connected is True:
+    #         PARAMETERS = {
+    #         }
+    #         msg = {
+    #                 fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+    #                 fissure.comms.MessageFields.MESSAGE_NAME: "requestPluginNamesHiprfisr",
+    #                 fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    #         }
+    #         await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def openPluginHiprfisr(self, plugin_name: str):
-        """
-        Open Plugin for Editing on HIPRFISR
-        """
-        # Send the Message
-        if self.hiprfisr_connected is True:
-            PARAMETERS = {
-                "plugin_name": plugin_name
-            }
-            msg = {
-                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "openPluginHiprfisr",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-            }
-            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+    # async def openPluginHiprfisr(self, plugin_name: str):
+    #     """
+    #     Open Plugin for Editing on HIPRFISR
+    #     """
+    #     # Send the Message
+    #     if self.hiprfisr_connected is True:
+    #         PARAMETERS = {
+    #             "plugin_name": plugin_name
+    #         }
+    #         msg = {
+    #                 fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+    #                 fissure.comms.MessageFields.MESSAGE_NAME: "openPluginHiprfisr",
+    #                 fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    #         }
+    #         await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def closePluginHiprfisr(self):
-        """
-        Close Plugin for Editing on HIPRFISR
-        """
-        # Send the Message
-        if self.hiprfisr_connected is True:
-            PARAMETERS = {
-            }
-            msg = {
-                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "closePluginHiprfisr",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-            }
-            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+    # async def closePluginHiprfisr(self):
+    #     """
+    #     Close Plugin for Editing on HIPRFISR
+    #     """
+    #     # Send the Message
+    #     if self.hiprfisr_connected is True:
+    #         PARAMETERS = {
+    #         }
+    #         msg = {
+    #                 fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+    #                 fissure.comms.MessageFields.MESSAGE_NAME: "closePluginHiprfisr",
+    #                 fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    #         }
+    #         await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def pluginDelete(self, plugin_name: str, delete_from_library: bool):
-        """
-        Deletes a plugin folder and optionally removes it from the library/database.
-        """
-        # Send the Message
-        if self.hiprfisr_connected is True:
-            PARAMETERS = {
-                "plugin_name": plugin_name,
-                "delete_from_library": delete_from_library
-            }
-            msg = {
-                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "pluginDelete",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-            }
-            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+    # async def pluginDelete(self, plugin_name: str, delete_from_library: bool):
+    #     """
+    #     Deletes a plugin folder and optionally removes it from the library/database.
+    #     """
+    #     # Send the Message
+    #     if self.hiprfisr_connected is True:
+    #         PARAMETERS = {
+    #             "plugin_name": plugin_name,
+    #             "delete_from_library": delete_from_library
+    #         }
+    #         msg = {
+    #                 fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+    #                 fissure.comms.MessageFields.MESSAGE_NAME: "pluginDelete",
+    #                 fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    #         }
+    #         await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def pluginApplyChanges(self, table_data_json: dict, supporting_files_data_json: dict):
-        """
-        Overwrites the csv files with table data.
-        """
-        # Send the Message
-        if self.hiprfisr_connected is True:
-            PARAMETERS = {
-                "table_data_json": table_data_json,
-                "supporting_files_data_json": supporting_files_data_json
-            }
-            msg = {
-                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "pluginApplyChanges",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-            }
-            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+    # async def pluginApplyChanges(self, table_data_json: dict, supporting_files_data_json: dict):
+    #     """
+    #     Overwrites the csv files with table data.
+    #     """
+    #     # Send the Message
+    #     if self.hiprfisr_connected is True:
+    #         PARAMETERS = {
+    #             "table_data_json": table_data_json,
+    #             "supporting_files_data_json": supporting_files_data_json
+    #         }
+    #         msg = {
+    #                 fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+    #                 fissure.comms.MessageFields.MESSAGE_NAME: "pluginApplyChanges",
+    #                 fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    #         }
+    #         await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
     async def pluginAddProtocolHiprfisr(self, protocol_name: str):

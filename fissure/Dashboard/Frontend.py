@@ -148,6 +148,11 @@ class Dashboard(QtWidgets.QMainWindow):
         else:
             self.window.actionRemember_Configuration.setChecked(False)
 
+        # Hide works in progress
+        self.remove_tab_by_text(self.ui.tabWidget_sensor_nodes, "Plugins")
+        self.remove_tab_by_text(self.ui.tabWidget_sensor_nodes, "Operations")
+        self.remove_tab_by_text(self.ui.tabWidget_library, "Plugin Manager")
+
         # Load FISSURE Logo
         self.ui.label_diagram.setPixmap(QtGui.QPixmap(os.path.join(fissure.utils.UI_DIR, "Icons", "logo.png")))
         self.ui.pushButton_demo.setVisible(False)
@@ -1773,6 +1778,12 @@ class Dashboard(QtWidgets.QMainWindow):
                 self.statusBar().dialog.tableWidget_status_results.item(n, 0).setText(
                     self.statusbar_text[self.active_sensor_node][n]
                 )
+            
+    
+    def remove_tab_by_text(self, tab_widget, tab_text):
+        for i in range(tab_widget.count() - 1, -1, -1):
+            if tab_widget.tabText(i).strip() == tab_text:
+                tab_widget.removeTab(i)
 
 
     def populateArchive(self):
@@ -4596,9 +4607,9 @@ def connect_sensor_nodes_slots(dashboard: Dashboard):
     dashboard.ui.pushButton_9.clicked.connect(
         lambda: SensorNodesTabSlots._slotSensorNodesPluginOperationOpen(dashboard)
     )
-    dashboard.ui.toolButton_plugin_pkgs_hiprfisr_refresh_2.clicked.connect(
-        lambda: LibraryTabPluginManagerTabSlots._slot_request_hiprfisr_plugin_list(dashboard)
-    )
+    # dashboard.ui.toolButton_plugin_pkgs_hiprfisr_refresh_2.clicked.connect(
+    #     lambda: LibraryTabPluginManagerTabSlots._slot_request_hiprfisr_plugin_list(dashboard)
+    # )
     dashboard.ui.comboBox_select_plugin.currentIndexChanged.connect(
         lambda: SensorNodesTabSlots._slotSensorNodesPluginSelected(dashboard)
     )

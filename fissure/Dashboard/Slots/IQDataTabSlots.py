@@ -6136,7 +6136,7 @@ async def _slotIQ_RecordClicked(dashboard: QtCore.QObject, called_from_thread=Fa
                 f"[IQ] Failed refreshing artifacts after IQ record stop: {e}"
             )
 
-        await dashboard.refreshStatusBarText()
+        # dashboard.refreshStatusBarText()
         return
 
     # ------------------------------------------------------------
@@ -6451,201 +6451,324 @@ async def _slotIQ_RecordClicked(dashboard: QtCore.QObject, called_from_thread=Fa
     dashboard.ui.pushButton_iq_record.setText("Stop")
     dashboard.ui.pushButton_iq_record.setEnabled(True)
 
-    if dashboard.selected_node_uid:
-        dashboard.refreshStatusBarText()
+    # if dashboard.selected_node_uid:
+    #     dashboard.refreshStatusBarText()
 
 
 @qasync.asyncSlot(QtCore.QObject)
 async def _slotIQ_PlaybackClicked(dashboard: QtCore.QObject):
-    """ 
-    Starts/Stops a flow graph with a file source. Replays loaded file data.
     """
-    # Play
-    if dashboard.ui.pushButton_iq_playback.text() == "Play":
-        # Return if no Sensor Node Selected
-        if not dashboard.selected_node_uid:
-            ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(dashboard, "Select a sensor node.")
-            return
+    Starts/stops IQ playback through the Base plugin action path.
 
-        # Change Status Label and Record Button Text
-        dashboard.ui.label2_iq_playback_status.setText("Starting...")
-        dashboard.ui.pushButton_iq_playback.setText("Stop")
+    First-pass behavior:
+      - Dashboard collects existing IQ Playback table values.
+      - Sends Base.iq_playback to the selected Sensor Node.
+      - node_path mode uses the filepath as it exists on the executing node.
+      - transfer mode stages the Dashboard-local file to the selected node first.
+      - Stop requests plugin operation stop on the selected node.
+    """
+
+    # ------------------------------------------------------------
+    # Stop Playback
+    # ------------------------------------------------------------
+    if dashboard.ui.pushButton_iq_playback.text() == "Stop":
+        dashboard.ui.label2_iq_playback_status.setText("Stopping...")
         dashboard.ui.pushButton_iq_playback.setEnabled(False)
-        # dashboard.statusbar_text[dashboard.selected_node_uid][4] = 'Starting...'  # TODO
-        dashboard.refreshStatusBarText()
         QtWidgets.QApplication.processEvents()
 
-        # Sensor Node Hardware Information
-        get_current_hardware = str(dashboard.ui.comboBox_iq_playback_hardware.currentText())
-        get_hardware_type, get_hardware_uuid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'iq')
-    
         try:
-            # Get the Values from the Table
-            try:
-                get_frequency = str(dashboard.ui.tableWidget_iq_playback.cellWidget(0,0).value())
-            except:
-                get_frequency = str(dashboard.ui.tableWidget_iq_playback.item(0,0).text())
-            get_channel = str(dashboard.ui.tableWidget_iq_playback.cellWidget(0,1).currentText())
-            get_antenna = str(dashboard.ui.tableWidget_iq_playback.cellWidget(0,2).currentText())
-            try:
-                get_gain = str(dashboard.ui.tableWidget_iq_playback.cellWidget(0,3).value())
-            except:
-                get_gain = str(dashboard.ui.tableWidget_iq_playback.item(0,3).text())
-            try:
-                get_sample_rate = str(dashboard.ui.tableWidget_iq_playback.cellWidget(0,4).currentText())
-            except:
-                get_sample_rate = str(dashboard.ui.tableWidget_iq_playback.item(0,4).text())
-            get_data_type = str(dashboard.ui.tableWidget_iq_playback.cellWidget(0,5).currentText())
-            get_repeat = str(dashboard.ui.tableWidget_iq_playback.cellWidget(0,6).currentText())
-            get_filepath = str(dashboard.ui.textEdit_iq_playback_filepath.toPlainText())
+            await dashboard.backend.tacticalNodeStop(
+                [dashboard.selected_node_uid]
+            )
+        except Exception as e:
+            dashboard.logger.error(f"[IQ] Failed stopping IQ playback operation: {e}")
 
-            # Validate Inputs
-            float(get_frequency)
-            float(get_gain)
-            float(get_sample_rate)
-            valid_freq = fissure.utils.hardware.checkFrequencyBounds(float(get_frequency), get_hardware_type, get_hardware_daughterboard)
-            if valid_freq == False:
-                ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(dashboard, "Frequency outside of hardware bounds.")
-                raise ValueError("Frequency outside of hardware bounds.")
-        except:
-            ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(dashboard, "Invalid input parameter")
-            dashboard.ui.label2_iq_playback_status.setText('')
+        dashboard.ui.label2_iq_playback_status.setText("")
+        dashboard.ui.pushButton_iq_playback.setText("Play")
+        dashboard.ui.pushButton_iq_playback.setEnabled(True)
+
+        # await dashboard.refreshStatusBarText()
+        return
+
+    # ------------------------------------------------------------
+    # Start Playback
+    # ------------------------------------------------------------
+    if dashboard.ui.pushButton_iq_playback.text() != "Play":
+        return
+
+    if not dashboard.selected_node_uid:
+        await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+            dashboard,
+            "Select a sensor node.",
+        )
+        return
+
+    # ------------------------------------------------------------
+    # Initial UI State
+    # ------------------------------------------------------------
+    dashboard.ui.label2_iq_playback_status.setText("Starting...")
+    dashboard.ui.pushButton_iq_playback.setText("Stop")
+    dashboard.ui.pushButton_iq_playback.setEnabled(False)
+    # await dashboard.refreshStatusBarText()
+    QtWidgets.QApplication.processEvents()
+
+    # ------------------------------------------------------------
+    # Sensor Node Hardware Information
+    # ------------------------------------------------------------
+    get_current_hardware = str(
+        dashboard.ui.comboBox_iq_playback_hardware.currentText()
+    ).strip()
+
+    (
+        get_hardware_type,
+        get_hardware_uuid,
+        get_hardware_radio_name,
+        get_hardware_serial,
+        get_hardware_interface,
+        get_hardware_ip,
+        get_hardware_daughterboard,
+    ) = fissure.utils.hardware.hardwareDisplayNameLookup(
+        dashboard,
+        get_current_hardware,
+        "iq",
+    )
+
+    # ------------------------------------------------------------
+    # Read and Validate UI Values
+    # ------------------------------------------------------------
+    try:
+        try:
+            get_frequency = str(
+                dashboard.ui.tableWidget_iq_playback.cellWidget(0, 0).value()
+            ).strip()
+        except Exception:
+            get_frequency = str(
+                dashboard.ui.tableWidget_iq_playback.item(0, 0).text()
+            ).strip()
+
+        get_channel = str(
+            dashboard.ui.tableWidget_iq_playback.cellWidget(0, 1).currentText()
+        ).strip()
+
+        get_antenna = str(
+            dashboard.ui.tableWidget_iq_playback.cellWidget(0, 2).currentText()
+        ).strip()
+
+        try:
+            get_gain = str(
+                dashboard.ui.tableWidget_iq_playback.cellWidget(0, 3).value()
+            ).strip()
+        except Exception:
+            get_gain = str(
+                dashboard.ui.tableWidget_iq_playback.item(0, 3).text()
+            ).strip()
+
+        try:
+            get_sample_rate = str(
+                dashboard.ui.tableWidget_iq_playback.cellWidget(0, 4).currentText()
+            ).strip()
+        except Exception:
+            get_sample_rate = str(
+                dashboard.ui.tableWidget_iq_playback.item(0, 4).text()
+            ).strip()
+
+        get_data_type = str(
+            dashboard.ui.tableWidget_iq_playback.cellWidget(0, 5).currentText()
+        ).strip()
+
+        get_repeat = str(
+            dashboard.ui.tableWidget_iq_playback.cellWidget(0, 6).currentText()
+        ).strip()
+
+        get_filepath = str(
+            dashboard.ui.textEdit_iq_playback_filepath.toPlainText()
+        ).strip()
+
+        playback_file_mode_text = str(
+            dashboard.ui.comboBox_iq_playback_file_mode.currentText()
+        ).strip()
+
+        playback_file_mode = {
+            "Node Path": "node_path",
+            "Transfer": "transfer",
+        }.get(playback_file_mode_text, "node_path")
+
+        dashboard.logger.info(
+            f"[IQ] Playback file mode selected: "
+            f"text={playback_file_mode_text!r}, mode={playback_file_mode!r}"
+        )
+
+        frequency_mhz = float(get_frequency)
+        tx_gain = float(get_gain)
+        sample_rate_msps = float(get_sample_rate)
+
+        if not get_filepath:
+            await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+                dashboard,
+                "Select an IQ playback file.",
+            )
+            raise ValueError("Missing IQ playback filepath.")
+
+        valid_freq = fissure.utils.hardware.checkFrequencyBounds(
+            frequency_mhz,
+            get_hardware_type,
+            get_hardware_daughterboard,
+        )
+
+        if valid_freq is False:
+            await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+                dashboard,
+                "Frequency outside of hardware bounds.",
+            )
+            raise ValueError("Frequency outside of hardware bounds.")
+
+    except Exception as e:
+        dashboard.logger.error(f"[IQ] Invalid playback input parameter: {e}")
+
+        dashboard.ui.label2_iq_playback_status.setText("")
+        dashboard.ui.pushButton_iq_playback.setText("Play")
+        dashboard.ui.pushButton_iq_playback.setEnabled(True)
+        # await dashboard.refreshStatusBarText()
+        return
+
+    # ------------------------------------------------------------
+    # First-pass Flow Graph Name from Hardware / Repeat
+    # ------------------------------------------------------------
+    if get_hardware_type in {"USRP B2x0", "USRP B20xmini"}:
+        if get_repeat == "No":
+            fname = "iq_playback_single_b2x0"
+        else:
+            fname = "iq_playback_b2x0"
+    else:
+        await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+            dashboard,
+            f"Unsupported IQ playback hardware for first pass: {get_hardware_type}",
+        )
+
+        dashboard.ui.label2_iq_playback_status.setText("")
+        dashboard.ui.pushButton_iq_playback.setText("Play")
+        dashboard.ui.pushButton_iq_playback.setEnabled(True)
+        # await dashboard.refreshStatusBarText()
+        return
+
+    # ------------------------------------------------------------
+    # Hardware Serial Formatting
+    # Preserve old UHD serial behavior.
+    # ------------------------------------------------------------
+    if len(get_hardware_serial) > 0:
+        get_serial = "serial=" + get_hardware_serial
+    else:
+        get_serial = "False"
+
+    # ------------------------------------------------------------
+    # Optional File Transfer
+    # ------------------------------------------------------------
+    action_filepath = get_filepath
+
+    if playback_file_mode == "transfer":
+        try:
+            await dashboard.backend.transferSensorNodeFile(
+                dashboard.selected_node_uid,
+                get_filepath,
+                "/IQ_Data_Playback",
+                False,
+            )
+
+            # Must match SensorNodeCallbacks.transferSensorNodeFile(), which
+            # saves /IQ_Data_Playback as Sensor_Node/IQ_Data_Playback/playback.iq.
+            action_filepath = os.path.join(
+                fissure.utils.SENSOR_NODE_DIR,
+                "IQ_Data_Playback",
+                "playback.iq",
+            )
+
+        except Exception as e:
+            dashboard.logger.error(f"[IQ] Failed transferring IQ playback file: {e}")
+
+            await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+                dashboard,
+                "Failed to transfer IQ playback file to selected node.",
+            )
+
+            dashboard.ui.label2_iq_playback_status.setText("")
             dashboard.ui.pushButton_iq_playback.setText("Play")
             dashboard.ui.pushButton_iq_playback.setEnabled(True)
-            # dashboard.statusbar_text[dashboard.selected_node_uid][4] = ''  # TODO
-            dashboard.refreshStatusBarText()
+            # await dashboard.refreshStatusBarText()
             return
 
-        # Transfer IQ File on Remote Playback (Sensor Node Messages are Blocking)
-        if selected_node_is_remote(dashboard):
-            await dashboard.backend.transferSensorNodeFile(dashboard.selected_node_uid, get_filepath, '/IQ_Data_Playback', False)
+    # ------------------------------------------------------------
+    # Plugin Action Parameters
+    # ------------------------------------------------------------
+    operation_id = str(uuid.uuid4())
 
-        # Get Flow Graph from Hardware
-        if get_hardware_type == "Computer":
-            fname = "iq_playback"  # Do not allow
-        elif get_hardware_type == "USRP X3x0":
-            if get_repeat == "No":
-                fname = "iq_playback_single_x3x0"
-            else:
-                fname = "iq_playback_x3x0"
-        elif get_hardware_type == "USRP B2x0":
-            if get_repeat == "No":
-                fname = "iq_playback_single_b2x0"
-            else:
-                fname = "iq_playback_b2x0"
-        elif get_hardware_type == "HackRF":
-            if get_repeat == "No":
-                fname = "iq_playback_single_hackrf"
-            else:
-                fname = "iq_playback_hackrf"
-        elif get_hardware_type == "RTL2832U":
-            fname = "iq_playback"  # Do not allow
-        elif get_hardware_type == "802.11x Adapter":
-            fname = "iq_playback"  # Do not allow
-        elif get_hardware_type == "USRP B20xmini":
-            if get_repeat == "No":
-                fname = "iq_playback_single_b2x0"
-            else:
-                fname = "iq_playback_b2x0"
-        elif get_hardware_type == "LimeSDR":
-            if get_repeat == "No":
-                fname = "iq_playback_single_limesdr"
-            else:
-                fname = "iq_playback_limesdr"
-        elif get_hardware_type == "bladeRF":
-            if get_repeat == "No":
-                fname = "iq_playback_single_bladerf"
-            else:
-                fname = "iq_playback_bladerf"
-        elif get_hardware_type == "Open Sniffer":
-            fname = "iq_playback"  # Do not allow
-        elif get_hardware_type == "PlutoSDR":
-            if get_repeat == "No":
-                fname = "iq_playback_single_plutosdr"
-            else:
-                fname = "iq_playback_plutosdr"
-        elif get_hardware_type == "USRP2":
-            if get_repeat == "No":
-                fname = "iq_playback_single_usrp2"
-            else:
-                fname = "iq_playback_usrp2"
-        elif get_hardware_type == "USRP N2xx":
-            if get_repeat == "No":
-                fname = "iq_playback_single_usrp_n2xx"
-            else:
-                fname = "iq_playback_usrp_n2xx"
-        elif get_hardware_type == "bladeRF 2.0":
-            if get_repeat == "No":
-                fname = "iq_playback_single_bladerf2"
-            else:
-                fname = "iq_playback_bladerf2"
-        elif get_hardware_type == "USRP X410":
-            if get_repeat == "No":
-                fname = "iq_playback_single_x410"
-            else:
-                fname = "iq_playback_x410"
-        elif get_hardware_type == "CaribouLite":
-            if get_repeat == "No":
-                fname = "iq_playback_single_cariboulite"
-            else:
-                fname = "iq_playback_cariboulite"   
+    parameters = {
+        # Request identity
+        "operation_id": operation_id,
+        "requester": "iq_data_tab",
 
-        # LimeSDR Channel
-        if get_hardware_type == "LimeSDR":
-            if get_channel == "A":
-                get_channel = "0"
-            elif get_channel == "B":
-                get_channel = "1"
+        # Playback selection
+        "flow_graph_name": fname,
+        "playback_file_mode": playback_file_mode,
+        "filepath": action_filepath,
 
-        # Hardware Serial
-        if len(get_hardware_serial) > 0:
-            if get_hardware_type == "HackRF":
-                get_serial = get_hardware_serial
-            elif get_hardware_type == "bladeRF":
-                get_serial = get_hardware_serial
-            elif get_hardware_type == "bladeRF 2.0":
-                get_serial = get_hardware_serial
-            elif get_hardware_type == "RSPduo":
-                get_serial = get_hardware_serial
-            elif get_hardware_type == "RSPdx":
-                get_serial = get_hardware_serial
-            elif get_hardware_type == "RSPdx R2":
-                get_serial = get_hardware_serial
-            else:
-                get_serial = 'serial=' + get_hardware_serial
-        else:
-            if get_hardware_type == "HackRF":
-                get_serial = ""
-            elif get_hardware_type == "bladeRF":
-                get_serial = "0"
-            elif get_hardware_type == "bladeRF 2.0":
-                get_serial = "0"
-            elif get_hardware_type == "RSPduo":
-                get_serial = "0"
-            elif get_hardware_type == "RSPdx":
-                get_serial = "0"
-            elif get_hardware_type == "RSPdx R2":
-                get_serial = "0"
-            else:
-                get_serial = "False"
+        # Hardware identity
+        "hardware_display_name": get_current_hardware,
+        "hardware_type": get_hardware_type,
+        "hardware_uuid": get_hardware_uuid,
+        "hardware_radio_name": get_hardware_radio_name,
+        "hardware_serial": get_hardware_serial,
+        "hardware_serial_argument": get_serial,
+        "hardware_interface": get_hardware_interface,
+        "hardware_ip": get_hardware_ip,
+        "hardware_daughterboard": get_hardware_daughterboard,
 
-        # Put them in a List
-        variable_names = ['filepath','ip_address','tx_channel','tx_frequency','sample_rate','tx_gain','tx_antenna','serial']
-        variable_values = [get_filepath,get_hardware_ip,get_channel,get_frequency,get_sample_rate,get_gain,get_antenna,get_serial]
+        # RF / playback parameters
+        "frequency_mhz": frequency_mhz,
+        "tx_frequency": frequency_mhz,
+        "tx_channel": get_channel,
+        "tx_antenna": get_antenna,
+        "tx_gain": tx_gain,
+        "sample_rate_msps": sample_rate_msps,
+        "data_type": get_data_type,
 
-        # Send the Parameters to TSI
-        get_file_type = "Flow Graph"
-        await dashboard.backend.iqFlowGraphStart(dashboard.selected_node_uid, str(fname), variable_names, variable_values, get_file_type)
+        # Metadata / logging
+        "description": "IQ playback",
+    }
 
-    # Stop Playing
-    elif dashboard.ui.pushButton_iq_playback.text() == "Stop":
-        # Disable the Button
-        dashboard.ui.pushButton_iq_playback.setEnabled(False)
-        QtWidgets.QApplication.processEvents()
-        
-        # Send Message to TSI/HIPRFISR
-        await dashboard.backend.iqFlowGraphStop(dashboard.selected_node_uid, '')
+    # ------------------------------------------------------------
+    # Send Plugin Action
+    # ------------------------------------------------------------
+    try:
+        await dashboard.backend.tacticalNodeExecute(
+            [dashboard.selected_node_uid],
+            "Base",
+            "iq_playback",
+            parameters,
+        )
 
+    except Exception as e:
+        dashboard.logger.error(f"[IQ] Failed launching IQ playback action: {e}")
+
+        await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+            dashboard,
+            "Failed to launch IQ playback action.",
+        )
+
+        dashboard.ui.label2_iq_playback_status.setText("")
+        dashboard.ui.pushButton_iq_playback.setText("Play")
+        dashboard.ui.pushButton_iq_playback.setEnabled(True)
+        # await dashboard.refreshStatusBarText()
+        return
+
+    # ------------------------------------------------------------
+    # UI State
+    # ------------------------------------------------------------
+    dashboard.ui.label2_iq_playback_status.setText("Starting...")
+    dashboard.ui.pushButton_iq_playback.setText("Stop")
+    dashboard.ui.pushButton_iq_playback.setEnabled(True)
+
+    # await dashboard.refreshStatusBarText()
+    
 
 @qasync.asyncSlot(QtCore.QObject)
 async def _slotIQ_InspectionFG_StartClicked(dashboard: QtCore.QObject):
