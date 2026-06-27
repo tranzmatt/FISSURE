@@ -511,14 +511,14 @@
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>250</y>
-            <width>85</width>
+            <y>270</y>
+            <width>70</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -533,14 +533,14 @@
           <property name="geometry">
            <rect>
             <x>75</x>
-            <y>250</y>
-            <width>215</width>
+            <y>270</y>
+            <width>220</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -555,14 +555,14 @@
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>270</y>
-            <width>85</width>
+            <y>285</y>
+            <width>70</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -577,14 +577,14 @@
           <property name="geometry">
            <rect>
             <x>75</x>
-            <y>270</y>
-            <width>215</width>
+            <y>285</y>
+            <width>220</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -599,14 +599,14 @@
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>290</y>
-            <width>85</width>
+            <y>300</y>
+            <width>70</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -621,14 +621,14 @@
           <property name="geometry">
            <rect>
             <x>75</x>
-            <y>290</y>
-            <width>215</width>
+            <y>300</y>
+            <width>220</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -643,14 +643,14 @@
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>310</y>
-            <width>85</width>
+            <y>315</y>
+            <width>70</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -665,14 +665,14 @@
           <property name="geometry">
            <rect>
             <x>75</x>
-            <y>310</y>
-            <width>215</width>
+            <y>315</y>
+            <width>220</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -688,13 +688,13 @@
            <rect>
             <x>5</x>
             <y>330</y>
-            <width>85</width>
+            <width>70</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -710,13 +710,13 @@
            <rect>
             <x>75</x>
             <y>330</y>
-            <width>215</width>
+            <width>220</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -733,7 +733,7 @@
             <x>-1</x>
             <y>0</y>
             <width>304</width>
-            <height>245</height>
+            <height>265</height>
            </rect>
           </property>
           <property name="editTriggers">
@@ -767,7 +767,7 @@
          <widget class="QPushButton" name="pushButton_tactical_node_detections_promote_to_soi">
           <property name="geometry">
            <rect>
-            <x>95</x>
+            <x>5</x>
             <y>360</y>
             <width>115</width>
             <height>25</height>
@@ -787,7 +787,7 @@
            <rect>
             <x>5</x>
             <y>420</y>
-            <width>75</width>
+            <width>90</width>
             <height>25</height>
            </rect>
           </property>
@@ -803,7 +803,7 @@
          <widget class="QPushButton" name="pushButton_tactical_node_detections_plot_zoom">
           <property name="geometry">
            <rect>
-            <x>85</x>
+            <x>100</x>
             <y>420</y>
             <width>100</width>
             <height>25</height>
@@ -821,9 +821,9 @@
          <widget class="QPushButton" name="pushButton_tactical_node_detection_remove_from_map">
           <property name="geometry">
            <rect>
-            <x>190</x>
+            <x>205</x>
             <y>420</y>
-            <width>75</width>
+            <width>90</width>
             <height>25</height>
            </rect>
           </property>
@@ -881,14 +881,14 @@
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>230</y>
-            <width>90</width>
+            <y>235</y>
+            <width>70</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -921,7 +921,7 @@
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>390</y>
+            <y>360</y>
             <width>150</width>
             <height>25</height>
            </rect>
@@ -939,14 +939,14 @@
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>210</y>
-            <width>90</width>
+            <y>220</y>
+            <width>70</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -960,15 +960,15 @@
          <widget class="QLabel" name="label2_tactical_node_soi_frequency">
           <property name="geometry">
            <rect>
-            <x>95</x>
-            <y>190</y>
-            <width>195</width>
+            <x>75</x>
+            <y>205</y>
+            <width>220</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -982,15 +982,15 @@
          <widget class="QLabel" name="label2_tactical_node_soi_soi_id">
           <property name="geometry">
            <rect>
-            <x>95</x>
+            <x>75</x>
             <y>250</y>
-            <width>195</width>
+            <width>220</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -1005,7 +1005,7 @@
           <property name="geometry">
            <rect>
             <x>160</x>
-            <y>390</y>
+            <y>360</y>
             <width>135</width>
             <height>25</height>
            </rect>
@@ -1043,7 +1043,7 @@
             <x>-1</x>
             <y>0</y>
             <width>304</width>
-            <height>180</height>
+            <height>200</height>
            </rect>
           </property>
           <property name="editTriggers">
@@ -1077,15 +1077,15 @@
          <widget class="QLabel" name="label2_tactical_node_soi_artifact_id">
           <property name="geometry">
            <rect>
-            <x>95</x>
-            <y>270</y>
-            <width>195</width>
+            <x>75</x>
+            <y>265</y>
+            <width>220</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -1119,13 +1119,13 @@
            <rect>
             <x>5</x>
             <y>250</y>
-            <width>90</width>
+            <width>70</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -1140,14 +1140,14 @@
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>190</y>
-            <width>90</width>
+            <y>205</y>
+            <width>70</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -1162,14 +1162,14 @@
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>270</y>
-            <width>90</width>
+            <y>265</y>
+            <width>70</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -1183,15 +1183,15 @@
          <widget class="QLabel" name="label2_tactical_node_soi_status">
           <property name="geometry">
            <rect>
-            <x>95</x>
-            <y>210</y>
-            <width>195</width>
+            <x>75</x>
+            <y>220</y>
+            <width>220</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -1205,15 +1205,15 @@
          <widget class="QLabel" name="label2_tactical_node_soi_node_id">
           <property name="geometry">
            <rect>
-            <x>95</x>
-            <y>230</y>
-            <width>195</width>
+            <x>75</x>
+            <y>235</y>
+            <width>220</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -1228,14 +1228,14 @@
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>290</y>
-            <width>90</width>
+            <y>280</y>
+            <width>70</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -1249,15 +1249,15 @@
          <widget class="QLabel" name="label2_tactical_node_soi_event_id">
           <property name="geometry">
            <rect>
-            <x>95</x>
-            <y>290</y>
-            <width>195</width>
+            <x>75</x>
+            <y>280</y>
+            <width>220</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -1272,14 +1272,14 @@
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>315</y>
+            <y>300</y>
             <width>270</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <underline>true</underline>
             <strikeout>false</strikeout>
            </font>
@@ -1295,14 +1295,14 @@
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>355</y>
-            <width>90</width>
+            <y>330</y>
+            <width>70</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -1316,15 +1316,15 @@
          <widget class="QLabel" name="label2_tactical_node_soi_database">
           <property name="geometry">
            <rect>
-            <x>95</x>
-            <y>355</y>
-            <width>195</width>
+            <x>75</x>
+            <y>330</y>
+            <width>220</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -1339,14 +1339,14 @@
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>335</y>
-            <width>90</width>
+            <y>315</y>
+            <width>70</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -1360,15 +1360,15 @@
          <widget class="QLabel" name="label2_tactical_node_soi_model">
           <property name="geometry">
            <rect>
-            <x>95</x>
-            <y>335</y>
-            <width>195</width>
+            <x>75</x>
+            <y>315</y>
+            <width>220</width>
             <height>17</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>8</pointsize>
             <strikeout>false</strikeout>
            </font>
           </property>
@@ -1377,6 +1377,42 @@
           </property>
           <property name="alignment">
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="pushButton_tactical_node_soi_delete_row">
+          <property name="geometry">
+           <rect>
+            <x>5</x>
+            <y>390</y>
+            <width>90</width>
+            <height>25</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>11</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Delete Row</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="pushButton_tactical_node_soi_clear_rows">
+          <property name="geometry">
+           <rect>
+            <x>100</x>
+            <y>390</y>
+            <width>90</width>
+            <height>25</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>11</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Clear Rows</string>
           </property>
          </widget>
         </widget>
@@ -1406,7 +1442,7 @@
           <property name="geometry">
            <rect>
             <x>155</x>
-            <y>390</y>
+            <y>360</y>
             <width>140</width>
             <height>25</height>
            </rect>
@@ -1494,7 +1530,7 @@
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>390</y>
+            <y>360</y>
             <width>145</width>
             <height>25</height>
            </rect>
@@ -1532,7 +1568,7 @@
             <x>-1</x>
             <y>245</y>
             <width>304</width>
-            <height>135</height>
+            <height>105</height>
            </rect>
           </property>
           <property name="frameShape">
@@ -1544,15 +1580,15 @@
           <widget class="QLabel" name="label2_tactical_node_targets_frequency">
            <property name="geometry">
             <rect>
-             <x>95</x>
-             <y>105</y>
-             <width>195</width>
+             <x>75</x>
+             <y>80</y>
+             <width>220</width>
              <height>17</height>
             </rect>
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>8</pointsize>
              <strikeout>false</strikeout>
             </font>
            </property>
@@ -1567,14 +1603,14 @@
            <property name="geometry">
             <rect>
              <x>5</x>
-             <y>65</y>
-             <width>90</width>
+             <y>50</y>
+             <width>70</width>
              <height>17</height>
             </rect>
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>8</pointsize>
              <strikeout>false</strikeout>
             </font>
            </property>
@@ -1588,15 +1624,15 @@
           <widget class="QLabel" name="label2_tactical_node_targets_display_label">
            <property name="geometry">
             <rect>
-             <x>95</x>
-             <y>25</y>
-             <width>195</width>
+             <x>75</x>
+             <y>20</y>
+             <width>220</width>
              <height>17</height>
             </rect>
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>8</pointsize>
              <strikeout>false</strikeout>
             </font>
            </property>
@@ -1610,15 +1646,15 @@
           <widget class="QLabel" name="label2_tactical_node_targets_state">
            <property name="geometry">
             <rect>
-             <x>95</x>
-             <y>65</y>
-             <width>195</width>
+             <x>75</x>
+             <y>50</y>
+             <width>220</width>
              <height>17</height>
             </rect>
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>8</pointsize>
              <strikeout>false</strikeout>
             </font>
            </property>
@@ -1635,15 +1671,15 @@
            </property>
            <property name="geometry">
             <rect>
-             <x>95</x>
+             <x>75</x>
              <y>5</y>
-             <width>195</width>
+             <width>220</width>
              <height>17</height>
             </rect>
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>8</pointsize>
              <strikeout>false</strikeout>
             </font>
            </property>
@@ -1657,15 +1693,15 @@
           <widget class="QLabel" name="label2_tactical_node_targets_distance">
            <property name="geometry">
             <rect>
-             <x>95</x>
-             <y>45</y>
-             <width>195</width>
+             <x>75</x>
+             <y>35</y>
+             <width>220</width>
              <height>17</height>
             </rect>
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>8</pointsize>
              <strikeout>false</strikeout>
             </font>
            </property>
@@ -1683,14 +1719,14 @@
            <property name="geometry">
             <rect>
              <x>5</x>
-             <y>105</y>
-             <width>90</width>
+             <y>80</y>
+             <width>70</width>
              <height>17</height>
             </rect>
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>8</pointsize>
              <strikeout>false</strikeout>
             </font>
            </property>
@@ -1704,15 +1740,15 @@
           <widget class="QLabel" name="label2_tactical_node_targets_location">
            <property name="geometry">
             <rect>
-             <x>95</x>
-             <y>85</y>
-             <width>195</width>
+             <x>75</x>
+             <y>65</y>
+             <width>220</width>
              <height>17</height>
             </rect>
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>8</pointsize>
              <strikeout>false</strikeout>
             </font>
            </property>
@@ -1731,13 +1767,13 @@
             <rect>
              <x>5</x>
              <y>5</y>
-             <width>90</width>
+             <width>70</width>
              <height>17</height>
             </rect>
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>8</pointsize>
              <strikeout>false</strikeout>
             </font>
            </property>
@@ -1752,19 +1788,19 @@
            <property name="geometry">
             <rect>
              <x>5</x>
-             <y>25</y>
-             <width>90</width>
+             <y>20</y>
+             <width>70</width>
              <height>17</height>
             </rect>
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>8</pointsize>
              <strikeout>false</strikeout>
             </font>
            </property>
            <property name="text">
-            <string>Display Label:</string>
+            <string>Label:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -1774,14 +1810,14 @@
            <property name="geometry">
             <rect>
              <x>5</x>
-             <y>45</y>
-             <width>90</width>
+             <y>35</y>
+             <width>70</width>
              <height>17</height>
             </rect>
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>8</pointsize>
              <strikeout>false</strikeout>
             </font>
            </property>
@@ -1796,14 +1832,14 @@
            <property name="geometry">
             <rect>
              <x>5</x>
-             <y>85</y>
-             <width>90</width>
+             <y>65</y>
+             <width>70</width>
              <height>17</height>
             </rect>
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>8</pointsize>
              <strikeout>false</strikeout>
             </font>
            </property>
@@ -1814,6 +1850,60 @@
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
+         </widget>
+         <widget class="QPushButton" name="pushButton_tactical_node_targets_clear_rows">
+          <property name="geometry">
+           <rect>
+            <x>100</x>
+            <y>390</y>
+            <width>90</width>
+            <height>25</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>11</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Clear Rows</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="pushButton_tactical_node_targets_delete_row">
+          <property name="geometry">
+           <rect>
+            <x>5</x>
+            <y>390</y>
+            <width>90</width>
+            <height>25</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>11</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Delete Row</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="pushButton_tactical_node_targets_keep_selected">
+          <property name="geometry">
+           <rect>
+            <x>195</x>
+            <y>390</y>
+            <width>100</width>
+            <height>25</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>11</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Keep Selected</string>
+          </property>
          </widget>
         </widget>
         <widget class="QWidget" name="tab_artifacts">
@@ -1826,7 +1916,7 @@
             <x>-1</x>
             <y>0</y>
             <width>304</width>
-            <height>360</height>
+            <height>335</height>
            </rect>
           </property>
           <property name="editTriggers">
@@ -1855,9 +1945,9 @@
          <widget class="QPushButton" name="pushButton_tactical_node_artifacts_open_folder">
           <property name="geometry">
            <rect>
-            <x>80</x>
-            <y>420</y>
-            <width>140</width>
+            <x>195</x>
+            <y>390</y>
+            <width>100</width>
             <height>25</height>
            </rect>
           </property>
@@ -1877,9 +1967,9 @@
           <property name="geometry">
            <rect>
             <x>-1</x>
-            <y>360</y>
+            <y>335</y>
             <width>304</width>
-            <height>50</height>
+            <height>45</height>
            </rect>
           </property>
           <property name="frameShape">
@@ -1913,15 +2003,15 @@
           <widget class="QLabel" name="label2_tactical_node_artifacts_operation_id">
            <property name="geometry">
             <rect>
-             <x>95</x>
-             <y>25</y>
-             <width>195</width>
+             <x>75</x>
+             <y>20</y>
+             <width>220</width>
              <height>17</height>
             </rect>
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>8</pointsize>
              <strikeout>false</strikeout>
             </font>
            </property>
@@ -1938,15 +2028,15 @@
            </property>
            <property name="geometry">
             <rect>
-             <x>95</x>
+             <x>75</x>
              <y>5</y>
-             <width>195</width>
+             <width>220</width>
              <height>17</height>
             </rect>
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>8</pointsize>
              <strikeout>false</strikeout>
             </font>
            </property>
@@ -1990,18 +2080,18 @@
             <rect>
              <x>5</x>
              <y>5</y>
-             <width>90</width>
+             <width>70</width>
              <height>17</height>
             </rect>
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>8</pointsize>
              <strikeout>false</strikeout>
             </font>
            </property>
            <property name="text">
-            <string> Artifact ID:</string>
+            <string>Artifact ID:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -2011,14 +2101,14 @@
            <property name="geometry">
             <rect>
              <x>5</x>
-             <y>25</y>
-             <width>90</width>
+             <y>20</y>
+             <width>70</width>
              <height>17</height>
             </rect>
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>8</pointsize>
              <strikeout>false</strikeout>
             </font>
            </property>
@@ -2029,6 +2119,78 @@
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
+         </widget>
+         <widget class="QPushButton" name="pushButton_tactical_node_artifacts_refresh">
+          <property name="geometry">
+           <rect>
+            <x>5</x>
+            <y>390</y>
+            <width>90</width>
+            <height>25</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>11</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Refresh</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="pushButton_tactical_node_artifacts_delete_row">
+          <property name="geometry">
+           <rect>
+            <x>5</x>
+            <y>420</y>
+            <width>90</width>
+            <height>25</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>11</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Delete Row</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="pushButton_tactical_node_artifacts_clear_rows">
+          <property name="geometry">
+           <rect>
+            <x>100</x>
+            <y>420</y>
+            <width>90</width>
+            <height>25</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>11</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Clear Rows</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="pushButton_tactical_node_artifacts_download">
+          <property name="geometry">
+           <rect>
+            <x>100</x>
+            <y>390</y>
+            <width>90</width>
+            <height>25</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>11</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Download</string>
+          </property>
          </widget>
         </widget>
        </widget>
@@ -2144,7 +2306,7 @@
          <x>-1</x>
          <y>0</y>
          <width>304</width>
-         <height>385</height>
+         <height>440</height>
         </rect>
        </property>
        <property name="frameShape">
@@ -2157,7 +2319,7 @@
         <property name="geometry">
          <rect>
           <x>30</x>
-          <y>295</y>
+          <y>355</y>
           <width>120</width>
           <height>23</height>
          </rect>
@@ -2175,7 +2337,7 @@
           <x>-1</x>
           <y>25</y>
           <width>304</width>
-          <height>270</height>
+          <height>330</height>
          </rect>
         </property>
         <property name="editTriggers">
@@ -2209,8 +2371,8 @@
        <widget class="QPushButton" name="pushButton_tactical_targets_delete_row">
         <property name="geometry">
          <rect>
-          <x>205</x>
-          <y>350</y>
+          <x>105</x>
+          <y>410</y>
           <width>95</width>
           <height>25</height>
          </rect>
@@ -2228,7 +2390,7 @@
         <property name="geometry">
          <rect>
           <x>5</x>
-          <y>350</y>
+          <y>410</y>
           <width>95</width>
           <height>25</height>
          </rect>
@@ -2246,7 +2408,7 @@
         <property name="geometry">
          <rect>
           <x>95</x>
-          <y>320</y>
+          <y>380</y>
           <width>120</width>
           <height>25</height>
          </rect>
@@ -2264,7 +2426,7 @@
         <property name="geometry">
          <rect>
           <x>160</x>
-          <y>295</y>
+          <y>355</y>
           <width>135</width>
           <height>23</height>
          </rect>
@@ -2303,8 +2465,8 @@
        <widget class="QPushButton" name="pushButton_tactical_targets_clear_rows">
         <property name="geometry">
          <rect>
-          <x>105</x>
-          <y>350</y>
+          <x>205</x>
+          <y>410</y>
           <width>95</width>
           <height>25</height>
          </rect>
@@ -2323,9 +2485,9 @@
        <property name="geometry">
         <rect>
          <x>-1</x>
-         <y>415</y>
+         <y>470</y>
          <width>304</width>
-         <height>290</height>
+         <height>235</height>
         </rect>
        </property>
        <property name="frameShape">
@@ -2341,7 +2503,7 @@
         <property name="geometry">
          <rect>
           <x>160</x>
-          <y>260</y>
+          <y>205</y>
           <width>135</width>
           <height>25</height>
          </rect>
@@ -2362,14 +2524,14 @@
         <property name="geometry">
          <rect>
           <x>5</x>
-          <y>65</y>
-          <width>90</width>
+          <y>50</y>
+          <width>70</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2387,14 +2549,14 @@
         <property name="geometry">
          <rect>
           <x>5</x>
-          <y>150</y>
-          <width>90</width>
+          <y>115</y>
+          <width>70</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2412,7 +2574,7 @@
         <property name="geometry">
          <rect>
           <x>5</x>
-          <y>260</y>
+          <y>205</y>
           <width>55</width>
           <height>25</height>
          </rect>
@@ -2429,15 +2591,15 @@
        <widget class="QLabel" name="label2_tactical_targets_artifact_id">
         <property name="geometry">
          <rect>
-          <x>95</x>
-          <y>190</y>
-          <width>200</width>
+          <x>80</x>
+          <y>145</y>
+          <width>215</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2455,14 +2617,14 @@
         <property name="geometry">
          <rect>
           <x>5</x>
-          <y>110</y>
-          <width>90</width>
+          <y>85</y>
+          <width>70</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2480,14 +2642,14 @@
         <property name="geometry">
          <rect>
           <x>5</x>
-          <y>130</y>
-          <width>90</width>
+          <y>100</y>
+          <width>70</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2505,14 +2667,14 @@
         <property name="geometry">
          <rect>
           <x>5</x>
-          <y>85</y>
-          <width>90</width>
+          <y>65</y>
+          <width>70</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2530,14 +2692,14 @@
         <property name="geometry">
          <rect>
           <x>5</x>
-          <y>45</y>
-          <width>90</width>
+          <y>35</y>
+          <width>70</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2556,13 +2718,13 @@
          <rect>
           <x>5</x>
           <y>5</y>
-          <width>90</width>
+          <width>70</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2580,14 +2742,14 @@
         <property name="geometry">
          <rect>
           <x>5</x>
-          <y>235</y>
-          <width>90</width>
+          <y>180</y>
+          <width>70</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2601,15 +2763,15 @@
        <widget class="QLabel" name="label2_tactical_targets_frequency">
         <property name="geometry">
          <rect>
-          <x>95</x>
-          <y>130</y>
-          <width>200</width>
+          <x>80</x>
+          <y>100</y>
+          <width>215</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2627,14 +2789,14 @@
         <property name="geometry">
          <rect>
           <x>5</x>
-          <y>190</y>
-          <width>90</width>
+          <y>145</y>
+          <width>70</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2648,15 +2810,15 @@
        <widget class="QLabel" name="label2_tactical_targets_ssid">
         <property name="geometry">
          <rect>
-          <x>95</x>
-          <y>215</y>
-          <width>200</width>
+          <x>80</x>
+          <y>165</y>
+          <width>215</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2674,7 +2836,7 @@
         <property name="geometry">
          <rect>
           <x>65</x>
-          <y>260</y>
+          <y>205</y>
           <width>90</width>
           <height>25</height>
          </rect>
@@ -2695,14 +2857,14 @@
         <property name="geometry">
          <rect>
           <x>5</x>
-          <y>25</y>
-          <width>90</width>
+          <y>20</y>
+          <width>70</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2716,15 +2878,15 @@
        <widget class="QLabel" name="label2_tactical_targets_state">
         <property name="geometry">
          <rect>
-          <x>95</x>
-          <y>45</y>
-          <width>200</width>
+          <x>80</x>
+          <y>35</y>
+          <width>215</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2738,15 +2900,15 @@
        <widget class="QLabel" name="label2_tactical_targets_node_id">
         <property name="geometry">
          <rect>
-          <x>95</x>
-          <y>150</y>
-          <width>200</width>
+          <x>80</x>
+          <y>115</y>
+          <width>215</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2760,15 +2922,15 @@
        <widget class="QLabel" name="label2_tactical_targets_target_id">
         <property name="geometry">
          <rect>
-          <x>95</x>
+          <x>80</x>
           <y>5</y>
-          <width>200</width>
+          <width>215</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2782,15 +2944,15 @@
        <widget class="QLabel" name="label2_tactical_targets_updated">
         <property name="geometry">
          <rect>
-          <x>95</x>
-          <y>85</y>
-          <width>200</width>
+          <x>80</x>
+          <y>65</y>
+          <width>215</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2808,14 +2970,14 @@
         <property name="geometry">
          <rect>
           <x>5</x>
-          <y>170</y>
-          <width>90</width>
+          <y>130</y>
+          <width>70</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2829,15 +2991,15 @@
        <widget class="QLabel" name="label2_tactical_targets_geolocation">
         <property name="geometry">
          <rect>
-          <x>95</x>
-          <y>65</y>
-          <width>200</width>
+          <x>80</x>
+          <y>50</y>
+          <width>215</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2851,15 +3013,15 @@
        <widget class="QLabel" name="label2_tactical_targets_source_soi_id">
         <property name="geometry">
          <rect>
-          <x>95</x>
-          <y>170</y>
-          <width>200</width>
+          <x>80</x>
+          <y>130</y>
+          <width>215</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2877,14 +3039,14 @@
         <property name="geometry">
          <rect>
           <x>5</x>
-          <y>215</y>
-          <width>90</width>
+          <y>165</y>
+          <width>70</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2898,15 +3060,15 @@
        <widget class="QLabel" name="label2_tactical_targets_bssid">
         <property name="geometry">
          <rect>
-          <x>95</x>
-          <y>235</y>
-          <width>200</width>
+          <x>80</x>
+          <y>180</y>
+          <width>215</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2920,15 +3082,15 @@
        <widget class="QLabel" name="label2_tactical_targets_display_label">
         <property name="geometry">
          <rect>
-          <x>95</x>
-          <y>25</y>
-          <width>200</width>
+          <x>80</x>
+          <y>20</y>
+          <width>215</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2942,15 +3104,15 @@
        <widget class="QLabel" name="label2_tactical_targets_location">
         <property name="geometry">
          <rect>
-          <x>95</x>
-          <y>110</y>
-          <width>200</width>
+          <x>80</x>
+          <y>85</y>
+          <width>215</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -2966,7 +3128,7 @@
        <property name="geometry">
         <rect>
          <x>-1</x>
-         <y>395</y>
+         <y>450</y>
          <width>304</width>
          <height>20</height>
         </rect>
@@ -3125,15 +3287,15 @@
         </property>
         <property name="geometry">
          <rect>
-          <x>105</x>
+          <x>95</x>
           <y>5</y>
-          <width>30</width>
+          <width>25</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -3251,15 +3413,15 @@
         </property>
         <property name="geometry">
          <rect>
-          <x>125</x>
+          <x>115</x>
           <y>5</y>
-          <width>70</width>
+          <width>55</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -3276,15 +3438,15 @@
         </property>
         <property name="geometry">
          <rect>
-          <x>5</x>
+          <x>10</x>
           <y>5</y>
-          <width>100</width>
+          <width>85</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -3301,15 +3463,15 @@
         </property>
         <property name="geometry">
          <rect>
-          <x>200</x>
+          <x>175</x>
           <y>5</y>
-          <width>100</width>
+          <width>125</width>
           <height>17</height>
          </rect>
         </property>
         <property name="font">
          <font>
-          <pointsize>10</pointsize>
+          <pointsize>8</pointsize>
           <strikeout>false</strikeout>
          </font>
         </property>
@@ -3738,715 +3900,8 @@
 }*/</string>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
-     <widget class="QWidget" name="tab_18">
-      <attribute name="title">
-       <string>Automation</string>
-      </attribute>
-      <widget class="QLabel" name="label1_44">
-       <property name="geometry">
-        <rect>
-         <x>40</x>
-         <y>55</y>
-         <width>270</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <family>Ubuntu</family>
-         <pointsize>10</pointsize>
-         <weight>75</weight>
-         <italic>false</italic>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Detector</string>
-       </property>
-       <property name="scaledContents">
-        <bool>false</bool>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <property name="margin">
-        <number>0</number>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label1_45">
-       <property name="geometry">
-        <rect>
-         <x>40</x>
-         <y>125</y>
-         <width>270</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <family>Ubuntu</family>
-         <pointsize>10</pointsize>
-         <weight>75</weight>
-         <italic>false</italic>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Conditioner</string>
-       </property>
-       <property name="scaledContents">
-        <bool>false</bool>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <property name="margin">
-        <number>0</number>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label1_46">
-       <property name="geometry">
-        <rect>
-         <x>40</x>
-         <y>205</y>
-         <width>270</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <family>Ubuntu</family>
-         <pointsize>10</pointsize>
-         <weight>75</weight>
-         <italic>false</italic>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Feature Extractor</string>
-       </property>
-       <property name="scaledContents">
-        <bool>false</bool>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <property name="margin">
-        <number>0</number>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label1_47">
-       <property name="geometry">
-        <rect>
-         <x>40</x>
-         <y>275</y>
-         <width>270</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <family>Ubuntu</family>
-         <pointsize>10</pointsize>
-         <weight>75</weight>
-         <italic>false</italic>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Classifier</string>
-       </property>
-       <property name="scaledContents">
-        <bool>false</bool>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <property name="margin">
-        <number>0</number>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label1_48">
-       <property name="geometry">
-        <rect>
-         <x>40</x>
-         <y>345</y>
-         <width>270</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <family>Ubuntu</family>
-         <pointsize>10</pointsize>
-         <weight>75</weight>
-         <italic>false</italic>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Direction Finding</string>
-       </property>
-       <property name="scaledContents">
-        <bool>false</bool>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <property name="margin">
-        <number>0</number>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="checkBox">
-       <property name="geometry">
-        <rect>
-         <x>50</x>
-         <y>85</y>
-         <width>92</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Enable</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="checkBox_2">
-       <property name="geometry">
-        <rect>
-         <x>50</x>
-         <y>165</y>
-         <width>92</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Enable</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="checkBox_3">
-       <property name="geometry">
-        <rect>
-         <x>50</x>
-         <y>240</y>
-         <width>92</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Enable</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="checkBox_4">
-       <property name="geometry">
-        <rect>
-         <x>50</x>
-         <y>310</y>
-         <width>92</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Enable</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="checkBox_5">
-       <property name="geometry">
-        <rect>
-         <x>50</x>
-         <y>375</y>
-         <width>92</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Enable</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label2_tsi_automation">
-       <property name="geometry">
-        <rect>
-         <x>265</x>
-         <y>85</y>
-         <width>136</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Hardware:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label2_tsi_automation_2">
-       <property name="geometry">
-        <rect>
-         <x>480</x>
-         <y>85</y>
-         <width>136</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Detector Method:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label2_tsi_automation_3">
-       <property name="geometry">
-        <rect>
-         <x>690</x>
-         <y>85</y>
-         <width>136</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Preset:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label2_tsi_automation_4">
-       <property name="geometry">
-        <rect>
-         <x>270</x>
-         <y>165</y>
-         <width>136</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Hardware:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label2_tsi_automation_5">
-       <property name="geometry">
-        <rect>
-         <x>465</x>
-         <y>165</y>
-         <width>136</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Isolation Category:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label2_tsi_automation_6">
-       <property name="geometry">
-        <rect>
-         <x>650</x>
-         <y>165</y>
-         <width>136</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Isolation Method:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label2_tsi_automation_7">
-       <property name="geometry">
-        <rect>
-         <x>805</x>
-         <y>165</y>
-         <width>136</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Preset:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label2_tsi_automation_8">
-       <property name="geometry">
-        <rect>
-         <x>940</x>
-         <y>85</y>
-         <width>136</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Edit:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label2_tsi_automation_9">
-       <property name="geometry">
-        <rect>
-         <x>945</x>
-         <y>165</y>
-         <width>136</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Edit:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label2_tsi_automation_10">
-       <property name="geometry">
-        <rect>
-         <x>270</x>
-         <y>240</y>
-         <width>136</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>All Features:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label2_tsi_automation_11">
-       <property name="geometry">
-        <rect>
-         <x>650</x>
-         <y>240</y>
-         <width>136</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Model:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label2_tsi_automation_12">
-       <property name="geometry">
-        <rect>
-         <x>500</x>
-         <y>240</y>
-         <width>136</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Technique:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label2_tsi_automation_13">
-       <property name="geometry">
-        <rect>
-         <x>880</x>
-         <y>240</y>
-         <width>136</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Input Files:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label2_tsi_automation_14">
-       <property name="geometry">
-        <rect>
-         <x>260</x>
-         <y>310</y>
-         <width>136</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Models:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_under_construction">
-       <property name="geometry">
-        <rect>
-         <x>110</x>
-         <y>240</y>
-         <width>1000</width>
-         <height>550</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="checkBox_6">
-       <property name="geometry">
-        <rect>
-         <x>395</x>
-         <y>25</y>
-         <width>92</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Repeat</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="checkBox_7">
-       <property name="geometry">
-        <rect>
-         <x>520</x>
-         <y>25</y>
-         <width>92</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Stop After</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton">
-       <property name="geometry">
-        <rect>
-         <x>1115</x>
-         <y>85</y>
-         <width>89</width>
-         <height>25</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Start</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_2">
-       <property name="geometry">
-        <rect>
-         <x>1115</x>
-         <y>160</y>
-         <width>89</width>
-         <height>25</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Start</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_3">
-       <property name="geometry">
-        <rect>
-         <x>1115</x>
-         <y>235</y>
-         <width>89</width>
-         <height>25</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Start</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_4">
-       <property name="geometry">
-        <rect>
-         <x>1115</x>
-         <y>315</y>
-         <width>89</width>
-         <height>25</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Start</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_5">
-       <property name="geometry">
-        <rect>
-         <x>1110</x>
-         <y>380</y>
-         <width>89</width>
-         <height>25</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Start</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_6">
-       <property name="geometry">
-        <rect>
-         <x>630</x>
-         <y>555</y>
-         <width>89</width>
-         <height>25</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Start</string>
-       </property>
-      </widget>
-      <zorder>label1_44</zorder>
-      <zorder>label1_45</zorder>
-      <zorder>label1_46</zorder>
-      <zorder>label1_47</zorder>
-      <zorder>label1_48</zorder>
-      <zorder>checkBox</zorder>
-      <zorder>checkBox_2</zorder>
-      <zorder>checkBox_3</zorder>
-      <zorder>checkBox_4</zorder>
-      <zorder>checkBox_5</zorder>
-      <zorder>label2_tsi_automation</zorder>
-      <zorder>label2_tsi_automation_2</zorder>
-      <zorder>label2_tsi_automation_3</zorder>
-      <zorder>label2_tsi_automation_4</zorder>
-      <zorder>label2_tsi_automation_5</zorder>
-      <zorder>label2_tsi_automation_6</zorder>
-      <zorder>label2_tsi_automation_7</zorder>
-      <zorder>label2_tsi_automation_8</zorder>
-      <zorder>label2_tsi_automation_9</zorder>
-      <zorder>label2_tsi_automation_10</zorder>
-      <zorder>label2_tsi_automation_11</zorder>
-      <zorder>label2_tsi_automation_12</zorder>
-      <zorder>label2_tsi_automation_13</zorder>
-      <zorder>label2_tsi_automation_14</zorder>
-      <zorder>checkBox_6</zorder>
-      <zorder>checkBox_7</zorder>
-      <zorder>pushButton</zorder>
-      <zorder>pushButton_2</zorder>
-      <zorder>pushButton_3</zorder>
-      <zorder>pushButton_4</zorder>
-      <zorder>pushButton_5</zorder>
-      <zorder>pushButton_6</zorder>
-      <zorder>label_under_construction</zorder>
-     </widget>
      <widget class="QWidget" name="tab_tsi_detector">
       <attribute name="title">
        <string>Detector</string>
@@ -6034,7 +5489,7 @@ p, li { white-space: pre-wrap; }
            <x>620</x>
            <y>35</y>
            <width>200</width>
-           <height>245</height>
+           <height>250</height>
           </rect>
          </property>
          <property name="currentIndex">
@@ -6047,7 +5502,7 @@ p, li { white-space: pre-wrap; }
              <x>5</x>
              <y>0</y>
              <width>185</width>
-             <height>220</height>
+             <height>250</height>
             </rect>
            </property>
            <property name="frameShape">
@@ -6280,7 +5735,7 @@ p, li { white-space: pre-wrap; }
              </rect>
             </property>
             <property name="currentIndex">
-             <number>0</number>
+             <number>4</number>
             </property>
             <item>
              <property name="text">
@@ -6307,6 +5762,62 @@ p, li { white-space: pre-wrap; }
               <string>1e6</string>
              </property>
             </item>
+           </widget>
+           <widget class="QLabel" name="label2_294">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>195</y>
+              <width>100</width>
+              <height>16</height>
+             </rect>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Min. Interval (s):</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_tsi_detector_fixed_min_interval">
+            <property name="geometry">
+             <rect>
+              <x>105</x>
+              <y>190</y>
+              <width>70</width>
+              <height>25</height>
+             </rect>
+            </property>
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="minimum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>99999.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+           <widget class="QCheckBox" name="checkBox_tsi_detector_fixed_gui">
+            <property name="geometry">
+             <rect>
+              <x>55</x>
+              <y>220</y>
+              <width>92</width>
+              <height>23</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Show GUI</string>
+            </property>
            </widget>
           </widget>
          </widget>
@@ -36900,7 +36411,7 @@ p, li { white-space: pre-wrap; }
       </font>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tab_20">
       <attribute name="title">

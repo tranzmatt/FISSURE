@@ -807,6 +807,25 @@ async def _slotTacticalEcosystemCustomizeClicked(dashboard):
     )
 
 
+def make_tactical_parameter_widget_compact(widget):
+    """
+    Applies compact sizing to generated Tactical action parameter widgets.
+    """
+    font = widget.font()
+    font.setPointSize(max(font.pointSize() - 1, 8))
+    widget.setFont(font)
+
+    widget.setMinimumHeight(20)
+    widget.setMaximumHeight(24)
+
+    size_policy = widget.sizePolicy()
+    size_policy.setVerticalPolicy(QtWidgets.QSizePolicy.Fixed)
+    widget.setSizePolicy(size_policy)
+
+    if isinstance(widget, QtWidgets.QAbstractSpinBox):
+        widget.setButtonSymbols(QtWidgets.QAbstractSpinBox.UpDownArrows)
+
+
 def update_tactical_node_action_parameters(
     dashboard,
     plugin_name,
@@ -826,6 +845,9 @@ def update_tactical_node_action_parameters(
 
     if layout is None:
         layout = QtWidgets.QVBoxLayout(content_widget)
+
+    layout.setContentsMargins(4, 2, 4, 2)
+    layout.setSpacing(2)
 
     while layout.count():
         item = layout.takeAt(0)
@@ -847,10 +869,12 @@ def update_tactical_node_action_parameters(
 
     if description_text:
         description_label = QtWidgets.QLabel(description_text)
-
         description_label.setWordWrap(True)
+        description_label.setMinimumHeight(18)
+        description_label.setMaximumHeight(36)
 
         description_font = description_label.font()
+        description_font.setPointSize(max(description_font.pointSize() - 1, 8))
         description_font.setItalic(True)
         description_label.setFont(description_font)
 
@@ -866,16 +890,28 @@ def update_tactical_node_action_parameters(
             continue
 
         row_widget = QtWidgets.QWidget()
+        row_widget.setMinimumHeight(20)
+        row_widget.setMaximumHeight(26)
 
         row_layout = QtWidgets.QHBoxLayout(row_widget)
-        row_layout.setContentsMargins(0, 0, 0, 0)
+        row_layout.setContentsMargins(0, 0, 2, 0)
+        row_layout.setSpacing(3)
 
         label_text = param.get("label") or param_name
 
         label = QtWidgets.QLabel(label_text)
-        label.setMinimumWidth(140)
+        label.setFixedWidth(125)
+        label.setMinimumHeight(20)
+        label.setMaximumHeight(24)
+        label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        label.setToolTip(label_text)
+
+        label_font = label.font()
+        label_font.setPointSize(max(label_font.pointSize() - 1, 8))
+        label.setFont(label_font)
 
         row_layout.addWidget(label)
+        row_layout.setStretch(0, 0)
 
         param_type = param.get("type", "string")
         default = str(param.get("default", ""))
@@ -889,7 +925,6 @@ def update_tactical_node_action_parameters(
 
             if default in option_strings:
                 widget.setCurrentText(default)
-
 
         elif param_type == "number":
             widget = QtWidgets.QDoubleSpinBox()
@@ -927,8 +962,11 @@ def update_tactical_node_action_parameters(
             widget = QtWidgets.QLineEdit(default)
 
         widget.setObjectName(f"tactical_param_{param_name}")
+        widget.setToolTip(param.get("description", ""))
 
-        row_layout.addWidget(widget)
+        make_tactical_parameter_widget_compact(widget)
+
+        row_layout.addWidget(widget, 1)
 
         layout.addWidget(row_widget)
 
@@ -1010,6 +1048,9 @@ def update_tactical_ecosystem_action_parameters(
     if layout is None:
         layout = QtWidgets.QVBoxLayout(content_widget)
 
+    layout.setContentsMargins(4, 2, 4, 2)
+    layout.setSpacing(2)
+
     while layout.count():
         item = layout.takeAt(0)
 
@@ -1030,10 +1071,12 @@ def update_tactical_ecosystem_action_parameters(
 
     if description_text:
         description_label = QtWidgets.QLabel(description_text)
-
         description_label.setWordWrap(True)
+        description_label.setMinimumHeight(18)
+        description_label.setMaximumHeight(36)
 
         description_font = description_label.font()
+        description_font.setPointSize(max(description_font.pointSize() - 1, 8))
         description_font.setItalic(True)
         description_label.setFont(description_font)
 
@@ -1049,16 +1092,28 @@ def update_tactical_ecosystem_action_parameters(
             continue
 
         row_widget = QtWidgets.QWidget()
+        row_widget.setMinimumHeight(20)
+        row_widget.setMaximumHeight(26)
 
         row_layout = QtWidgets.QHBoxLayout(row_widget)
-        row_layout.setContentsMargins(0, 0, 0, 0)
+        row_layout.setContentsMargins(0, 0, 2, 0)
+        row_layout.setSpacing(3)
 
         label_text = param.get("label") or param_name
 
         label = QtWidgets.QLabel(label_text)
-        label.setMinimumWidth(140)
+        label.setFixedWidth(125)
+        label.setMinimumHeight(20)
+        label.setMaximumHeight(24)
+        label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        label.setToolTip(label_text)
+
+        label_font = label.font()
+        label_font.setPointSize(max(label_font.pointSize() - 1, 8))
+        label.setFont(label_font)
 
         row_layout.addWidget(label)
+        row_layout.setStretch(0, 0)
 
         param_type = param.get("type", "string")
         default = str(param.get("default", ""))
@@ -1109,8 +1164,11 @@ def update_tactical_ecosystem_action_parameters(
             widget = QtWidgets.QLineEdit(default)
 
         widget.setObjectName(f"tactical_ecosystem_param_{param_name}")
+        widget.setToolTip(param.get("description", ""))
 
-        row_layout.addWidget(widget)
+        make_tactical_parameter_widget_compact(widget)
+
+        row_layout.addWidget(widget, 1)
 
         layout.addWidget(row_widget)
 
@@ -2094,13 +2152,22 @@ def clear_tactical_node_artifact_details(dashboard: QtCore.QObject):
 
 
 def enable_tactical_artifacts_details(dashboard: QtCore.QObject, enabled=True):
-
     widgets = [
         dashboard.ui.pushButton_tactical_node_artifacts_open_folder,
+        dashboard.ui.pushButton_tactical_node_artifacts_download,
+        dashboard.ui.pushButton_tactical_node_artifacts_delete_row,
     ]
 
     for widget in widgets:
         widget.setEnabled(enabled)
+
+    dashboard.ui.pushButton_tactical_node_artifacts_clear_rows.setEnabled(
+        dashboard.ui.tableWidget_tactical_node_artifacts.rowCount() > 0
+    )
+
+    dashboard.ui.pushButton_tactical_node_artifacts_refresh.setEnabled(
+        bool(getattr(dashboard, "selected_tactical_node_uid", None))
+    )
     
 
 @QtCore.pyqtSlot(QtCore.QObject, str)
@@ -2294,30 +2361,106 @@ def _slotTacticalTargetsShowCeRingsToggled(dashboard: QtCore.QObject):
 
 @QtCore.pyqtSlot(QtCore.QObject)
 def _slotTacticalNodeTargetsRefreshTargetsClicked(dashboard: QtCore.QObject):
-    update_tactical_node_targets_table(dashboard)
+    """
+    Refreshes the Node > Targets table.
 
+    If the table currently has rows, only refresh those displayed target IDs.
+    If the table is empty, repopulate from all current dashboard.tactical_targets.
 
-def update_tactical_node_targets_table(dashboard: QtCore.QObject):
+    Selection behavior:
+      - Preserve the previously selected target row if it still exists.
+      - If repopulating a full list from empty, select the first row.
+    """
     table = dashboard.ui.tableWidget_tactical_node_targets
+
+    previous_selected_target_id = getattr(
+        dashboard,
+        "selected_tactical_node_target_id",
+        None,
+    )
+
+    if not previous_selected_target_id:
+        current_row = table.currentRow()
+        if current_row >= 0:
+            item = table.item(current_row, 0)
+            if item is not None:
+                previous_selected_target_id = (
+                    item.data(QtCore.Qt.UserRole)
+                    or item.text()
+                )
+
+    if previous_selected_target_id:
+        previous_selected_target_id = str(previous_selected_target_id)
+
+    visible_target_ids = []
+
+    for row in range(table.rowCount()):
+        item = table.item(row, 0)
+
+        if item is None:
+            continue
+
+        target_id = item.data(QtCore.Qt.UserRole) or item.text()
+
+        if target_id:
+            visible_target_ids.append(str(target_id))
+
+    full_reload = not bool(visible_target_ids)
+
+    update_tactical_node_targets_table(
+        dashboard,
+        target_ids=visible_target_ids if visible_target_ids else None,
+        selected_target_id=previous_selected_target_id,
+        select_first_if_no_match=full_reload,
+    )
+
+
+def update_tactical_node_targets_table(
+    dashboard: QtCore.QObject,
+    target_ids=None,
+    selected_target_id=None,
+    select_first_if_no_match=False,
+):
+    table = dashboard.ui.tableWidget_tactical_node_targets
+
+    table.blockSignals(True)
     table.setRowCount(0)
+
+    dashboard.selected_tactical_node_target_id = None
+    clear_tactical_node_target_details(dashboard)
+
+    if target_ids is not None:
+        target_ids = {str(target_id) for target_id in target_ids if target_id}
+
+    if selected_target_id:
+        selected_target_id = str(selected_target_id)
 
     node_uid = dashboard.selected_tactical_node_uid
     if not node_uid:
+        table.blockSignals(False)
         return
 
     node = dashboard.tactical_nodes.get(node_uid)
     if not node:
+        table.blockSignals(False)
         return
 
     node_lat = node.get("lat")
     node_lon = node.get("lon")
 
     if not fissure.utils.common.is_valid_lat_lon(node_lat, node_lon):
+        table.blockSignals(False)
         return
 
     rows = []
 
     for target_id, target in dashboard.tactical_targets.items():
+        target_id = str(target_id)
+
+        # Filtered refresh: only rebuild rows already visible in Node > Targets.
+        if target_ids is not None and target_id not in target_ids:
+            continue
+
         target_lat = target.get("lat")
         target_lon = target.get("lon")
 
@@ -2338,6 +2481,8 @@ def update_tactical_node_targets_table(dashboard: QtCore.QObject):
 
     rows.sort(key=lambda x: x[0])
 
+    selected_row = -1
+
     for distance_m, target_id, target in rows:
         row = table.rowCount()
         table.insertRow(row)
@@ -2355,19 +2500,31 @@ def update_tactical_node_targets_table(dashboard: QtCore.QObject):
         for item in [distance_item, type_item, state_item]:
             item.setData(QtCore.Qt.UserRole, target_id)
             item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEditable)
-
-        distance_item.setToolTip(target_id)
-        type_item.setToolTip(target_id)
-        state_item.setToolTip(target_id)
+            item.setToolTip(target_id)
 
         table.setItem(row, 0, distance_item)
         table.setItem(row, 1, type_item)
         table.setItem(row, 2, state_item)
 
-        table.resizeColumnsToContents()
-        table.resizeRowsToContents()
-        table.horizontalHeader().setStretchLastSection(False)
-        table.horizontalHeader().setStretchLastSection(True)
+        if selected_target_id and target_id == selected_target_id:
+            selected_row = row
+
+    table.resizeColumnsToContents()
+    table.resizeRowsToContents()
+    table.horizontalHeader().setStretchLastSection(False)
+    table.horizontalHeader().setStretchLastSection(True)
+
+    table.blockSignals(False)
+
+    if selected_row < 0 and select_first_if_no_match and table.rowCount() > 0:
+        selected_row = 0
+
+    if selected_row >= 0:
+        table.selectRow(selected_row)
+        table.setCurrentCell(selected_row, 0)
+        _slotTacticalNodeTargetsRowSelectionChanged(dashboard)
+    else:
+        clear_tactical_node_target_details(dashboard)
 
 
 def format_tactical_distance(distance_m):
@@ -2492,6 +2649,10 @@ def enable_tactical_node_target_details(dashboard: QtCore.QObject, enabled=True)
         dashboard.ui.pushButton_tactical_node_targets_plot,
         dashboard.ui.pushButton_tactical_node_targets_plot_and_zoom,
         dashboard.ui.pushButton_tactical_node_targets_remove_from_map,
+
+        dashboard.ui.pushButton_tactical_node_targets_delete_row,
+        dashboard.ui.pushButton_tactical_node_targets_clear_rows,
+        dashboard.ui.pushButton_tactical_node_targets_keep_selected,
     ]
 
     for widget in widgets:
@@ -2805,10 +2966,15 @@ def enable_tactical_node_soi_details(dashboard: QtCore.QObject, enabled=True):
         dashboard.ui.pushButton_tactical_node_soi_plot,
         dashboard.ui.pushButton_tactical_node_soi_plot_zoom,
         dashboard.ui.pushButton_tactical_node_soi_remove_from_map,
+        dashboard.ui.pushButton_tactical_node_soi_delete_row,
     ]
 
     for widget in widgets:
         widget.setEnabled(enabled)
+
+    dashboard.ui.pushButton_tactical_node_soi_clear_rows.setEnabled(
+        dashboard.ui.tableWidget_tactical_node_sois.rowCount() > 0
+    )
 
 
 def enable_tactical_node_detection_details(dashboard: QtCore.QObject, enabled=True):
@@ -3832,3 +3998,288 @@ def rebuild_tactical_node_artifacts(dashboard: QtCore.QObject, node_uid):
 
     for artifact in reversed(matching_artifacts):
         update_tactical_node_artifact_row(dashboard, artifact)
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotTacticalNodeSoisDeleteRowClicked(
+    dashboard: QtCore.QObject,
+):
+    table = dashboard.ui.tableWidget_tactical_node_sois
+
+    row = table.currentRow()
+    if row < 0:
+        return
+
+    item = table.item(row, 0)
+    if item is None:
+        return
+
+    soi_key = item.data(QtCore.Qt.UserRole)
+
+    if soi_key:
+        dashboard.tactical_sois.pop(soi_key, None)
+
+        # Remove plotted pin and persistent map overlay record.
+        dashboard.tactical_map.remove_soi(soi_key)
+
+        if getattr(dashboard, "selected_tactical_node_soi_id", None) == soi_key:
+            dashboard.selected_tactical_node_soi_id = None
+
+    table.removeRow(row)
+
+    if table.rowCount() == 0:
+        clear_tactical_node_soi_details(dashboard)
+    else:
+        next_row = min(row, table.rowCount() - 1)
+        table.selectRow(next_row)
+        table.setCurrentCell(next_row, 0)
+        _slotTacticalNodeSoisRowSelectionChanged(dashboard)
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotTacticalNodeSoisClearRowsClicked(
+    dashboard: QtCore.QObject,
+):
+    node_uid = getattr(dashboard, "selected_tactical_node_uid", None)
+
+    if not node_uid:
+        dashboard.ui.tableWidget_tactical_node_sois.setRowCount(0)
+        clear_tactical_node_soi_details(dashboard)
+        return
+
+    sois_to_remove = [
+        soi_key
+        for soi_key, soi in dashboard.tactical_sois.items()
+        if soi.get("node_uid") == node_uid
+    ]
+
+    for soi_key in sois_to_remove:
+        dashboard.tactical_sois.pop(soi_key, None)
+        dashboard.tactical_map.remove_soi(soi_key)
+
+    dashboard.ui.tableWidget_tactical_node_sois.setRowCount(0)
+    clear_tactical_node_soi_details(dashboard)
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotTacticalNodeTargetsDeleteRowClicked(dashboard: QtCore.QObject):
+    table = dashboard.ui.tableWidget_tactical_node_targets
+
+    selected_items = table.selectedItems()
+    if not selected_items:
+        return
+
+    row = selected_items[0].row()
+
+    id_item = table.item(row, 0)
+    if id_item is None:
+        return
+
+    target_id = id_item.data(QtCore.Qt.UserRole) or id_item.text()
+
+    # Remove plotted marker + persistent map overlay record.
+    # Do not remove dashboard.tactical_targets; this is only the node shortlist.
+    if target_id:
+        dashboard.tactical_map.remove_target(target_id)
+
+    table.removeRow(row)
+
+    if getattr(dashboard, "selected_tactical_node_target_id", None) == target_id:
+        dashboard.selected_tactical_node_target_id = None
+
+    if table.rowCount() == 0:
+        clear_tactical_node_target_details(dashboard)
+        return
+
+    next_row = min(row, table.rowCount() - 1)
+    table.selectRow(next_row)
+    table.setCurrentCell(next_row, 0)
+    _slotTacticalNodeTargetsRowSelectionChanged(dashboard)
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotTacticalNodeTargetsClearRowsClicked(dashboard: QtCore.QObject):
+    table = dashboard.ui.tableWidget_tactical_node_targets
+
+    target_ids = []
+
+    for row in range(table.rowCount()):
+        id_item = table.item(row, 0)
+
+        if id_item is None:
+            continue
+
+        target_id = id_item.data(QtCore.Qt.UserRole) or id_item.text()
+
+        if target_id:
+            target_ids.append(target_id)
+
+    for target_id in target_ids:
+        dashboard.tactical_map.remove_target(target_id)
+
+    table.setRowCount(0)
+    dashboard.selected_tactical_node_target_id = None
+    clear_tactical_node_target_details(dashboard)
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotTacticalNodeTargetsKeepSelectedClicked(dashboard: QtCore.QObject):
+    table = dashboard.ui.tableWidget_tactical_node_targets
+
+    selected_items = table.selectedItems()
+    if not selected_items:
+        return
+
+    selected_row = selected_items[0].row()
+
+    selected_item = table.item(selected_row, 0)
+    if selected_item is None:
+        return
+
+    selected_target_id = (
+        selected_item.data(QtCore.Qt.UserRole)
+        or selected_item.text()
+    )
+
+    if not selected_target_id:
+        return
+
+    # Remove all non-selected target pins/records from the map overlay.
+    for row in range(table.rowCount()):
+        if row == selected_row:
+            continue
+
+        id_item = table.item(row, 0)
+
+        if id_item is None:
+            continue
+
+        target_id = id_item.data(QtCore.Qt.UserRole) or id_item.text()
+
+        if target_id:
+            dashboard.tactical_map.remove_target(target_id)
+
+    # Remove all non-selected rows from bottom to top so row indexes stay valid.
+    for row in range(table.rowCount() - 1, -1, -1):
+        if row != selected_row:
+            table.removeRow(row)
+
+    dashboard.selected_tactical_node_target_id = selected_target_id
+
+    table.selectRow(0)
+    table.setCurrentCell(0, 0)
+    _slotTacticalNodeTargetsRowSelectionChanged(dashboard)
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotTacticalNodeArtifactsDeleteRowClicked(
+    dashboard: QtCore.QObject,
+):
+    """
+    Removes the selected artifact row from the Dashboard local cache/view.
+
+    This does not delete artifact files and does not remove the artifact
+    from HIPRFISR's artifact tracker.
+    """
+    table = dashboard.ui.tableWidget_tactical_node_artifacts
+
+    selected_items = table.selectedItems()
+    if not selected_items:
+        return
+
+    row = selected_items[0].row()
+
+    item = table.item(row, 0)
+    if item is None:
+        return
+
+    artifact_id = item.data(QtCore.Qt.UserRole)
+
+    if artifact_id:
+        dashboard.tactical_artifacts.pop(artifact_id, None)
+
+    table.removeRow(row)
+
+    if getattr(dashboard, "selected_tactical_node_artifact_id", None) == artifact_id:
+        dashboard.selected_tactical_node_artifact_id = None
+
+    if table.rowCount() == 0:
+        clear_tactical_node_artifact_details(dashboard)
+        return
+
+    next_row = min(row, table.rowCount() - 1)
+    table.selectRow(next_row)
+    table.setCurrentCell(next_row, 0)
+    _slotTacticalNodeArtifactsRowSelectionChanged(dashboard)
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotTacticalNodeArtifactsClearRowsClicked(
+    dashboard: QtCore.QObject,
+):
+    """
+    Clears visible selected-node artifact rows from the Dashboard local cache/view.
+
+    This does not delete artifact files and does not clear HIPRFISR's artifact
+    tracker. Refresh will reload known artifacts from the hub registry.
+    """
+    table = dashboard.ui.tableWidget_tactical_node_artifacts
+
+    artifact_ids = []
+
+    for row in range(table.rowCount()):
+        item = table.item(row, 0)
+
+        if item is None:
+            continue
+
+        artifact_id = item.data(QtCore.Qt.UserRole)
+
+        if artifact_id:
+            artifact_ids.append(artifact_id)
+
+    for artifact_id in artifact_ids:
+        dashboard.tactical_artifacts.pop(artifact_id, None)
+
+    table.setRowCount(0)
+    clear_tactical_node_artifact_details(dashboard)
+
+
+@qasync.asyncSlot(QtCore.QObject)
+async def _slotTacticalNodeArtifactsRefreshClicked(
+    dashboard: QtCore.QObject,
+):
+    """
+    Requests artifact metadata for the selected Tactical node from HIPRFISR.
+    """
+    node_uid = getattr(
+        dashboard,
+        "selected_tactical_node_uid",
+        None,
+    )
+
+    if not node_uid:
+        dashboard.logger.warning(
+            "[Tactical] No node selected for artifact refresh."
+        )
+        return
+
+    try:
+        await dashboard.backend.tacticalNodeArtifactsRefresh(node_uid)
+    except Exception as e:
+        dashboard.logger.error(
+            f"[Tactical] Failed requesting artifact refresh: {e}"
+        )
+
+
+@QtCore.pyqtSlot(QtCore.QObject)
+def _slotTacticalNodeArtifactsDownloadClicked(
+    dashboard: QtCore.QObject,
+):
+    """
+    First-pass behavior: open the selected artifact folder.
+    Later this can request/retrieve missing artifact files from the node.
+    """
+    _slotTacticalNodeArtifactsOpenFolderClicked(dashboard)
+
+

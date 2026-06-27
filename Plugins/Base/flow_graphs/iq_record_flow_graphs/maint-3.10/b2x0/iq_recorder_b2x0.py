@@ -6,7 +6,7 @@
 #
 # GNU Radio Python Flow Graph
 # Title: Iq Recorder B2X0
-# GNU Radio version: 3.10.7.0
+# GNU Radio version: 3.10.9.2
 
 from gnuradio import blocks
 from gnuradio import gr
@@ -25,21 +25,21 @@ import time
 
 class iq_recorder_b2x0(gr.top_block):
 
-    def __init__(self):
+    def __init__(self, file_length="100000", filepath="", ip_address="192.168.40.2", rx_antenna="TX/RX", rx_channel="A:A", rx_frequency="2412", rx_gain="70", sample_rate="1", serial="False"):
         gr.top_block.__init__(self, "Iq Recorder B2X0", catch_exceptions=True)
 
         ##################################################
-        # Variables
+        # Parameters
         ##################################################
-        self.serial = serial = "False"
-        self.sample_rate = sample_rate = 1
-        self.rx_gain = rx_gain = 20
-        self.rx_frequency = rx_frequency = 2412
-        self.rx_channel = rx_channel = "A:A"
-        self.rx_antenna = rx_antenna = "TX/RX"
-        self.ip_address = ip_address = "192.168.40.2"
-        self.filepath = filepath = ""
-        self.file_length = file_length = 100000
+        self.file_length = file_length
+        self.filepath = filepath
+        self.ip_address = ip_address
+        self.rx_antenna = rx_antenna
+        self.rx_channel = rx_channel
+        self.rx_frequency = rx_frequency
+        self.rx_gain = rx_gain
+        self.sample_rate = sample_rate
+        self.serial = serial
 
         ##################################################
         # Blocks
@@ -61,7 +61,7 @@ class iq_recorder_b2x0(gr.top_block):
         self.uhd_usrp_source_0_0.set_antenna(rx_antenna, 0)
         self.uhd_usrp_source_0_0.set_gain(float(rx_gain), 0)
         self.blocks_skiphead_0 = blocks.skiphead(gr.sizeof_gr_complex*1, 200000)
-        self.blocks_head_0 = blocks.head(gr.sizeof_gr_complex*1, file_length)
+        self.blocks_head_0 = blocks.head(gr.sizeof_gr_complex*1, int(file_length))
         self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, filepath, False)
         self.blocks_file_sink_0.set_unbuffered(False)
 
@@ -74,51 +74,12 @@ class iq_recorder_b2x0(gr.top_block):
         self.connect((self.uhd_usrp_source_0_0, 0), (self.blocks_skiphead_0, 0))
 
 
-    def get_serial(self):
-        return self.serial
+    def get_file_length(self):
+        return self.file_length
 
-    def set_serial(self, serial):
-        self.serial = serial
-
-    def get_sample_rate(self):
-        return self.sample_rate
-
-    def set_sample_rate(self, sample_rate):
-        self.sample_rate = sample_rate
-        self.uhd_usrp_source_0_0.set_samp_rate((float(self.sample_rate)*1e6))
-
-    def get_rx_gain(self):
-        return self.rx_gain
-
-    def set_rx_gain(self, rx_gain):
-        self.rx_gain = rx_gain
-        self.uhd_usrp_source_0_0.set_gain(float(self.rx_gain), 0)
-
-    def get_rx_frequency(self):
-        return self.rx_frequency
-
-    def set_rx_frequency(self, rx_frequency):
-        self.rx_frequency = rx_frequency
-        self.uhd_usrp_source_0_0.set_center_freq(float(self.rx_frequency)*1e6, 0)
-
-    def get_rx_channel(self):
-        return self.rx_channel
-
-    def set_rx_channel(self, rx_channel):
-        self.rx_channel = rx_channel
-
-    def get_rx_antenna(self):
-        return self.rx_antenna
-
-    def set_rx_antenna(self, rx_antenna):
-        self.rx_antenna = rx_antenna
-        self.uhd_usrp_source_0_0.set_antenna(self.rx_antenna, 0)
-
-    def get_ip_address(self):
-        return self.ip_address
-
-    def set_ip_address(self, ip_address):
-        self.ip_address = ip_address
+    def set_file_length(self, file_length):
+        self.file_length = file_length
+        self.blocks_head_0.set_length(int(self.file_length))
 
     def get_filepath(self):
         return self.filepath
@@ -127,18 +88,90 @@ class iq_recorder_b2x0(gr.top_block):
         self.filepath = filepath
         self.blocks_file_sink_0.open(self.filepath)
 
-    def get_file_length(self):
-        return self.file_length
+    def get_ip_address(self):
+        return self.ip_address
 
-    def set_file_length(self, file_length):
-        self.file_length = file_length
-        self.blocks_head_0.set_length(self.file_length)
+    def set_ip_address(self, ip_address):
+        self.ip_address = ip_address
+
+    def get_rx_antenna(self):
+        return self.rx_antenna
+
+    def set_rx_antenna(self, rx_antenna):
+        self.rx_antenna = rx_antenna
+        self.uhd_usrp_source_0_0.set_antenna(self.rx_antenna, 0)
+
+    def get_rx_channel(self):
+        return self.rx_channel
+
+    def set_rx_channel(self, rx_channel):
+        self.rx_channel = rx_channel
+
+    def get_rx_frequency(self):
+        return self.rx_frequency
+
+    def set_rx_frequency(self, rx_frequency):
+        self.rx_frequency = rx_frequency
+        self.uhd_usrp_source_0_0.set_center_freq(float(self.rx_frequency)*1e6, 0)
+
+    def get_rx_gain(self):
+        return self.rx_gain
+
+    def set_rx_gain(self, rx_gain):
+        self.rx_gain = rx_gain
+        self.uhd_usrp_source_0_0.set_gain(float(self.rx_gain), 0)
+
+    def get_sample_rate(self):
+        return self.sample_rate
+
+    def set_sample_rate(self, sample_rate):
+        self.sample_rate = sample_rate
+        self.uhd_usrp_source_0_0.set_samp_rate((float(self.sample_rate)*1e6))
+
+    def get_serial(self):
+        return self.serial
+
+    def set_serial(self, serial):
+        self.serial = serial
 
 
+
+def argument_parser():
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--file-length", dest="file_length", type=str, default="100000",
+        help="Set file_length [default=%(default)r]")
+    parser.add_argument(
+        "--filepath", dest="filepath", type=str, default="",
+        help="Set filepath [default=%(default)r]")
+    parser.add_argument(
+        "--ip-address", dest="ip_address", type=str, default="192.168.40.2",
+        help="Set ip_address [default=%(default)r]")
+    parser.add_argument(
+        "--rx-antenna", dest="rx_antenna", type=str, default="TX/RX",
+        help="Set rx_antenna [default=%(default)r]")
+    parser.add_argument(
+        "--rx-channel", dest="rx_channel", type=str, default="A:A",
+        help="Set rx_channel [default=%(default)r]")
+    parser.add_argument(
+        "--rx-frequency", dest="rx_frequency", type=str, default="2412",
+        help="Set rx_frequency [default=%(default)r]")
+    parser.add_argument(
+        "--rx-gain", dest="rx_gain", type=str, default="70",
+        help="Set rx_gain [default=%(default)r]")
+    parser.add_argument(
+        "--sample-rate", dest="sample_rate", type=str, default="1",
+        help="Set sample_rate [default=%(default)r]")
+    parser.add_argument(
+        "--serial", dest="serial", type=str, default="False",
+        help="Set serial [default=%(default)r]")
+    return parser
 
 
 def main(top_block_cls=iq_recorder_b2x0, options=None):
-    tb = top_block_cls()
+    if options is None:
+        options = argument_parser().parse_args()
+    tb = top_block_cls(file_length=options.file_length, filepath=options.filepath, ip_address=options.ip_address, rx_antenna=options.rx_antenna, rx_channel=options.rx_channel, rx_frequency=options.rx_frequency, rx_gain=options.rx_gain, sample_rate=options.sample_rate, serial=options.serial)
 
     def sig_handler(sig=None, frame=None):
         tb.stop()

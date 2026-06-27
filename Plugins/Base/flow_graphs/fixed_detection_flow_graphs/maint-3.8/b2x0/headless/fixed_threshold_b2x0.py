@@ -27,7 +27,7 @@ import random
 
 class fixed_threshold_b2x0(gr.top_block):
 
-    def __init__(self, antenna_default='TX/RX', channel_default='A:A', gain_default='65', ip_address='', rx_freq_default='2412000000', sample_rate_default='20e6', serial='False', threshold_default='0'):
+    def __init__(self, antenna_default='TX/RX', channel_default='A:A', gain_default='65', ip_address='', min_interval="1", rx_freq_default='2412000000', sample_rate_default='20e6', serial='False', threshold_default='0'):
         gr.top_block.__init__(self, "Not titled yet")
 
         ##################################################
@@ -37,6 +37,7 @@ class fixed_threshold_b2x0(gr.top_block):
         self.channel_default = channel_default
         self.gain_default = gain_default
         self.ip_address = ip_address
+        self.min_interval = min_interval
         self.rx_freq_default = rx_freq_default
         self.sample_rate_default = sample_rate_default
         self.serial = serial
@@ -87,7 +88,7 @@ class fixed_threshold_b2x0(gr.top_block):
             avg_alpha=1.0,
             average=False,
             shift=True)
-        self.epy_block_0 = epy_block_0.blk(vec_len=fft_size, sample_rate=samp_rate, rx_freq_mhz=float(rx_freq)/1e6)
+        self.epy_block_0 = epy_block_0.blk(vec_len=fft_size, sample_rate=samp_rate, rx_freq_mhz=float(rx_freq)/1e6, min_publish_interval_s=float(min_interval))
         self.blocks_vector_source_x_0 = blocks.vector_source_f((thresh_adj,)*full_band_size, True, fft_size, [])
         self.blocks_message_debug_0 = blocks.message_debug()
         self.blocks_max_xx_0 = blocks.max_ff(fft_size, fft_size)
@@ -129,6 +130,13 @@ class fixed_threshold_b2x0(gr.top_block):
 
     def set_ip_address(self, ip_address):
         self.ip_address = ip_address
+
+    def get_min_interval(self):
+        return self.min_interval
+
+    def set_min_interval(self, min_interval):
+        self.min_interval = min_interval
+        self.epy_block_0.min_publish_interval_s = float(self.min_interval)
 
     def get_rx_freq_default(self):
         return self.rx_freq_default
@@ -295,6 +303,9 @@ def argument_parser():
         "--ip-address", dest="ip_address", type=str, default='',
         help="Set ip_address [default=%(default)r]")
     parser.add_argument(
+        "--min-interval", dest="min_interval", type=str, default="1",
+        help="Set min_interval [default=%(default)r]")
+    parser.add_argument(
         "--rx-freq-default", dest="rx_freq_default", type=str, default='2412000000',
         help="Set 2412000000 [default=%(default)r]")
     parser.add_argument(
@@ -312,7 +323,7 @@ def argument_parser():
 def main(top_block_cls=fixed_threshold_b2x0, options=None):
     if options is None:
         options = argument_parser().parse_args()
-    tb = top_block_cls(antenna_default=options.antenna_default, channel_default=options.channel_default, gain_default=options.gain_default, ip_address=options.ip_address, rx_freq_default=options.rx_freq_default, sample_rate_default=options.sample_rate_default, serial=options.serial, threshold_default=options.threshold_default)
+    tb = top_block_cls(antenna_default=options.antenna_default, channel_default=options.channel_default, gain_default=options.gain_default, ip_address=options.ip_address, min_interval=options.min_interval, rx_freq_default=options.rx_freq_default, sample_rate_default=options.sample_rate_default, serial=options.serial, threshold_default=options.threshold_default)
 
     def sig_handler(sig=None, frame=None):
         tb.stop()

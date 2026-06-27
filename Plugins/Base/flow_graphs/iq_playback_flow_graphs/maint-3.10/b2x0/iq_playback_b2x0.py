@@ -6,7 +6,7 @@
 #
 # GNU Radio Python Flow Graph
 # Title: Iq Playback B2X0
-# GNU Radio version: 3.10.7.0
+# GNU Radio version: 3.10.9.2
 
 from gnuradio import blocks
 import pmt
@@ -26,19 +26,20 @@ import time
 
 class iq_playback_b2x0(gr.top_block):
 
-    def __init__(self):
+    def __init__(self, filepath="", ip_address="192.168.40.2", sample_rate="4", serial="False", tx_antenna="TX/RX", tx_channel="A:A", tx_frequency="2425.715", tx_gain="70"):
         gr.top_block.__init__(self, "Iq Playback B2X0", catch_exceptions=True)
 
         ##################################################
-        # Variables
+        # Parameters
         ##################################################
-        self.tx_gain = tx_gain = 70
-        self.tx_frequency = tx_frequency = 2425.715
-        self.tx_channel = tx_channel = "A:A"
-        self.serial = serial = "False"
-        self.sample_rate = sample_rate = 4
-        self.ip_address = ip_address = "192.168.40.2"
-        self.filepath = filepath = ""
+        self.filepath = filepath
+        self.ip_address = ip_address
+        self.sample_rate = sample_rate
+        self.serial = serial
+        self.tx_antenna = tx_antenna
+        self.tx_channel = tx_channel
+        self.tx_frequency = tx_frequency
+        self.tx_gain = tx_gain
 
         ##################################################
         # Blocks
@@ -58,7 +59,7 @@ class iq_playback_b2x0(gr.top_block):
         self.uhd_usrp_sink_0.set_time_unknown_pps(uhd.time_spec(0))
 
         self.uhd_usrp_sink_0.set_center_freq(float(tx_frequency)*1e6, 0)
-        self.uhd_usrp_sink_0.set_antenna('TX/RX', 0)
+        self.uhd_usrp_sink_0.set_antenna(str(tx_antenna), 0)
         self.uhd_usrp_sink_0.set_gain(float(tx_gain), 0)
         self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, filepath, True, 0, 0)
         self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
@@ -70,31 +71,18 @@ class iq_playback_b2x0(gr.top_block):
         self.connect((self.blocks_file_source_0, 0), (self.uhd_usrp_sink_0, 0))
 
 
-    def get_tx_gain(self):
-        return self.tx_gain
+    def get_filepath(self):
+        return self.filepath
 
-    def set_tx_gain(self, tx_gain):
-        self.tx_gain = tx_gain
-        self.uhd_usrp_sink_0.set_gain(float(self.tx_gain), 0)
+    def set_filepath(self, filepath):
+        self.filepath = filepath
+        self.blocks_file_source_0.open(self.filepath, True)
 
-    def get_tx_frequency(self):
-        return self.tx_frequency
+    def get_ip_address(self):
+        return self.ip_address
 
-    def set_tx_frequency(self, tx_frequency):
-        self.tx_frequency = tx_frequency
-        self.uhd_usrp_sink_0.set_center_freq(float(self.tx_frequency)*1e6, 0)
-
-    def get_tx_channel(self):
-        return self.tx_channel
-
-    def set_tx_channel(self, tx_channel):
-        self.tx_channel = tx_channel
-
-    def get_serial(self):
-        return self.serial
-
-    def set_serial(self, serial):
-        self.serial = serial
+    def set_ip_address(self, ip_address):
+        self.ip_address = ip_address
 
     def get_sample_rate(self):
         return self.sample_rate
@@ -103,24 +91,74 @@ class iq_playback_b2x0(gr.top_block):
         self.sample_rate = sample_rate
         self.uhd_usrp_sink_0.set_samp_rate((float(self.sample_rate)*1e6))
 
-    def get_ip_address(self):
-        return self.ip_address
+    def get_serial(self):
+        return self.serial
 
-    def set_ip_address(self, ip_address):
-        self.ip_address = ip_address
+    def set_serial(self, serial):
+        self.serial = serial
 
-    def get_filepath(self):
-        return self.filepath
+    def get_tx_antenna(self):
+        return self.tx_antenna
 
-    def set_filepath(self, filepath):
-        self.filepath = filepath
-        self.blocks_file_source_0.open(self.filepath, True)
+    def set_tx_antenna(self, tx_antenna):
+        self.tx_antenna = tx_antenna
+        self.uhd_usrp_sink_0.set_antenna(str(self.tx_antenna), 0)
+
+    def get_tx_channel(self):
+        return self.tx_channel
+
+    def set_tx_channel(self, tx_channel):
+        self.tx_channel = tx_channel
+
+    def get_tx_frequency(self):
+        return self.tx_frequency
+
+    def set_tx_frequency(self, tx_frequency):
+        self.tx_frequency = tx_frequency
+        self.uhd_usrp_sink_0.set_center_freq(float(self.tx_frequency)*1e6, 0)
+
+    def get_tx_gain(self):
+        return self.tx_gain
+
+    def set_tx_gain(self, tx_gain):
+        self.tx_gain = tx_gain
+        self.uhd_usrp_sink_0.set_gain(float(self.tx_gain), 0)
 
 
+
+def argument_parser():
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--filepath", dest="filepath", type=str, default="",
+        help="Set filepath [default=%(default)r]")
+    parser.add_argument(
+        "--ip-address", dest="ip_address", type=str, default="192.168.40.2",
+        help="Set ip_address [default=%(default)r]")
+    parser.add_argument(
+        "--sample-rate", dest="sample_rate", type=str, default="4",
+        help="Set sample_rate [default=%(default)r]")
+    parser.add_argument(
+        "--serial", dest="serial", type=str, default="False",
+        help="Set serial [default=%(default)r]")
+    parser.add_argument(
+        "--tx-antenna", dest="tx_antenna", type=str, default="TX/RX",
+        help="Set tx_antenna [default=%(default)r]")
+    parser.add_argument(
+        "--tx-channel", dest="tx_channel", type=str, default="A:A",
+        help="Set tx_channel [default=%(default)r]")
+    parser.add_argument(
+        "--tx-frequency", dest="tx_frequency", type=str, default="2425.715",
+        help="Set tx_frequency [default=%(default)r]")
+    parser.add_argument(
+        "--tx-gain", dest="tx_gain", type=str, default="70",
+        help="Set tx_gain [default=%(default)r]")
+    return parser
 
 
 def main(top_block_cls=iq_playback_b2x0, options=None):
-    tb = top_block_cls()
+    if options is None:
+        options = argument_parser().parse_args()
+    tb = top_block_cls(filepath=options.filepath, ip_address=options.ip_address, sample_rate=options.sample_rate, serial=options.serial, tx_antenna=options.tx_antenna, tx_channel=options.tx_channel, tx_frequency=options.tx_frequency, tx_gain=options.tx_gain)
 
     def sig_handler(sig=None, frame=None):
         tb.stop()

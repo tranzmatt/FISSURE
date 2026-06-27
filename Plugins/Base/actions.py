@@ -81,10 +81,49 @@ fixed_detection_schema = {
             "default": 915.0,
         },
         {
+            "name": "sample_rate",
+            "label": "Sample Rate (S/s)",
+            "type": "number",
+            "default": 1000000.0,
+        },
+        {
+            "name": "threshold",
+            "label": "Threshold",
+            "type": "number",
+            "default": -60.0,
+        },
+        {
+            "name": "gain",
+            "label": "RX Gain",
+            "type": "number",
+            "default": 65.0,
+        },
+        {
+            "name": "channel",
+            "label": "RX Channel",
+            "type": "string",
+            "default": "A:A",
+            "options": ["A:A", "A:B"],
+        },
+        {
+            "name": "antenna",
+            "label": "RX Antenna",
+            "type": "string",
+            "default": "TX/RX",
+            "options": ["TX/RX", "RX2"],
+        },
+        {
             "name": "min_detection_interval_s",
             "label": "Min. interval (s)",
             "type": "number",
-            "default": 10.0,
+            "default": 1.0,
+        },
+        {
+            "name": "run_mode",
+            "label": "Run Mode",
+            "type": "string",
+            "default": "headless",
+            "options": ["headless", "gui"],
         },
         {
             "name": "description",
@@ -94,7 +133,6 @@ fixed_detection_schema = {
         },
     ]
 }
-
 async def fixed_detection(
     component: SensorNode,
     parameters: Dict[str, Any],
@@ -1138,12 +1176,6 @@ iq_playback_schema = {
             "label": "File Path",
             "type": "string",
             "default": "",
-        },
-        {
-            "name": "frequency_mhz",
-            "label": "Frequency (MHz)",
-            "type": "number",
-            "default": 915.0,
         },
         {
             "name": "tx_frequency",

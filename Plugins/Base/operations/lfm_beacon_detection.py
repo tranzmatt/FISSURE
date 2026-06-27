@@ -15,31 +15,31 @@ import sys
 import time
 from typing import Any, Callable, Dict, Optional, Union
 
+
 PLUGIN_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 FISSURE_REPO_ROOT = os.path.abspath(os.path.join(PLUGIN_ROOT, "..", ".."))
-FLOW_GRAPH_DIR = os.path.join(
+
+FLOW_GRAPH_BASE_DIR = os.path.join(
     PLUGIN_ROOT,
     "flow_graphs",
     "lfm_beacon_detection_flow_graphs",
 )
 
-for path in (FISSURE_REPO_ROOT, PLUGIN_ROOT, FLOW_GRAPH_DIR):
+for path in (FISSURE_REPO_ROOT, PLUGIN_ROOT):
     if path not in sys.path:
         sys.path.insert(0, path)
 
 try:
     from fissure.utils.plugins.operations import Operation
-    from fissure.utils import FISSURE_ROOT  # noqa: F401 - retained for compatibility
+    from fissure.utils import FISSURE_ROOT, get_library_version  # noqa: F401 - FISSURE_ROOT retained for compatibility
 except ImportError:
     if FISSURE_REPO_ROOT not in sys.path:
         sys.path.insert(0, FISSURE_REPO_ROOT)
     if PLUGIN_ROOT not in sys.path:
         sys.path.insert(0, PLUGIN_ROOT)
-    if FLOW_GRAPH_DIR not in sys.path:
-        sys.path.insert(0, FLOW_GRAPH_DIR)
 
     from fissure.utils.plugins.operations import Operation
-    from fissure.utils import FISSURE_ROOT  # noqa: F401 - retained for compatibility
+    from fissure.utils import FISSURE_ROOT, get_library_version  # noqa: F401 - FISSURE_ROOT retained for compatibility
 
 
 CALLBACK_TIMEOUT_S = 2.0
@@ -91,20 +91,37 @@ class OperationMain(Operation):
     def get_resources(freq_mhz: float = 433.0) -> Dict[str, Any]:
         return {}
 
+    def _resolve_flow_graph_path(self) -> str:
+        version = get_library_version() or "maint-3.10"
+
+        script_path = os.path.join(
+            FLOW_GRAPH_BASE_DIR,
+            version,
+            "lfm_beacon_rtlsdr.py",
+        )
+
+        if not os.path.isfile(script_path):
+            raise FileNotFoundError(f"LFM beacon flowgraph not found: {script_path}")
+
+        return script_path
+
     def _should_stop(self) -> bool:
         if getattr(self, "_stop", False):
             return True
+
         ev = getattr(self, "stop_event", None)
         if ev is not None:
             try:
                 return bool(ev.is_set())
             except Exception:
                 pass
+
         return False
 
     async def _maybe_await(self, result: Any) -> Any:
         if inspect.isawaitable(result):
             return await result
+
         return result
 
     async def _call_with_timeout(self, callback: Callable, *args, **kwargs) -> Any:
@@ -116,6 +133,7 @@ class OperationMain(Operation):
     async def _set_status(self, text: str) -> None:
         if not getattr(self, "status_callback", None):
             return
+
         try:
             await self._call_with_timeout(self.status_callback, text)
         except Exception:
@@ -127,9 +145,17 @@ class OperationMain(Operation):
             return
 
         try:
-            self.freq_mhz = float(params.get("freq_mhz", params.get("frequency_mhz", self.freq_mhz)))
+            self.freq_mhz = float(
+                params.get(
+                    "freq_mhz",
+                    params.get("frequency_mhz", self.freq_mhz),
+                )
+            )
         except Exception:
-            self.logger.warning("Invalid freq_mhz/frequency_mhz parameter; using %.6f", self.freq_mhz)
+            self.logger.warning(
+                "Invalid freq_mhz/frequency_mhz parameter; using %.6f",
+                self.freq_mhz,
+            )
 
         try:
             self.min_detection_interval_s = float(
@@ -144,22 +170,30 @@ class OperationMain(Operation):
                 self.min_detection_interval_s,
             )
 
-        self.description = str(params.get("description", self.description)).strip() or "LFM beacon detection"
-        self.source_id = str(params.get("source_id") or getattr(self, "node_uid", "") or "sensor_node")
+        self.description = (
+            str(params.get("description", self.description)).strip()
+            or "LFM beacon detection"
+        )
+        self.source_id = str(
+            params.get("source_id") or getattr(self, "node_uid", "") or "sensor_node"
+        )
         self.emit_alerts = bool(params.get("emit_alerts", self.emit_alerts))
         self.emit_tak_cot = bool(params.get("emit_tak_cot", self.emit_tak_cot))
 
     async def _drain_stderr(self, process: asyncio.subprocess.Process) -> None:
         if not process.stderr:
             return
+
         try:
             while True:
                 line = await process.stderr.readline()
                 if not line:
                     break
+
                 text = line.decode(errors="ignore").rstrip()
                 if text:
                     self.logger.debug("LFM beacon flowgraph stderr: %s", text)
+
         except asyncio.CancelledError:
             raise
         except Exception:
@@ -168,10 +202,12 @@ class OperationMain(Operation):
     async def _terminate_process(self, process: Optional[asyncio.subprocess.Process]) -> None:
         if process is None:
             return
+
         if process.returncode is not None:
             return
 
         self.logger.info("Terminating LFM beacon flowgraph process...")
+
         try:
             process.terminate()
         except ProcessLookupError:
@@ -183,10 +219,12 @@ class OperationMain(Operation):
             await asyncio.wait_for(process.wait(), timeout=5.0)
         except asyncio.TimeoutError:
             self.logger.warning("LFM beacon flowgraph did not terminate, killing...")
+
             try:
                 process.kill()
             except ProcessLookupError:
                 return
+
             await process.wait()
 
     def _build_detection_payload(
@@ -198,6 +236,7 @@ class OperationMain(Operation):
         det_time: float,
     ) -> Dict[str, Any]:
         timestamp = float(det_time if det_time > 0 else time.time())
+
         return {
             "kind": "detection",
             "event_type": "detection",
@@ -224,6 +263,7 @@ class OperationMain(Operation):
             return
 
         ts = float(detection.get("timestamp") or time.time())
+
         event = {
             "msg_type": "event",
             "uid": f"lfm-beacon-detection-{self.source_id}-{int(ts)}",
@@ -280,17 +320,23 @@ class OperationMain(Operation):
 
     async def run(self) -> None:
         """Run the LFM Beacon Detection Operation."""
+
         self._apply_parameters_from_runner()
 
         alert_interval = float(self.min_detection_interval_s)
         last_alert_time = 0.0
         configured_freq_hz = self.freq_mhz * 1_000_000.0
 
-        script_path = os.path.join(FLOW_GRAPH_DIR, "lfm_beacon_rtlsdr.py")
-        if not os.path.isfile(script_path):
-            raise FileNotFoundError(f"LFM beacon flowgraph not found: {script_path}")
+        try:
+            script_path = self._resolve_flow_graph_path()
+        except FileNotFoundError:
+            self.logger.exception("LFM beacon flowgraph path resolution failed")
+            raise
+
+        flow_graph_dir = os.path.dirname(script_path)
 
         python_path = shutil.which("python3") or sys.executable
+
         cmd = [
             python_path,
             script_path,
@@ -298,7 +344,9 @@ class OperationMain(Operation):
             str(configured_freq_hz),
         ]
 
+        self.logger.info("Using LFM beacon flowgraph: %s", script_path)
         self.logger.info("Starting LFM beacon flowgraph: %s", " ".join(cmd))
+
         await self._set_status(f"Running: LFM beacon @ {self.freq_mhz:.3f} MHz")
 
         process: Optional[asyncio.subprocess.Process] = None
@@ -307,10 +355,11 @@ class OperationMain(Operation):
         try:
             process = await asyncio.create_subprocess_exec(
                 *cmd,
-                cwd=FLOW_GRAPH_DIR,
+                cwd=flow_graph_dir,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
+
             stderr_task = asyncio.create_task(self._drain_stderr(process))
 
             if process.stdout is None:
@@ -318,7 +367,10 @@ class OperationMain(Operation):
 
             while not self._should_stop():
                 try:
-                    line_bytes = await asyncio.wait_for(process.stdout.readline(), timeout=0.25)
+                    line_bytes = await asyncio.wait_for(
+                        process.stdout.readline(),
+                        timeout=0.25,
+                    )
                 except asyncio.TimeoutError:
                     if process.returncode is not None:
                         break
@@ -354,6 +406,7 @@ class OperationMain(Operation):
                 now = time.time()
                 if now - last_alert_time < alert_interval:
                     continue
+
                 last_alert_time = now
 
                 detection = self._build_detection_payload(
@@ -375,6 +428,7 @@ class OperationMain(Operation):
 
             if stderr_task is not None:
                 stderr_task.cancel()
+
                 try:
                     await stderr_task
                 except asyncio.CancelledError:

@@ -265,6 +265,8 @@ async def recallSettingsReturn(component: object, node_uuid: str, node_ip_addres
     # Populate Hardware
     component.frontend.configureSelectedNodeHardware()
 
+    print(settings_dict)
+
 
 async def componentDisconnected(component: object, component_name=""):
     """
@@ -1780,7 +1782,7 @@ async def alertReturn(component: object, node_uid="", node_nickname="", alert_te
     )
 
     # Calculate Alert Total
-    current_text = component.frontend.ui.tabWidget_sensor_nodes.tabBar().tabText(3)
+    current_text = component.frontend.ui.tabWidget_sensor_nodes.tabBar().tabText(2)
     if "(" in current_text and ")" in current_text:
         base_text, count = current_text.rsplit("(", 1)
         count = count.rstrip(")")
@@ -1796,7 +1798,7 @@ async def alertReturn(component: object, node_uid="", node_nickname="", alert_te
     new_text = f"{base_text.strip()} ({new_count})"
 
     # Update Alert Tab with Count
-    component.frontend.ui.tabWidget_sensor_nodes.tabBar().setTabText(3, new_text)
+    component.frontend.ui.tabWidget_sensor_nodes.tabBar().setTabText(2, new_text)
 
     # Update Sensor Nodes Tab with Count
     await update_sensor_node_title(component, 1)
@@ -1818,7 +1820,7 @@ async def exploitReturn(component: object, node_uid: str, protocol:str, modulati
     component.frontend.ui.tableWidget_exploits.resizeColumnsToContents()
 
     # Calculate Alert Total
-    current_text = component.frontend.ui.tabWidget_sensor_nodes.tabBar().tabText(4)
+    current_text = component.frontend.ui.tabWidget_sensor_nodes.tabBar().tabText(3)
     if "(" in current_text and ")" in current_text:
         base_text, count = current_text.rsplit("(", 1)
         count = count.rstrip(")")
@@ -1834,10 +1836,10 @@ async def exploitReturn(component: object, node_uid: str, protocol:str, modulati
     new_text = f"{base_text.strip()} ({new_count})"
 
     # Update Alert Tab with Count
-    #component.frontend.ui.tabWidget_sensor_nodes.tabBar().setTabText(3, new_text)
+    #component.frontend.ui.tabWidget_sensor_nodes.tabBar().setTabText(2, new_text)
     
     # Update Epxloits Tab with Count
-    component.frontend.ui.tabWidget_sensor_nodes.tabBar().setTabText(4, new_text)
+    component.frontend.ui.tabWidget_sensor_nodes.tabBar().setTabText(3, new_text)
     
     # Update Sensor Nodes Tab with Count
     await update_sensor_node_title(component, 1)
@@ -1855,7 +1857,7 @@ async def snreport(component: object, node_uid: str, text:str):
     component.frontend.ui.tableWidget_reports.resizeRowsToContents()
 
     # Calculate Reports Total
-    current_text = component.frontend.ui.tabWidget_sensor_nodes.tabBar().tabText(5)
+    current_text = component.frontend.ui.tabWidget_sensor_nodes.tabBar().tabText(4)
     if "(" in current_text and ")" in current_text:
         base_text, count = current_text.rsplit("(", 1)
         count = count.rstrip(")")
@@ -1871,7 +1873,7 @@ async def snreport(component: object, node_uid: str, text:str):
     new_text = f"{base_text.strip()} ({new_count})"
 
     # update tab title
-    component.frontend.ui.tabWidget_sensor_nodes.tabBar().setTabText(5, new_text)
+    component.frontend.ui.tabWidget_sensor_nodes.tabBar().setTabText(4, new_text)
 
     await update_sensor_node_title(component, 1)
 
@@ -2023,7 +2025,7 @@ async def nodeRefreshReturn(component: object, nodes):
     component.frontend.popups["NodeSelectDialog"].refreshNodes(nodes=nodes)
 
 
-async def dashboardCoT_Message(component: object, raw_xml:str):
+async def dashboardCoT_Message(component: object, raw_xml: str):
     """
     Receives a copy of the CoT message sent to the TAK server and hands it off for parsing.
     """
@@ -2034,6 +2036,16 @@ async def dashboardCoT_Message(component: object, raw_xml:str):
         return
 
     fissure.utils.cot_utils.handle_tactical_cot_message(component, cot_message)
+
+    try:
+        TSITabSlots.append_tsi_fixed_detection_from_cot(
+            component.frontend,
+            cot_message,
+        )
+    except Exception as e:
+        component.logger.error(
+            f"Failed to update TSI Fixed detector table: {e}"
+        )
 
 
 async def nodeStateUpdate(component: object, node_uid="", node={}):
@@ -2073,6 +2085,17 @@ async def nodeStateUpdate(component: object, node_uid="", node={}):
 
         if hasattr(frontend, "selected_tactical_node_uid"):
             TacticalTabSlots._updateTacticalNodeInfoFrameState(frontend)
+
+    try:
+        TSITabSlots.reconcile_tsi_fixed_detector_state(
+            frontend,
+            node_uid=node_uid,
+            status=node.get("status", ""),
+        )
+    except Exception as e:
+        component.logger.debug(
+            f"Could not reconcile TSI Fixed detector state: {e}"
+        )
 
     component.logger.debug(
         f"nodeStateUpdate: {node_uid} "
@@ -2183,3 +2206,78 @@ async def nodeStateRemove(component: object, node_uid=""):
         )
 
     component.logger.debug(f"nodeStateRemove: {node_uid}")
+
+
+async def sendArtifactsListTakReturn(
+    component: object,
+    node_uid: str = "",
+    artifacts=None,
+):
+    """
+    Receives artifact metadata from HIPRFISR and updates the Tactical
+    Node > Artifacts cache/table.
+    """
+    artifacts = artifacts or []
+
+    dashboard = component.frontend
+
+    if not hasattr(dashboard, "tactical_artifacts"):
+        dashboard.tactical_artifacts = {}
+
+    for artifact in artifacts:
+        if not isinstance(artifact, dict):
+            continue
+
+        artifact_id = artifact.get("id") or artifact.get("artifact_id")
+        if not artifact_id:
+            continue
+
+        metadata = artifact.get("metadata") or {}
+        if not isinstance(metadata, dict):
+            metadata = {}
+
+        source_id = (
+            artifact.get("source_id")
+            or metadata.get("source_id")
+            or metadata.get("node_uid")
+            or node_uid
+            or ""
+        )
+
+        normalized = {
+            "artifact_id": artifact_id,
+            "node_uid": source_id,
+            "source_id": source_id,
+            "operation_id": (
+                artifact.get("operation_id")
+                or metadata.get("operation_id")
+                or ""
+            ),
+            "name": artifact.get("name", ""),
+            "time": (
+                artifact.get("modified_at")
+                or artifact.get("created_at")
+                or ""
+            ),
+            "file_path": artifact.get("file_path", ""),
+            "artifact_type": artifact.get("artifact_type", ""),
+            "file_size": artifact.get("file_size", 0),
+            "checksum": artifact.get("checksum", ""),
+            "metadata": metadata,
+        }
+
+        dashboard.tactical_artifacts[artifact_id] = normalized
+
+    selected_node_uid = getattr(
+        dashboard,
+        "selected_tactical_node_uid",
+        None,
+    )
+
+    if selected_node_uid == node_uid:
+        from fissure.Dashboard.Slots import TacticalTabSlots
+
+        TacticalTabSlots.rebuild_tactical_node_artifacts(
+            dashboard,
+            node_uid,
+        )

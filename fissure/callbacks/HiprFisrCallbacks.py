@@ -6578,3 +6578,304 @@ async def geolocate_target_stop(
                     target_id=target_id,
                     patch={},
                 )
+
+
+async def sendArtifactsListTak(
+    component: object,
+    requester_uid: str = "",
+    requester_type: str = "dashboard",
+    node_uid: str = "",
+):
+    """
+    Sends known artifact metadata for a selected node back to the Dashboard.
+
+    This reads HIPRFISR's ArtifactTracker only. It does not retrieve/download
+    artifact file contents from sensor nodes.
+    """
+    artifacts = []
+
+    try:
+        tracker = getattr(component, "artifact_tracker", None)
+
+        if tracker is None:
+            component.logger.warning("sendArtifactsListTak: no artifact_tracker")
+            return
+
+        # Prefer the public source-id helper.
+        if node_uid:
+            artifact_objects = tracker.get_artifacts_source_id(
+                node_uid,
+                sortby="modified_at",
+            )
+        else:
+            # ArtifactTracker has no public get_all_artifacts() right now.
+            # Use the internal cache only for this hub-side metadata list.
+            artifact_objects = list(
+                getattr(tracker, "_artifacts", {}).values()
+            )
+
+        for artifact in artifact_objects:
+            try:
+                if hasattr(artifact, "to_dict"):
+                    record = artifact.to_dict()
+                elif isinstance(artifact, dict):
+                    record = dict(artifact)
+                else:
+                    continue
+
+                metadata = record.get("metadata") or {}
+                if not isinstance(metadata, dict):
+                    metadata = {}
+
+                source_id = (
+                    record.get("source_id")
+                    or metadata.get("source_id")
+                    or metadata.get("node_uid")
+                    or ""
+                )
+
+                # Backward compatibility: some older artifact records may have
+                # node_uid only in metadata.
+                if node_uid and source_id != node_uid:
+                    continue
+
+                if source_id:
+                    record["source_id"] = source_id
+
+                artifacts.append(record)
+
+            except Exception:
+                component.logger.exception(
+                    "sendArtifactsListTak: failed normalizing artifact record"
+                )
+
+        artifacts.sort(
+            key=lambda a: str(
+                a.get("modified_at")
+                or a.get("created_at")
+                or ""
+            ),
+            reverse=True,
+        )
+
+    except Exception:
+        component.logger.exception("sendArtifactsListTak failed")
+        artifacts = []
+
+    PARAMETERS = {
+        "node_uid": node_uid,
+        "artifacts": artifacts,
+    }
+
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+        fissure.comms.MessageFields.MESSAGE_NAME: "sendArtifactsListTakReturn",
+        fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+    }
+
+    if requester_type == "dashboard" and component.dashboard_connected:
+        await component.dashboard_socket.send_msg(
+            fissure.comms.MessageTypes.COMMANDS,
+            msg,
+        )
+
+
+async def sendArtifactsListTak(
+    component: object,
+    requester_uid: str = "",
+    requester_type: str = "tak",
+    node_uid: str = "",
+    request_id: str = "",
+    requester_callsign: str = "",
+) -> None:
+    """
+    Respond to WinTAK/Dashboard artifact-list refresh requests.
+
+    For TAK, emit one artifact_metadata event per matching artifact so WinTAK
+    can reuse its normal artifact_metadata parser/upsert path.
+
+    For Dashboard, return a structured list over the Dashboard socket.
+    """
+    tracker = getattr(component, "artifact_tracker", None)
+
+    if tracker is None:
+        component.logger.warning("sendArtifactsListTak: no artifact_tracker")
+        return
+
+    def _artifact_to_dict(artifact):
+        if artifact is None:
+            return None
+
+        if isinstance(artifact, dict):
+            return dict(artifact)
+
+        if hasattr(artifact, "to_dict"):
+            return artifact.to_dict()
+
+        # Defensive fallback for dataclass-like objects.
+        out = {}
+        for key in (
+            "id",
+            "source_id",
+            "operation_id",
+            "name",
+            "file_path",
+            "artifact_type",
+            "file_size",
+            "created_at",
+            "modified_at",
+            "metadata",
+            "checksum",
+        ):
+            if hasattr(artifact, key):
+                out[key] = getattr(artifact, key)
+
+        return out
+
+    def _source_id_for_record(record):
+        metadata = record.get("metadata") or {}
+
+        if not isinstance(metadata, dict):
+            metadata = {}
+
+        return (
+            record.get("source_id")
+            or metadata.get("source_id")
+            or metadata.get("node_uid")
+            or ""
+        )
+
+    # Scan the tracker cache instead of only using get_artifacts_source_id().
+    # Some older/dummy artifacts may have node_uid only in metadata, while
+    # newer records use top-level source_id.
+    records = []
+
+    try:
+        artifact_objects = list(getattr(tracker, "_artifacts", {}).values())
+    except Exception:
+        component.logger.exception("sendArtifactsListTak: failed reading artifact tracker")
+        artifact_objects = []
+
+    for artifact in artifact_objects:
+        try:
+            record = _artifact_to_dict(artifact)
+
+            if not isinstance(record, dict):
+                continue
+
+            artifact_id = record.get("id") or record.get("artifact_id")
+            if not artifact_id:
+                continue
+
+            source_id = _source_id_for_record(record)
+
+            if node_uid and source_id != node_uid:
+                continue
+
+            if source_id:
+                record["source_id"] = source_id
+
+            records.append(record)
+
+        except Exception:
+            component.logger.exception(
+                "sendArtifactsListTak: failed normalizing artifact record"
+            )
+
+    records.sort(
+        key=lambda r: str(
+            r.get("modified_at")
+            or r.get("created_at")
+            or ""
+        ),
+        reverse=True,
+    )
+
+    # -------------------------------------------------------------
+    # Dashboard response: structured list over ZMQ
+    # -------------------------------------------------------------
+    if requester_type == "dashboard":
+        PARAMETERS = {
+            "node_uid": node_uid,
+            "artifacts": records,
+        }
+
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+            fissure.comms.MessageFields.MESSAGE_NAME: "sendArtifactsListTakReturn",
+            fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+        }
+
+        if component.dashboard_connected:
+            await component.dashboard_socket.send_msg(
+                fissure.comms.MessageTypes.COMMANDS,
+                msg,
+            )
+
+        return
+
+    # -------------------------------------------------------------
+    # TAK response: replay artifact_metadata CoT events
+    # -------------------------------------------------------------
+    for record in records:
+        try:
+            artifact_id = record.get("id") or record.get("artifact_id")
+            name = record.get("name") or ""
+            timestamp = (
+                record.get("modified_at")
+                or record.get("created_at")
+                or ""
+            )
+            operation_id = record.get("operation_id") or ""
+            source_id = _source_id_for_record(record)
+
+            if not artifact_id or not name or not timestamp:
+                component.logger.warning(
+                    "sendArtifactsListTak: skipping malformed artifact record "
+                    f"artifact_id={artifact_id} name={name} timestamp={timestamp}"
+                )
+                continue
+
+            event_uid_source = source_id or node_uid or "unknown-source"
+            event_uid = (
+                f"{event_uid_source}-artifact_metadata-"
+                f"{artifact_id}-refresh-{int(time.time() * 1000)}"
+            )
+
+            tak_data = {
+                "event_type": "artifact_metadata",
+                "name": name,
+                "timestamp": timestamp,
+                "artid": artifact_id,
+                "operation_id": operation_id,
+                "source_id": source_id or node_uid,
+                "request_id": request_id,
+                "requester_uid": requester_uid,
+                "requester_callsign": requester_callsign,
+            }
+
+            tak_data = {
+                key: value
+                for key, value in tak_data.items()
+                if value is not None
+                and not (
+                    isinstance(value, str)
+                    and value.strip() == ""
+                )
+            }
+
+            await fissure.utils.tak_messages.send(
+                component,
+                {
+                    "msg_type": "event",
+                    "uid": event_uid,
+                    "data": tak_data,
+                },
+                requester_type,
+                requester_uid,
+            )
+
+        except Exception:
+            component.logger.exception(
+                "sendArtifactsListTak: failed sending artifact_metadata event"
+            )

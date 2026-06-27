@@ -44,7 +44,7 @@ blocks:
     bus_structure: null
     coordinate: [8, 315]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: ip_address
   id: variable
   parameters:
@@ -56,7 +56,7 @@ blocks:
     bus_structure: null
     coordinate: [8, 251]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: sample_rate
   id: variable
   parameters:
@@ -68,7 +68,7 @@ blocks:
     bus_structure: null
     coordinate: [8, 509]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: serial
   id: variable
   parameters:
@@ -80,7 +80,7 @@ blocks:
     bus_structure: null
     coordinate: [8, 636]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: tx_channel
   id: variable
   parameters:
@@ -92,7 +92,7 @@ blocks:
     bus_structure: null
     coordinate: [8, 379]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: tx_frequency
   id: variable
   parameters:
@@ -104,7 +104,7 @@ blocks:
     bus_structure: null
     coordinate: [8, 445]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: tx_gain
   id: variable
   parameters:
@@ -116,7 +116,7 @@ blocks:
     bus_structure: null
     coordinate: [8, 573]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_file_source_0
   id: blocks_file_source
   parameters:
@@ -137,6 +137,40 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [304, 125]
+    rotation: 0
+    state: enabled
+- name: filepath
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '""'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1216, 128.0]
+    rotation: 0
+    state: enabled
+- name: ip_address
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '"192.168.40.2"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1216, 40.0]
     rotation: 0
     state: enabled
 - name: qtgui_time_sink_x_0
@@ -333,12 +367,114 @@ blocks:
     coordinate: [1000, 387]
     rotation: 0
     state: disabled
+- name: sample_rate
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '"4"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1216, 392.0]
+    rotation: 0
+    state: enabled
+- name: serial
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '"False"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1216, 568.0]
+    rotation: 0
+    state: enabled
+- name: tx_antenna
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '"TX/RX"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1216, 656.0]
+    rotation: 0
+    state: enabled
+- name: tx_channel
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '"A:A"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1216, 216.0]
+    rotation: 0
+    state: enabled
+- name: tx_frequency
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '"2425.715"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1216, 304.0]
+    rotation: 0
+    state: enabled
+- name: tx_gain
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '"70"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1216, 480.0]
+    rotation: 0
+    state: enabled
 - name: uhd_usrp_sink_0
   id: uhd_usrp_sink
   parameters:
     affinity: ''
     alias: ''
-    ant0: TX/RX
+    ant0: str(tx_antenna)
     ant1: ''
     ant10: ''
     ant11: ''
@@ -616,4 +752,4 @@ connections:
 
 metadata:
   file_format: 1
-  grc_version: 3.10.4.0
+  grc_version: 3.10.9.2

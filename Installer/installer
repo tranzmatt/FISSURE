@@ -105,7 +105,7 @@ class InstallDialog2(QtWidgets.QDialog, form_class2):
         get_css_text = re.sub(r'@down_arrow_disabled\b','light-down-arrow-disabled.png',get_css_text)
         get_css_text = re.sub(r'@radio_unchecked_enabled\b','light-radio.png',get_css_text)
         get_css_text = re.sub(r'@radio_checked_enabled\b','light-radio-checked.png',get_css_text)
-        get_css_text = get_css_text.replace("@icon_path", os.path.join(project_root, "docs", "Icons"))
+        get_css_text = get_css_text.replace("@icon_path", os.path.join(project_root, "UI", "Icons"))
         get_css_text = get_css_text.replace('@menu_hover_padding','0px')
         self.setStyleSheet(get_css_text)
         
@@ -626,7 +626,7 @@ class InstallDialog1(QtWidgets.QDialog, form_class):
         get_css_text = re.sub(r'@down_arrow_disabled\b','light-down-arrow-disabled.png',get_css_text)
         get_css_text = re.sub(r'@radio_unchecked_enabled\b','light-radio.png',get_css_text)
         get_css_text = re.sub(r'@radio_checked_enabled\b','light-radio-checked.png',get_css_text)
-        get_css_text = get_css_text.replace("@icon_path", os.path.join(project_root, "docs", "Icons"))
+        get_css_text = get_css_text.replace("@icon_path", os.path.join(project_root, "UI", "Icons"))
         get_css_text = get_css_text.replace('@menu_hover_padding','0px')
         self.setStyleSheet(get_css_text)  
         

@@ -2302,8 +2302,12 @@ find . -name '*.grc' -exec grcc {} \;
 # Plugin Flow Graphs
 programs_ubuntu20_04.append(('Plugin Flow Graphs',
 """cd """ + fissure_directory + """/Plugins/
-find . -name '*.grc' -exec grcc {} \;
-""",True,'Compile Flow Graphs'))
+
+# Compile all plugin flow graphs except GNU Radio 3.10-specific flow graphs.
+find . -name '*.grc' \\
+    -not -path '*/maint-3.10/*' \\
+    -exec grcc {} \\;
+""", True, 'Compile Flow Graphs'))
 
 # PD Flow Graphs
 programs_ubuntu20_04.append(('PD Flow Graphs',

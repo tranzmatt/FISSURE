@@ -44,7 +44,7 @@ blocks:
     bus_structure: null
     coordinate: [128, 467]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: filepath
   id: variable
   parameters:
@@ -56,7 +56,7 @@ blocks:
     bus_structure: null
     coordinate: [8, 315]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: ip_address
   id: variable
   parameters:
@@ -68,7 +68,7 @@ blocks:
     bus_structure: null
     coordinate: [8, 251]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: lpf_cutoff
   id: variable
   parameters:
@@ -104,7 +104,7 @@ blocks:
     bus_structure: null
     coordinate: [8, 651]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: rx_channel
   id: variable
   parameters:
@@ -116,7 +116,7 @@ blocks:
     bus_structure: null
     coordinate: [8, 379]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: rx_frequency
   id: variable
   parameters:
@@ -128,7 +128,7 @@ blocks:
     bus_structure: null
     coordinate: [8, 459]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: rx_gain
   id: variable
   parameters:
@@ -140,7 +140,7 @@ blocks:
     bus_structure: null
     coordinate: [8, 587]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: sample_rate
   id: variable
   parameters:
@@ -152,7 +152,7 @@ blocks:
     bus_structure: null
     coordinate: [8, 523]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: serial
   id: variable
   parameters:
@@ -164,7 +164,7 @@ blocks:
     bus_structure: null
     coordinate: [128, 596]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: squelch_threshold
   id: variable
   parameters:
@@ -223,7 +223,7 @@ blocks:
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
-    num_items: file_length
+    num_items: int(file_length)
     type: complex
     vlen: '1'
   states:
@@ -267,6 +267,57 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [624, 100]
+    rotation: 0
+    state: enabled
+- name: file_length
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '"100000"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1280, 792.0]
+    rotation: 0
+    state: enabled
+- name: filepath
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '""'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1280, 176.0]
+    rotation: 0
+    state: enabled
+- name: ip_address
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '"192.168.40.2"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1280, 88.0]
     rotation: 0
     state: enabled
 - name: low_pass_filter_0
@@ -487,6 +538,108 @@ blocks:
     coordinate: [1088, 364]
     rotation: 0
     state: disabled
+- name: rx_antenna
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '"TX/RX"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1280, 616.0]
+    rotation: 0
+    state: enabled
+- name: rx_channel
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '"A:A"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1280, 264.0]
+    rotation: 0
+    state: enabled
+- name: rx_frequency
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '"2412"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1280, 352.0]
+    rotation: 0
+    state: enabled
+- name: rx_gain
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '"70"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1280, 528.0]
+    rotation: 0
+    state: enabled
+- name: sample_rate
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '"1"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1280, 440.0]
+    rotation: 0
+    state: enabled
+- name: serial
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: str
+    value: '"False"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1280, 704.0]
+    rotation: 0
+    state: enabled
 - name: uhd_usrp_source_0_0
   id: uhd_usrp_source
   parameters:
@@ -937,4 +1090,4 @@ connections:
 
 metadata:
   file_format: 1
-  grc_version: 3.10.4.0
+  grc_version: 3.10.9.2

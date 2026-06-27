@@ -160,7 +160,7 @@ class Dashboard(QtWidgets.QMainWindow):
 
         # Set Initial Tab Positions
         self.ui.tabWidget.setCurrentIndex(0)
-        self.ui.tabWidget_tsi.setCurrentIndex(1)
+        self.ui.tabWidget_tsi.setCurrentIndex(0)
         self.ui.tabWidget_tsi_configuration.setCurrentIndex(0)
         self.ui.tabWidget_protocol.setCurrentIndex(0)
         self.ui.tabWidget_attack_attack.setCurrentIndex(0)
@@ -182,6 +182,12 @@ class Dashboard(QtWidgets.QMainWindow):
         self.ui.frame_top_configure_node.setProperty("pressed", "false")
         self.ui.frame_top_configure_node.style().unpolish(self.ui.frame_top_configure_node)
         self.ui.frame_top_configure_node.style().polish(self.ui.frame_top_configure_node)
+
+        # TSI Fixed detector workbench state
+        self.tsi_fixed_detector_running = False
+        self.tsi_fixed_detector_node_uid = ""
+        self.tsi_fixed_detector_opid = ""
+        self.tsi_fixed_detector_waiting_for_opid = False
 
         # Auto Connect HIPRFISR
         self.hiprfisr_serial_connected = False
@@ -689,9 +695,9 @@ class Dashboard(QtWidgets.QMainWindow):
         self.wideband_zoom_end = 6000e6
 
         # Under Construction Labels (For Future Reference)
-        self.ui.label_under_construction.setPixmap(
-            QtGui.QPixmap(os.path.join(fissure.utils.UI_DIR, "Icons", "under_construction.png"))  
-        )
+        # self.ui.label_under_construction.setPixmap(
+        #     QtGui.QPixmap(os.path.join(fissure.utils.UI_DIR, "Icons", "under_construction.png"))  
+        # )
 
         # Create Tooltip
         self.ui.tabWidget.setTabToolTip(1, "Target Signal Identification")
@@ -1630,6 +1636,15 @@ class Dashboard(QtWidgets.QMainWindow):
 
         # Refresh Detector Advanced Settings
         TSITabSlots._slotTSI_DetectorChanged(self)
+
+        # Fixed Detector Show GUI Checkbox
+        is_local = selected_node_is_local(self)
+        print("AAAAAAAAAAAA")
+        print(is_local)
+        self.ui.checkBox_tsi_detector_fixed_gui.setEnabled(is_local)
+
+        if not is_local:
+            self.ui.checkBox_tsi_detector_fixed_gui.setChecked(False)
 
 
     def configurePD_Hardware(self):
@@ -2949,6 +2964,33 @@ def connect_tactical_slots(dashboard: Dashboard):
     )
     dashboard.ui.pushButton_tactical_ecosystem_alerts_delete_row.clicked.connect(
         lambda: TacticalTabSlots._slotTacticalEcosystemAlertsDeleteRowClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_soi_delete_row.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeSoisDeleteRowClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_soi_clear_rows.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeSoisClearRowsClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_targets_delete_row.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeTargetsDeleteRowClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_targets_clear_rows.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeTargetsClearRowsClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_targets_keep_selected.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeTargetsKeepSelectedClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_artifacts_refresh.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeArtifactsRefreshClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_artifacts_download.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeArtifactsDownloadClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_artifacts_delete_row.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeArtifactsDeleteRowClicked(dashboard)
+    )
+    dashboard.ui.pushButton_tactical_node_artifacts_clear_rows.clicked.connect(
+        lambda: TacticalTabSlots._slotTacticalNodeArtifactsClearRowsClicked(dashboard)
     )
 
     # Table Widget

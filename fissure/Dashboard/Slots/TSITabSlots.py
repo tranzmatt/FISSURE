@@ -40,6 +40,11 @@ from PIL import Image as PIL_Image
 from PIL import ImageDraw, ImageFont
 from tensorflow.keras.models import load_model
 
+from fissure.utils.selected_node_utils import (
+    selected_node_is_local,
+    selected_node_is_remote,
+)
+
 
 @QtCore.pyqtSlot(QtCore.QObject)
 def _slotTSI_DetectorChanged(dashboard: QtCore.QObject):
@@ -409,7 +414,7 @@ def _slotTSI_DetectorFixedChanged(dashboard: QtCore.QObject):
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("5e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("2e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("1e6")
-        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentIndex(0)
+        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentText("1e6")
         dashboard.ui.spinBox_tsi_detector_fixed_threshold.setValue(0)
         if get_gain:
             dashboard.ui.spinBox_tsi_detector_fixed_gain.setMaximum(get_gain[1])
@@ -447,7 +452,7 @@ def _slotTSI_DetectorFixedChanged(dashboard: QtCore.QObject):
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("5e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("2e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("1e6")
-        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentIndex(0)
+        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentText("1e6")
         dashboard.ui.spinBox_tsi_detector_fixed_threshold.setValue(0)
         if get_gain:
             dashboard.ui.spinBox_tsi_detector_fixed_gain.setMaximum(get_gain[1])
@@ -471,7 +476,7 @@ def _slotTSI_DetectorFixedChanged(dashboard: QtCore.QObject):
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("5e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("2e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("1e6")
-        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentIndex(0)
+        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentText("1e6")
         dashboard.ui.spinBox_tsi_detector_fixed_threshold.setValue(0)
         if get_gain:
             dashboard.ui.spinBox_tsi_detector_fixed_gain.setMaximum(get_gain[1])
@@ -495,7 +500,7 @@ def _slotTSI_DetectorFixedChanged(dashboard: QtCore.QObject):
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("5e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("2e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("1e6")
-        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentIndex(0)
+        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentText("1e6")
         dashboard.ui.spinBox_tsi_detector_fixed_threshold.setValue(0)
         if get_gain:
             dashboard.ui.spinBox_tsi_detector_fixed_gain.setMaximum(get_gain[1])
@@ -548,7 +553,7 @@ def _slotTSI_DetectorFixedChanged(dashboard: QtCore.QObject):
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("5e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("2e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("1e6")
-        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentIndex(0)
+        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentText("1e6")
         dashboard.ui.spinBox_tsi_detector_fixed_threshold.setValue(0)
         if get_gain:
             dashboard.ui.spinBox_tsi_detector_fixed_gain.setMaximum(get_gain[1])
@@ -572,7 +577,7 @@ def _slotTSI_DetectorFixedChanged(dashboard: QtCore.QObject):
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("5e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("2e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("1e6")
-        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentIndex(0)
+        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentText("1e6")
         dashboard.ui.spinBox_tsi_detector_fixed_threshold.setValue(0)
         if get_gain:
             dashboard.ui.spinBox_tsi_detector_fixed_gain.setMaximum(get_gain[1])
@@ -596,7 +601,7 @@ def _slotTSI_DetectorFixedChanged(dashboard: QtCore.QObject):
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("5e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("2e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("1e6")
-        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentIndex(0)
+        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentText("1e6")
         dashboard.ui.spinBox_tsi_detector_fixed_threshold.setValue(0)
         if get_gain:
             dashboard.ui.spinBox_tsi_detector_fixed_gain.setMaximum(get_gain[1])
@@ -620,7 +625,7 @@ def _slotTSI_DetectorFixedChanged(dashboard: QtCore.QObject):
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("5e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("2e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("1e6")
-        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentIndex(0)
+        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentText("1e6")
         dashboard.ui.spinBox_tsi_detector_fixed_threshold.setValue(0)
         if get_gain:
             dashboard.ui.spinBox_tsi_detector_fixed_gain.setMaximum(get_gain[1])
@@ -644,7 +649,7 @@ def _slotTSI_DetectorFixedChanged(dashboard: QtCore.QObject):
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("5e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("2e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("1e6")
-        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentIndex(0)
+        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentText("1e6")
         dashboard.ui.spinBox_tsi_detector_fixed_threshold.setValue(0)
         if get_gain:
             dashboard.ui.spinBox_tsi_detector_fixed_gain.setMaximum(get_gain[1])
@@ -668,7 +673,7 @@ def _slotTSI_DetectorFixedChanged(dashboard: QtCore.QObject):
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("5e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("2e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("1e6")
-        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentIndex(0)
+        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentText("1e6")
         dashboard.ui.spinBox_tsi_detector_fixed_threshold.setValue(0)
         if get_gain:
             dashboard.ui.spinBox_tsi_detector_fixed_gain.setMaximum(get_gain[1])
@@ -807,7 +812,7 @@ def _slotTSI_DetectorFixedChanged(dashboard: QtCore.QObject):
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("5e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("2e6")
         dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.addItem("1e6")
-        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentIndex(0)
+        dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.setCurrentText("1e6")
         dashboard.ui.spinBox_tsi_detector_fixed_threshold.setValue(0)
         dashboard.ui.spinBox_tsi_detector_fixed_gain.setMaximum(10)
         dashboard.ui.spinBox_tsi_detector_fixed_gain.setMinimum(0)
@@ -3263,131 +3268,311 @@ def detectorPlotLoop(dashboard: QtCore.QObject):
         time.sleep(1)
 
 
+def _tsi_fixed_results_tables(dashboard: QtCore.QObject):
+    return [
+        dashboard.ui.tableWidget1_tsi_wideband,
+        dashboard.ui.tableWidget_tsi_conditioner_input_detector,
+    ]
+
+
+def _tsi_fixed_min_interval(dashboard: QtCore.QObject) -> float:
+    widget = getattr(
+        dashboard.ui,
+        "doubleSpinBox_tsi_detector_fixed_min_interval",
+        None,
+    )
+
+    if widget is None:
+        return 1.0
+
+    try:
+        return max(1.0, float(widget.value()))
+    except Exception:
+        return 1.0
+
+
+def _tsi_fixed_run_mode(dashboard: QtCore.QObject) -> str:
+    checkbox = getattr(dashboard.ui, "checkBox_tsi_detector_fixed_gui", None)
+
+    if selected_node_is_local(dashboard):
+        if checkbox is not None and checkbox.isChecked():
+            return "gui"
+
+    return "headless"
+
+
+def _tsi_fixed_set_running(dashboard: QtCore.QObject, node_uid: str):
+    dashboard.tsi_fixed_detector_running = True
+    dashboard.tsi_fixed_detector_node_uid = node_uid or ""
+    dashboard.tsi_fixed_detector_opid = ""
+    dashboard.tsi_fixed_detector_waiting_for_opid = True
+
+    for table in _tsi_fixed_results_tables(dashboard):
+        table.clearContents()
+        table.setRowCount(0)
+
+    dashboard.ui.label2_tsi_detector.setText("Detector - Running")
+    dashboard.ui.label2_tsi_detector.raise_()
+
+    dashboard.ui.pushButton_tsi_detector_fixed_start.setText("Stop")
+    dashboard.ui.frame_tsi_detector_fixed_settings1.setEnabled(False)
+    dashboard.ui.comboBox_tsi_detector_fixed_hardware.setEnabled(False)
+    dashboard.ui.comboBox_tsi_detector_fixed.setEnabled(False)
+
+
+def _tsi_fixed_set_stopped(dashboard: QtCore.QObject):
+    dashboard.tsi_fixed_detector_running = False
+    dashboard.tsi_fixed_detector_node_uid = ""
+    dashboard.tsi_fixed_detector_opid = ""
+    dashboard.tsi_fixed_detector_waiting_for_opid = False
+
+    dashboard.ui.label2_tsi_detector.setText("Detector - Not Running")
+    dashboard.ui.label2_tsi_detector.raise_()
+
+    dashboard.ui.pushButton_tsi_detector_fixed_start.setText("Start")
+    dashboard.ui.frame_tsi_detector_fixed_settings1.setEnabled(True)
+    dashboard.ui.comboBox_tsi_detector_fixed_hardware.setEnabled(True)
+    dashboard.ui.comboBox_tsi_detector_fixed.setEnabled(True)
+
+
+def append_tsi_fixed_detection_from_cot(
+    dashboard: QtCore.QObject,
+    cot_message: dict,
+):
+    if not getattr(dashboard, "tsi_fixed_detector_running", False):
+        return
+
+    if not cot_message:
+        return
+
+    if cot_message.get("kind") != "detection":
+        return
+
+    if cot_message.get("detection_detector") != "fixed_detection":
+        return
+
+    fixed_node_uid = getattr(dashboard, "tsi_fixed_detector_node_uid", "") or ""
+    detection_node_uid = cot_message.get("detection_node_uid") or ""
+
+    if fixed_node_uid and detection_node_uid and detection_node_uid != fixed_node_uid:
+        return
+
+    detection_opid = cot_message.get("detection_opid") or ""
+    fixed_opid = getattr(dashboard, "tsi_fixed_detector_opid", "") or ""
+
+    if not detection_opid:
+        return
+
+    if fixed_opid:
+        if detection_opid != fixed_opid:
+            return
+    else:
+        dashboard.tsi_fixed_detector_opid = detection_opid
+        dashboard.tsi_fixed_detector_waiting_for_opid = False
+
+    try:
+        frequency_hz = float(cot_message.get("detection_frequency_hz"))
+        frequency_mhz = frequency_hz / 1e6
+    except Exception:
+        return
+
+    try:
+        power_value = float(cot_message.get("detection_power_dbm"))
+    except Exception:
+        power_value = 0.0
+
+    try:
+        time_value = float(cot_message.get("detection_timestamp"))
+    except Exception:
+        time_value = time.time()
+
+    # Plot point on existing wideband detector plot.
+    try:
+        if dashboard.wideband_zoom == True:
+            labels = dashboard.matplotlib_widget.axes.get_xticklabels()
+
+            try:
+                start_freq = float(str(labels[0]).split("'")[1])
+                end_freq = float(str(labels[-1]).split("'")[1])
+            except Exception:
+                start_freq = 0
+                end_freq = 6000e6
+
+            plot_x = 600 * (frequency_mhz - start_freq) / (end_freq - start_freq)
+        else:
+            plot_x = frequency_mhz / 10
+
+        dashboard.matplotlib_widget.plotPoint(
+            plot_x,
+            11,
+            dashboard.matplotlib_widget.computeColormapValue(power_value),
+            5,
+            dashboard.wideband_data,
+        )
+    except Exception as e:
+        dashboard.logger.debug(f"Failed to plot TSI Fixed detection point: {e}")
+
+    get_time = time.strftime("%H:%M:%S", time.localtime(time_value))
+    time_obj = QtCore.QTime.fromString(get_time, "HH:mm:ss")
+
+    tables = [
+        dashboard.ui.tableWidget1_tsi_wideband,
+        dashboard.ui.tableWidget_tsi_conditioner_input_detector,
+    ]
+
+    for table in tables:
+        row = table.rowCount()
+        table.setRowCount(row + 1)
+
+        frequency_item = QtWidgets.QTableWidgetItem(str(frequency_mhz))
+        frequency_item.setTextAlignment(QtCore.Qt.AlignCenter)
+        frequency_item.setData(QtCore.Qt.UserRole, cot_message)
+        frequency_item.setData(QtCore.Qt.UserRole + 1, detection_opid)
+        table.setItem(row, 0, frequency_item)
+
+        power_item = QtWidgets.QTableWidgetItem(str(power_value))
+        power_item.setTextAlignment(QtCore.Qt.AlignCenter)
+        power_item.setData(QtCore.Qt.UserRole, cot_message)
+        power_item.setData(QtCore.Qt.UserRole + 1, detection_opid)
+        table.setItem(row, 1, power_item)
+
+        time_item = QtWidgets.QTableWidgetItem(get_time)
+        time_item.setTextAlignment(QtCore.Qt.AlignCenter)
+        time_item.setData(QtCore.Qt.UserRole, time_obj.msecsSinceStartOfDay())
+        time_item.setData(QtCore.Qt.UserRole + 1, detection_opid)
+        time_item.setData(QtCore.Qt.UserRole + 2, cot_message)
+        table.setItem(row, 2, time_item)
+
+        table.sortItems(2, order=QtCore.Qt.DescendingOrder)
+        table.resizeColumnsToContents()
+        table.resizeRowsToContents()
+        table.horizontalHeader().setStretchLastSection(False)
+        table.horizontalHeader().setStretchLastSection(True)
+
+
+def reconcile_tsi_fixed_detector_state(
+    dashboard: QtCore.QObject,
+    node_uid: str = "",
+    status: str = "",
+):
+    if not getattr(dashboard, "tsi_fixed_detector_running", False):
+        return
+
+    fixed_node_uid = getattr(dashboard, "tsi_fixed_detector_node_uid", "") or ""
+
+    if fixed_node_uid and node_uid and node_uid != fixed_node_uid:
+        return
+
+    status_l = str(status or "").strip().lower()
+
+    if status_l in (
+        "idle",
+        "stopped",
+        "complete",
+        "completed",
+        "failed",
+        "cancelled",
+        "canceled",
+        "unknown",
+    ):
+        _tsi_fixed_set_stopped(dashboard)
+
+
 @qasync.asyncSlot(QtCore.QObject)
 async def _slotTSI_DetectorFixedStartClicked(dashboard: QtCore.QObject):
-    """ 
-    Starts a TSI detector set to a tuned frequency.
-    """
-    # Turn off TSI Detector
+    uid = getattr(dashboard, "selected_node_uid", "") or ""
+
+    if not uid:
+        await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+            dashboard,
+            "Select a Sensor Node before starting the Fixed detector.",
+        )
+        return
+
     if dashboard.ui.pushButton_tsi_detector_fixed_start.text() == "Stop":
-        # Send the Message
-        await dashboard.backend.stopTSI_Detector(dashboard.selected_node_uid)
-        if dashboard.selected_node_uid:
-            # dashboard.statusbar_text[dashboard.selected_node_uid][1] = "Not Running"  # TODO
-            dashboard.refreshStatusBarText()
-        dashboard.ui.label2_tsi_detector.setText("Detector - Not Running")
-        dashboard.ui.label2_tsi_detector.raise_()
+        await dashboard.backend.tacticalNodeStop([uid])
+        _tsi_fixed_set_stopped(dashboard)
+        dashboard.refreshStatusBarText()
+        return
 
-        # Change the Button Text
-        dashboard.ui.pushButton_tsi_detector_fixed_start.setText("Start")
+    if dashboard.ui.pushButton_tsi_detector_fixed_start.text() != "Start":
+        return
 
-        # Enable the Advanced Options
-        dashboard.ui.frame_tsi_detector_fixed_settings1.setEnabled(True)
+    get_current_hardware = str(
+        dashboard.ui.comboBox_tsi_detector_fixed_hardware.currentText()
+    )
 
-        # Enable Combobox
-        dashboard.ui.comboBox_tsi_detector_fixed_hardware.setEnabled(True)
-        dashboard.ui.comboBox_tsi_detector_fixed.setEnabled(True)
+    (
+        get_hardware_type,
+        get_hardware_uid,
+        get_hardware_radio_name,
+        get_hardware_serial,
+        get_hardware_interface,
+        get_hardware_ip,
+        get_hardware_daughterboard,
+    ) = fissure.utils.hardware.hardwareDisplayNameLookup(
+        dashboard,
+        get_current_hardware,
+        "tsi",
+    )
 
-    # Turn on TSI Detector
-    elif dashboard.ui.pushButton_tsi_detector_fixed_start.text() == "Start":
-        # Get Sensor Node IP Address
-        get_sensor_node_ip = dashboard.selected_node_ip
-        
-        # Sensor Node Hardware Information
-        get_current_hardware = str(dashboard.ui.comboBox_tsi_detector_fixed_hardware.currentText())
-        get_hardware_type, get_hardware_uid, get_hardware_radio_name, get_hardware_serial, get_hardware_interface, get_hardware_ip, get_hardware_daughterboard = fissure.utils.hardware.hardwareDisplayNameLookup(dashboard, get_current_hardware, 'tsi')
+    get_detector = str(dashboard.ui.comboBox_tsi_detector_fixed.currentText())
 
-        # Get Detector
-        get_detector = str(dashboard.ui.comboBox_tsi_detector_fixed.currentText())
+    if (
+        len(get_hardware_ip) == 0
+        and len(get_hardware_serial) == 0
+        and (
+            "x3x0" in get_detector
+            or "b2x0" in get_detector
+            or "x410" in get_detector
+        )
+    ):
+        await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+            dashboard,
+            "Fill out the IP address or serial number by clicking the TSI hardware button.",
+        )
+        return
 
-        # No Hardware Selected
-        if len(get_hardware_ip) == 0 and len(get_hardware_serial) == 0 \
-            and (('x3x0' in get_detector) or ('b2x0' in get_detector) or ('x410' in get_detector)):
+    try:
+        freq_mhz = float(
+            dashboard.ui.textEdit_tsi_detector_fixed_frequency.toPlainText()
+        )
+    except Exception:
+        await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
+            dashboard,
+            "Enter a valid Fixed detector frequency in MHz.",
+        )
+        return
 
-            error_text = " Fill out the IP address or serial number by clicking the TSI hardware button."
+    try:
+        sample_rate = float(
+            dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.currentText()
+        )
+    except Exception:
+        sample_rate = 1000000.0
 
-            # Create a Dialog Window
-            # msgBox = MyMessageBox(my_text = error_text, height = 100, width = 510)
-            # msgBox.exec_()
-            ret = await fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(dashboard, error_text)
-            return
+    parameters = {
+        "freq_mhz": freq_mhz,
+        "sample_rate": sample_rate,
+        "threshold": float(dashboard.ui.spinBox_tsi_detector_fixed_threshold.value()),
+        "gain": float(dashboard.ui.spinBox_tsi_detector_fixed_gain.value()),
+        "channel": str(dashboard.ui.comboBox_tsi_detector_fixed_channel.currentText()),
+        "antenna": str(dashboard.ui.comboBox_tsi_detector_fixed_antenna.currentText()),
+        "min_detection_interval_s": _tsi_fixed_min_interval(dashboard),
+        "description": "Fixed detector workbench",
+        "run_mode": _tsi_fixed_run_mode(dashboard),
+    }
 
-        # Valid Hardware
-        else:
-            # Get Variable Names and Values
-            variable_names = ['rx-freq-default','sample-rate-default', 'threshold-default', 'gain-default','channel-default','antenna-default']
-            get_frequency = str(dashboard.ui.textEdit_tsi_detector_fixed_frequency.toPlainText())
-            get_sample_rate = str(dashboard.ui.comboBox_tsi_detector_fixed_sample_rate.currentText())
-            get_threshold = str(dashboard.ui.spinBox_tsi_detector_fixed_threshold.value())
-            get_gain = str(dashboard.ui.spinBox_tsi_detector_fixed_gain.value())
-            get_channel = str(dashboard.ui.comboBox_tsi_detector_fixed_channel.currentText())
-            get_antenna = str(dashboard.ui.comboBox_tsi_detector_fixed_antenna.currentText())
-            variable_values = [get_frequency, get_sample_rate, get_threshold, get_gain, get_channel, get_antenna]
-            detector_port = dashboard.backend.settings["tsi_pub_port_id"]
+    _tsi_fixed_set_running(dashboard, uid)
 
-            # Hardware IP Address
-            variable_names.append('ip-address')
-            variable_values.append(get_hardware_ip)
-            
-            # # Sensor Node IP Address
-            # variable_names.append('sensor-node-ip-address')
-            # variable_values.append(get_sensor_node_ip)
+    await dashboard.backend.tacticalNodeExecute(
+        [uid],
+        "Base",
+        "fixed_detection",
+        parameters,
+    )
 
-            # Hardware Serial
-            if len(get_hardware_serial) > 0:
-                if get_hardware_type == "HackRF":
-                    get_serial = get_hardware_serial
-                elif get_hardware_type == "bladeRF":
-                    get_serial = get_hardware_serial
-                elif get_hardware_type == "bladeRF 2.0":
-                    get_serial = get_hardware_serial
-                elif get_hardware_type == "RSPduo":
-                        get_serial = get_hardware_serial
-                elif get_hardware_type == "RSPdx":
-                    get_serial = get_hardware_serial
-                elif get_hardware_type == "RSPdx R2":
-                    get_serial = get_hardware_serial
-                else:
-                    get_serial = 'serial=' + get_hardware_serial
-            else:
-                if get_hardware_type == "HackRF":
-                    get_serial = ""
-                elif get_hardware_type == "bladeRF":
-                    get_serial = "0"
-                elif get_hardware_type == "bladeRF 2.0":
-                    get_serial = "0"
-                elif get_hardware_type == "RSPduo":
-                        get_serial = "0"
-                elif get_hardware_type == "RSPdx":
-                    get_serial = "0"
-                elif get_hardware_type == "RSPdx R2":
-                    get_serial = "0"
-                else:
-                    get_serial = "False"
-            variable_names.append('serial')
-            variable_values.append(get_serial)
-
-        # Disable Combobox
-        dashboard.ui.comboBox_tsi_detector_fixed_hardware.setEnabled(False)
-        dashboard.ui.comboBox_tsi_detector_fixed.setEnabled(False)
-
-        # Send the Message
-        await dashboard.backend.startTSI_Detector(dashboard.selected_node_uid, get_detector, variable_names, variable_values, detector_port)
-        if dashboard.selected_node_uid:
-            # dashboard.statusbar_text[dashboard.selected_node_uid][1] = "Running TSI"  #TODO
-            dashboard.refreshStatusBarText()
-        dashboard.ui.label2_tsi_detector.setText("Detector - Running")
-        dashboard.ui.label2_tsi_detector.raise_()
-
-        # Change the Button Text
-        dashboard.ui.pushButton_tsi_detector_fixed_start.setText("Stop")
-
-        # Disable the Advanced Options
-        dashboard.ui.frame_tsi_detector_fixed_settings1.setEnabled(False)
-
-        # Start Plotting
-        loop = asyncio.get_event_loop()
-        loop.run_in_executor(None, detectorPlotLoop, dashboard)
+    dashboard.refreshStatusBarText()
 
 
 @qasync.asyncSlot(QtCore.QObject)

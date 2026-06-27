@@ -2383,7 +2383,7 @@ def _slotIQ_RenameClicked(dashboard: QtCore.QObject):
 
     # Ok Clicked
     if ok:
-        os.rename(get_file_path, os.path.join(str(dashboard.ui.label_iq_folder.text(), text)))
+        os.rename(get_file_path, os.path.join(str(dashboard.ui.label_iq_folder.text()), text))
         _slotIQ_RefreshClicked(dashboard)
 
 

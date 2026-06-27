@@ -13,17 +13,19 @@ from typing import Any, Callable, Dict, Optional, Union
 
 PLUGIN_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 FISSURE_ROOT = os.path.abspath(os.path.join(PLUGIN_ROOT, "..", ".."))
-FLOW_GRAPH_DIR = os.path.join(
+
+FLOW_GRAPH_BASE_DIR = os.path.join(
     PLUGIN_ROOT,
     "flow_graphs",
     "lfm_beacon_detection_flow_graphs",
 )
 
-for path in (FISSURE_ROOT, PLUGIN_ROOT, FLOW_GRAPH_DIR):
+for path in (FISSURE_ROOT, PLUGIN_ROOT):
     if path not in sys.path:
         sys.path.insert(0, path)
 
 from fissure.utils.plugins.operations import Operation
+from fissure.utils import get_library_version
 
 
 class OperationMain(Operation):
@@ -109,6 +111,20 @@ class OperationMain(Operation):
     @staticmethod
     def get_resources(freq_mhz: float = 433.0) -> Dict[str, Any]:
         return {}
+
+    def _resolve_flow_graph_path(self) -> str:
+        version = get_library_version() or "maint-3.10"
+
+        script_path = os.path.join(
+            FLOW_GRAPH_BASE_DIR,
+            version,
+            "lfm_beacon_rtlsdr.py",
+        )
+
+        if not os.path.isfile(script_path):
+            raise FileNotFoundError(f"LFM beacon flow graph not found: {script_path}")
+
+        return script_path
 
     async def _gps_loop(self) -> None:
         self.logger.info("Starting GPS loop: GPSD")
@@ -275,13 +291,8 @@ class OperationMain(Operation):
 
         configured_freq_hz = self.freq_mhz * 1_000_000.0
 
-        script_path = os.path.join(
-            FLOW_GRAPH_DIR,
-            "lfm_beacon_rtlsdr.py",
-        )
-
-        if not os.path.isfile(script_path):
-            raise FileNotFoundError(f"LFM beacon flow graph not found: {script_path}")
+        script_path = self._resolve_flow_graph_path()
+        flow_graph_dir = os.path.dirname(script_path)
 
         cmd = [
             sys.executable,
@@ -291,13 +302,14 @@ class OperationMain(Operation):
             str(configured_freq_hz),
         ]
 
+        self.logger.info(f"Using LFM beacon flow graph: {script_path}")
         self.logger.info(f"Starting LFM beacon flow graph: {' '.join(cmd)}")
 
         gps_task = asyncio.create_task(self._gps_loop())
 
         process = await asyncio.create_subprocess_exec(
             *cmd,
-            cwd=FLOW_GRAPH_DIR,
+            cwd=flow_graph_dir,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )

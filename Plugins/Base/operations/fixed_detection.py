@@ -12,17 +12,19 @@ from typing import Any, Callable, Dict, Union
 
 PLUGIN_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 FISSURE_ROOT = os.path.abspath(os.path.join(PLUGIN_ROOT, "..", ".."))
-FLOW_GRAPH_DIR = os.path.join(
+
+FLOW_GRAPH_BASE_DIR = os.path.join(
     PLUGIN_ROOT,
     "flow_graphs",
     "fixed_detection_flow_graphs",
 )
 
-for path in (FISSURE_ROOT, PLUGIN_ROOT, FLOW_GRAPH_DIR):
+for path in (FISSURE_ROOT, PLUGIN_ROOT):
     if path not in sys.path:
         sys.path.insert(0, path)
 
 from fissure.utils.plugins.operations import Operation
+from fissure.utils import get_library_version
 
 
 class OperationMain(Operation):
@@ -32,6 +34,12 @@ class OperationMain(Operation):
         self,
         freq_mhz: float = 915.0,
         min_detection_interval_s: float = 10.0,
+        run_mode: str = "headless",
+        sample_rate: float = 1000000.0,
+        threshold: float = -60.0,
+        gain: float = 65.0,
+        channel: str = "A:A",
+        antenna: str = "TX/RX",
         description: str = "Fixed detection",
         node_uid: str = "",
         logger: logging.Logger = logging.getLogger(__name__),
@@ -47,6 +55,14 @@ class OperationMain(Operation):
 
         self.freq_mhz = float(freq_mhz)
         self.min_detection_interval_s = float(min_detection_interval_s)
+        self.run_mode = str(run_mode or "headless").strip().lower()
+        if self.run_mode not in {"headless", "gui"}:
+            self.run_mode = "headless"
+        self.sample_rate = float(sample_rate)
+        self.threshold = float(threshold)
+        self.gain = float(gain)
+        self.channel = str(channel or "A:A")
+        self.antenna = str(antenna or "TX/RX")
         self.description = description or "Fixed detection"
 
         self.resource_args = {
@@ -54,7 +70,14 @@ class OperationMain(Operation):
         }
 
         self.logger.info(
-            f"fixed_detection init params: freq_mhz={self.freq_mhz}, "
+            f"fixed_detection init params: "
+            f"freq_mhz={self.freq_mhz}, "
+            f"run_mode={self.run_mode}, "
+            f"sample_rate={self.sample_rate}, "
+            f"threshold={self.threshold}, "
+            f"gain={self.gain}, "
+            f"channel={self.channel}, "
+            f"antenna={self.antenna}, "
             f"min_detection_interval_s={self.min_detection_interval_s}, "
             f"description={self.description}"
         )
@@ -65,23 +88,40 @@ class OperationMain(Operation):
     ) -> Dict[str, Any]:
         return {}
 
+    def _resolve_flow_graph_path(self) -> str:
+        version = get_library_version() or "maint-3.10"
+
+        script_path = os.path.join(
+            FLOW_GRAPH_BASE_DIR,
+            version,
+            "b2x0",
+            self.run_mode,
+            "fixed_threshold_b2x0.py",
+        )
+
+        if not os.path.isfile(script_path):
+            raise FileNotFoundError(
+                f"Fixed detection flow graph not found: {script_path}"
+            )
+
+        return script_path
+
     async def run(self) -> None:
         """Run the Fixed Detection operation."""
 
-        alert_interval_s = self.min_detection_interval_s
+        alert_interval_s = float(self.min_detection_interval_s)
         last_alert_time = 0.0
         cb_timeout_s = 2.0
 
         configured_freq_hz = self.freq_mhz * 1_000_000.0
 
-        script_path = os.path.join(
-            FLOW_GRAPH_DIR,
-            "fixed_threshold_b2x0.py",
-        )
-
-        if not os.path.isfile(script_path):
-            self.logger.error(f"Fixed detection flow graph not found: {script_path}")
+        try:
+            script_path = self._resolve_flow_graph_path()
+        except FileNotFoundError as exc:
+            self.logger.error(str(exc))
             return
+
+        flow_graph_dir = os.path.dirname(script_path)
 
         cmd = [
             sys.executable,
@@ -89,13 +129,26 @@ class OperationMain(Operation):
             script_path,
             "--rx-freq-default",
             str(configured_freq_hz),
+            "--sample-rate-default",
+            str(self.sample_rate),
+            "--threshold-default",
+            str(self.threshold),
+            "--gain-default",
+            str(self.gain),
+            "--channel-default",
+            str(self.channel),
+            "--antenna-default",
+            str(self.antenna),
+            "--min-interval",
+            str(self.min_detection_interval_s),
         ]
 
+        self.logger.info(f"Using fixed detection flow graph: {script_path}")
         self.logger.info(f"Starting fixed detection flow graph: {' '.join(cmd)}")
 
         process = await asyncio.create_subprocess_exec(
             *cmd,
-            cwd=FLOW_GRAPH_DIR,
+            cwd=flow_graph_dir,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
@@ -164,7 +217,7 @@ class OperationMain(Operation):
                     continue
 
                 last_alert_time = now
-                ts = time.time()
+                ts = now
 
                 detection = {
                     "kind": "detection",

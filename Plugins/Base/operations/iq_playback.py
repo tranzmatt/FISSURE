@@ -55,7 +55,6 @@ class OperationMain(Operation):
         hardware_ip: str = "",
         hardware_daughterboard: str = "",
 
-        frequency_mhz: Union[str, float] = 915.0,
         tx_frequency: Union[str, float] = 915.0,
         tx_channel: str = "A:A",
         tx_antenna: str = "TX/RX",
@@ -101,8 +100,7 @@ class OperationMain(Operation):
         self.hardware_ip = str(hardware_ip or "").strip()
         self.hardware_daughterboard = str(hardware_daughterboard or "").strip()
 
-        self.frequency_mhz = self._float(frequency_mhz, self._float(tx_frequency, 915.0))
-        self.tx_frequency = self._float(tx_frequency, self.frequency_mhz)
+        self.tx_frequency = self._float(tx_frequency, 915)
         self.tx_channel = str(tx_channel or "A:A").strip()
         self.tx_antenna = str(tx_antenna or "TX/RX").strip()
         self.tx_gain = self._float(tx_gain, 70.0)

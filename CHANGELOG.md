@@ -1,6 +1,81 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2026-6-27
+
+Migrate fixed detector tab to plugin action workflow.
+
+### Added
+
+- Added .gitkeep to plugin hardware folders for iq_record and iq_playback.
+- Added Fixed detector selected-node action launch support from the TSI tab.
+- Added Fixed detector GUI/headless run mode selection for local nodes.
+- Added throttled Fixed detector embedded-block detection output.
+- Added Fixed detector result population for frequency, power, and time in the detector and conditioner tables.
+- Added Fixed detector operation state tracking using operation IDs.
+
+### Changed
+
+- Removed Automation tab from TSI tab.
+- Updated Fixed detector workflow to use Base fixed_detection plugin actions instead of the legacy detector launch path.
+- Updated Fixed detector B2x0 flow graph layout under maint-3.8 b2x0 headless/gui folders.
+- Changed Fixed detector default sample rate to 1 MSps.
+- Changed Fixed detector minimum detection interval default to 1 second.
+- Updated Fixed detector operation parameter handling for sample rate, threshold, gain, channel, antenna, run mode, and minimum interval.
+- Updated Fixed detector detections to flow through normalized detection/CoT handling while still appearing in Tactical.
+
+### Fixed
+
+- Removed extra files in Plugins folder.
+- Fixed counts for Alerts, Exploits, and Reports in Sensor Nodes tab.
+- Fixed Fixed detector GUI/headless detection flooding by adding embedded-block and operation-level throttling.
+- Fixed local node mode reporting so local-only GUI Fixed detector controls can be enabled correctly.
+
+## 2026-6-26
+
+Fixing installer style sheet bugs.
+
+### Changed
+
+- Updated Contributions section in the README
+- Moved idea_list.md to ./docs/gsoc/2023_project_ideas.md
+- Moved Base plugin detection flow graphs into GNU Radio version-specific `maint-3.8` and `maint-3.10` folders.
+- Updated Base fixed detection, LFM beacon detection, and LFM beacon geolocation operations to resolve flow graph paths using the active GNU Radio maint version.
+
+### Fixed
+
+- Fixed missing installer operating system radio buttons after icon assets were moved from `docs/Icons` to `UI/Icons`.
+- Updated plugin flow graph compilation to skip GNU Radio version-specific `maint-*` folders that do not match the installer target.
+
+## 2026-6-25
+
+Add Tactical SOI, target, and artifact row controls with artifact refresh and compact metadata styling.
+
+### Added
+
+- Added Node SOI row deletion and clear-row controls for removing local SOI table records and associated map pins.
+- Added Node Targets row cleanup controls: delete row, clear rows, and keep selected.
+- Added Node Targets refresh behavior to preserve the current shortlist when rows are already displayed.
+- Added Node Targets refresh selection handling to restore the previous target selection or select the first row after a full reload.
+- Added Node Artifacts refresh control to reload known artifact metadata for the selected node from the HIPRFISR artifact registry.
+- Added Node Artifacts delete-row and clear-row controls for pruning the local Dashboard artifact view without deleting artifact files or registry entries.
+
+### Changed
+
+- Updated Node Targets to behave as a per-node working shortlist derived from the global Targets table.
+- Updated Node Targets refresh to recalculate only currently displayed targets unless the table is empty.
+- Updated Node Targets row cleanup to affect only the Node > Targets table, not the main Targets tab or global target records.
+- Updated Tactical button enable/disable handling to include the new SOI and Node Targets row-management controls.
+- Updated Node Artifacts refresh handling to repopulate locally cleared artifact rows from hub-tracked metadata.
+- Updated Tactical button enable/disable handling to include the new Node Artifacts refresh and row-management controls.
+- Updated Tactical Node tab and Targets tab detail panels with more compact, consistently spaced metadata text for better readability in the right-side Tactical panel.
+- Removed old poetry.lock file
+
+### Fixed
+
+- Fixed IQ rename button string handling error
+- Removed duplicate frequency parameter from the iq_playback action schema
+
 ## 2026-6-24
 
 IQ Data plugin workflow and plugin folder cleanup.

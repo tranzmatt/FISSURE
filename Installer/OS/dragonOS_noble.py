@@ -2373,8 +2373,12 @@ find . -name '*.grc' -exec grcc {} \;
 # Plugin Flow Graphs
 programs_dragonOS_noble.append(('Plugin Flow Graphs',
 """cd """ + fissure_directory + """/Plugins/
-find . -name '*.grc' -exec grcc {} \;
-""",True,'Compile Flow Graphs'))
+
+# Compile all plugin flow graphs except GNU Radio 3.8-specific flow graphs.
+find . -name '*.grc' \\
+    -not -path '*/maint-3.8/*' \\
+    -exec grcc {} \\;
+""", True, 'Compile Flow Graphs'))
 
 # PD Flow Graphs
 programs_dragonOS_noble.append(('PD Flow Graphs',

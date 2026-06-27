@@ -200,12 +200,19 @@ class SensorNode(object):
         # self.hiprfisr_connected = False
         self.hiprfisr_seen = False
         self.local_remote = "local" if local_flag else "remote"
-        
 
         self.os_info = fissure.utils.get_os_info()
         filename = os.path.join(fissure.utils.YAML_DIR, "Sensor_Node_Config", "default.yaml")
         with open(filename) as yaml_library_file:
             self.settings_dict = yaml.load(yaml_library_file, yaml.FullLoader)
+
+        # Dashboard selected-node state, and GUI gating consistent with --local.
+        self.settings_dict["Sensor Node"]["local_remote"] = self.local_remote
+
+        if self.local_remote == "local":
+            self.settings_dict["Sensor Node"]["network_type"] = "IP"
+            self.settings_dict["Sensor Node"]["node_ip_address"] = "ipc"
+            self.settings_dict["Sensor Node"]["nickname"] = "Local Sensor Node"
 
         self.update_ip_address_settings()
         
@@ -325,6 +332,7 @@ class SensorNode(object):
             asyncio.create_task(self._notify_hiprfisr_of_artifact(artifact_id))
             return artifact_id
         self.artifact_manager.create_artifact = create_artifact_wrapper
+
 
     async def initialize_comms(self):
         if self.network_type == "IP":
@@ -1450,9 +1458,6 @@ class SensorNode(object):
 
                 if self.network_type == "IP":
                     await self.read_hiprfisr_messages()
-
-                    if self.tsi_detector_socket:
-                        await self.read_detector_messages()
 
                     if self.pd_bits_socket:
                         await self.read_pd_bits_messages()
@@ -3517,43 +3522,6 @@ class SensorNode(object):
             #asyncio.run(self.flowGraphFinished("Inspection"))
             asyncio.run(self.flowGraphError(str(e)))
             #~ #raise e    
-    
-
-    async def read_detector_messages(self):
-        """
-        Reads messages on the Detector ZMQ SUB and forwards them to the HIRPFISR/Dashboard
-        """
-        poller = zmq.Poller()
-        poller.register(self.tsi_detector_socket, zmq.POLLIN)
-
-        socks = dict(poller.poll(timeout=0))  # Set timeout to 0 for non-blocking poll
-
-        if self.tsi_detector_socket in socks and socks[self.tsi_detector_socket] == zmq.POLLIN:
-            while True:
-                try:
-                    # Receive a message
-                    message = self.tsi_detector_socket.recv_string(flags=zmq.NOBLOCK)
-                    # message = json.loads(message_json)
-                    # print("Received:", message)
-                    
-                    # Parse the Message
-                    split_message = message.split('/')
-                    frequency_value = int(float(split_message[2]))  # Python must go str>float>int with decimals
-                    power_value = int(float(split_message[3]))
-                    time_value = float(split_message[4])
-
-                    # Send the Message
-                    PARAMETERS = {"frequency_value": frequency_value, "power_value": power_value, "time_value": time_value}
-                    msg = {
-                                fissure.comms.MessageFields.IDENTIFIER: self.identifier,
-                                fissure.comms.MessageFields.MESSAGE_NAME: "detectorReturn",
-                                fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-                    }
-                    await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
-
-                except zmq.Again:
-                    # No more messages are available
-                    break
 
     
     #######################  Autorun Playlists  ##########################

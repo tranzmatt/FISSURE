@@ -577,16 +577,11 @@ Access the challenges at: [FISSURE Challenge](https://fissure.ainfosec.com/)
 
 ## Contributing
 
-Suggestions for improving FISSURE are strongly encouraged. Leave a comment in the [Discussions](https://github.com/ainfosec/FISSURE/discussions) page or in the Discord Server if you have any thoughts regarding the following:
-- New feature suggestions and design changes
-- Software tools with installation steps
-- New lessons or additional material for existing lessons
-- RF protocols of interest
-- More hardware and SDR types for integration
-- IQ analysis scripts in Python
-- Installation corrections and improvements
+Suggestions for improving FISSURE are strongly encouraged. Good contribution areas include new features, installation fixes, RF protocols, hardware/SDR support, third-party tools, GNU Radio flow graphs, Python analysis scripts, plugin actions, lessons, tutorials, and documentation corrections.
 
-Contributions to improve FISSURE are crucial to expediting its development. Any contributions you make are greatly appreciated. If you wish to contribute through code development, please fork the repo and create a pull request:
+The best place to start is the [Discussions](https://github.com/ainfosec/FISSURE/discussions) page, the Discord Server, email, or a focused [Issue](https://github.com/ainfosec/FISSURE/issues).
+
+Code contributions are greatly appreciated:
 
 1. Fork the project
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -594,11 +589,13 @@ Contributions to improve FISSURE are crucial to expediting its development. Any 
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a pull request
 
-Creating [Issues](https://github.com/ainfosec/FISSURE/issues) to bring attention to bugs is also welcomed.
+Need more specific ideas? Check out our roadmap and running list of potential [to-do items](./TODO.md).
 
-Need more specific ideas? There are a lot of topics we have yet to investigate. Check out our running list of potential [to-do items](./TODO.md). Any help is appreciated. Pick an easy one and write that you contributed to FISSURE in your resume/CV.
+### Student Projects and Classroom Use
 
-Are you a student or looking to learn more about RF and programming or an organization looking to expose students to the world of open source? Reach out today and refer to the [2023 Project Idea List](./idea_list.md).
+FISSURE is a good fit for senior projects, undergraduate research, graduate research, RF/cybersecurity courses, and open-source software assignments. Student teams can work on SDR hardware integration, RF protocol analysis, signal detection, IQ analysis, plugins, lessons, visualization, TAK integration, or documentation.
+
+Students, instructors, research groups, and organizations interested in using FISSURE for hands-on RF and reverse engineering projects are encouraged to reach out.
 
 ## Commercial Support and Collaboration
 

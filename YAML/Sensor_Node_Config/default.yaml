@@ -21,6 +21,13 @@ Sensor Node:
                wifi_adapter: 1
           sdrs:
                0:
+                    radio_name: 'USRP B210'
+                    type: 'USRP B2x0'
+                    serial: '1E2DA03'
+                    daughterboard: ''
+                    ip_address: ''
+                    network_interface: ''
+               1:
                     radio_name: 'USRP B205mini'
                     type: 'USRP B20xmini'
                     serial: ''
