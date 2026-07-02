@@ -2,26 +2,6 @@ import threading
 import asyncio
 
 
-async def addBlacklist(component: object, start_frequency=0, end_frequency=0):
-    """
-    Specifies a frequency range to not perform TSI on.
-    """
-    # Add to Blacklist
-    component.blacklist.append((float(start_frequency), float(end_frequency)))
-
-
-async def removeBlacklist(component: object, start_frequency=0, end_frequency=0):
-    """
-    Removes an existing blacklisted frequency range for TSI.
-    """
-    remove_tuple = (float(start_frequency), float(end_frequency))
-
-    # Remove from List
-    for t in component.blacklist:
-        if t == remove_tuple:
-            component.blacklist.remove(t)
-
-
 async def startTSI_Conditioner(
     component: object,
     common_parameter_names=[],

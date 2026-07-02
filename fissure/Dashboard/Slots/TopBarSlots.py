@@ -109,7 +109,25 @@ async def stopLocalSensorNode(dashboard: QtCore.QObject, remove_from_hiprfisr: b
             if node_uid:
                 await dashboard.backend.removeNode(node_uid=node_uid)
 
-                if getattr(dashboard, "selected_node_uid", None) == node_uid:
+                selected_uid = getattr(dashboard, "selected_node_uid", "") or ""
+                selected_settings = getattr(dashboard, "selected_node_settings", {}) or {}
+                sensor_settings = selected_settings.get("Sensor Node", {}) or {}
+
+                selected_is_removed_node = (
+                    selected_uid == node_uid
+                    or selected_uid.endswith(node_uid)
+                    or node_uid.endswith(selected_uid)
+                    or selected_uid in node_uid
+                    or node_uid in selected_uid
+                )
+
+                selected_is_local = (
+                    str(sensor_settings.get("local_remote", "")).strip().lower() == "local"
+                    or str(sensor_settings.get("node_ip_address", "")).strip().lower() == "ipc"
+                    or str(getattr(dashboard, "selected_node_ip", "") or "").strip().lower() == "ipc"
+                )
+
+                if selected_is_removed_node or selected_is_local:
                     clearSelectedNode(dashboard)
 
         except FileNotFoundError:
@@ -168,15 +186,26 @@ def _topFrameReleased(dashboard, frame: QtWidgets.QFrame, event: QtCore.QEvent, 
 def clearSelectedNode(dashboard: QtCore.QObject):
     """
     Clear the currently selected sensor node in the Dashboard UI.
+
+    This is the central selected-node cleanup path. It clears the top-bar
+    selected-node state, resets the selected-node card, and then refreshes
+    hardware-dependent widgets through configureSelectedNodeHardware().
+
+    TSI Fixed stacked-widget behavior is intentionally not handled directly
+    here. It is owned by:
+
+        configureSelectedNodeHardware()
+            -> configureTSI_Hardware()
+                -> TSITabSlots.update_tsi_fixed_detector_node_gate()
     """
-    dashboard.selected_node_uid = None
-    dashboard.selected_node_ip = None
+    dashboard.selected_node_uid = ""
+    dashboard.selected_node_ip = ""
     dashboard.selected_node_settings = {}
 
-    # Show "No Node Selected" page
+    # Show "No Node Selected" page in the top-bar selected-node card.
     dashboard.ui.stackedWidget_top_configure_node.setCurrentIndex(0)
 
-    # Update selected-node card styling
+    # Reset selected-node card styling.
     frame = dashboard.ui.frame_top_configure_node
     frame.setProperty("selected", "false")
     frame.setProperty("connected", "false")
@@ -184,3 +213,13 @@ def clearSelectedNode(dashboard: QtCore.QObject):
     frame.style().unpolish(frame)
     frame.style().polish(frame)
     frame.update()
+
+    # Refresh all selected-node-dependent hardware widgets.
+    # This includes the TSI Fixed no-node stacked-widget gate through
+    # configureTSI_Hardware().
+    try:
+        dashboard.configureSelectedNodeHardware()
+    except Exception as e:
+        dashboard.logger.debug(
+            f"Could not refresh selected-node hardware after clearing selected node: {e}"
+        )
