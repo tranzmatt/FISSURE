@@ -3,18 +3,19 @@ from inspect import isfunction
 from PyQt5 import QtCore
 from types import ModuleType
 from typing import Dict, List, Tuple
-
 import asyncio
-import fissure.comms
-import fissure.utils
-from fissure.utils import PLUGIN_DIR
-# from fissure.utils.plugin import modify_database
 import logging
 import multiprocessing
 import time
 import zmq
 import signal
 import uuid
+
+import fissure.comms
+import fissure.utils
+from fissure.utils import PLUGIN_DIR
+# from fissure.utils.plugin import modify_database
+from fissure.Dashboard.ArtifactTransferController import ArtifactTransferController
 
 EVENT_LOOP_DELAY = 0.1  # Seconds
 
@@ -83,6 +84,7 @@ class DashboardBackend:
 
         self.ip_address = fissure.utils.get_ip_address()
         self.hiprfisr_socket = None
+        self.artifact_transfer_client = None
         # self.initialize_comms()
         self.os_info = fissure.utils.get_os_info()
 
@@ -117,6 +119,8 @@ class DashboardBackend:
         self.initial_database_retrieval = True
 
         self.frontend = frontend
+
+        self.artifact_transfer_controller = ArtifactTransferController(self)
 
         # Register Callbacks
         self.register_callbacks(fissure.callbacks.GenericCallbacks)
@@ -155,6 +159,14 @@ class DashboardBackend:
                 await self.shutdown_hiprfisr()
             else:
                 await self.disconnect_from_hiprfisr()
+
+        artifact_client = self.artifact_transfer_client
+        if artifact_client is not None:
+            try:
+                artifact_client.close()
+            except Exception:
+                pass
+        self.artifact_transfer_client = None
 
         # SAFE SHUTDOWN (avoid NoneType crash)
         sock = self.hiprfisr_socket
@@ -461,7 +473,10 @@ class DashboardBackend:
 
     async def connect_to_hiprfisr(self, addr: fissure.comms.Address = None):
         """
-        Connect Dashboard to a HiprFisr instance at the specified address
+        Connect Dashboard to a HiprFisr instance at the specified address.
+
+        The artifact client uses its own binary data socket so large transfers
+        never share the normal command or heartbeat channels.
 
         :param addr: address of the HiprFisr instance
         :type addr: fissure.comms.Address
@@ -470,6 +485,30 @@ class DashboardBackend:
         if await self.hiprfisr_socket.connect(server_addr=self.hiprfisr_address, timeout=15):  # Small timeout affects connection on startup
             self.logger.info(f"connected to HiprFisr @ {self.hiprfisr_address}")
             self.hiprfisr_connected = True
+
+            artifact_host = (
+                "127.0.0.1"
+                if self.hiprfisr_address.protocol == "ipc"
+                else self.hiprfisr_address.address
+            )
+            artifact_endpoint = fissure.comms.build_artifact_endpoint(artifact_host)
+
+            if self.artifact_transfer_client is not None:
+                self.artifact_transfer_client.close()
+
+            self.artifact_transfer_client = fissure.comms.ArtifactTransferClient(
+                endpoint=artifact_endpoint,
+                identity=f"dashboard-artifacts-{self.socket_id}",
+                role=fissure.comms.ROLE_DASHBOARD,
+                logger=self.logger,
+            )
+            await self.artifact_transfer_client.connect()
+
+            artifact_receive_task = asyncio.create_task(
+                self.artifact_transfer_controller.receive_loop()
+            )
+            artifact_receive_task.set_name("Dashboard Artifact Transfer Receiver")
+            self.child_tasks.append(artifact_receive_task)
 
             # Set Session Flag
             self.session_active = True
@@ -1114,52 +1153,6 @@ class DashboardBackend:
             msg = {
                     fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
                     fissure.comms.MessageFields.MESSAGE_NAME: "iqFlowGraphStop",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-            }
-            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
-
-
-    async def inspectionFlowGraphStart(
-        self, 
-        node_uid="", 
-        flow_graph_filepath="", 
-        variable_names=[], 
-        variable_values=[], 
-        file_type=""
-    ):
-        """
-        Command for starting an inspection flow graph.
-        """
-        # Send the Message
-        if self.hiprfisr_connected is True:
-            PARAMETERS = {
-                "node_uid": node_uid,
-                "flow_graph_filepath": flow_graph_filepath,
-                "variable_names": variable_names,
-                "variable_values": variable_values,
-                "file_type": file_type,
-            }
-            msg = {
-                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "inspectionFlowGraphStart",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-            }
-            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
-
-
-    async def inspectionFlowGraphStop(self, node_uid="", parameter=""):
-        """
-        Command for stopping an inspection flow graph.
-        """
-        # Send the Message
-        if self.hiprfisr_connected is True:
-            PARAMETERS = {
-                "node_uid": node_uid,
-                "parameter": parameter,
-            }
-            msg = {
-                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "inspectionFlowGraphStop",
                     fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
             }
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
@@ -2455,6 +2448,70 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
+    async def promoteDetection(
+        self,
+        detection,
+        destination,
+    ):
+        """
+        Promote a complete Dashboard detection directly at HIPRFISR.
+
+        destination:
+            "soi"
+            "target"
+        """
+        destination = str(
+            destination or ""
+        ).strip().lower()
+
+        if destination not in {
+            "soi",
+            "target",
+        }:
+            self.logger.warning(
+                f"Unsupported detection promotion destination: {destination}"
+            )
+            return
+
+        if not isinstance(detection, dict) or not detection:
+            self.logger.warning(
+                "Cannot promote an empty detection."
+            )
+            return
+
+        if self.hiprfisr_connected is not True:
+            self.logger.warning(
+                "Cannot promote detection while HIPRFISR is disconnected."
+            )
+            return
+
+        message_name = (
+            "promoteDetectionToSoi"
+            if destination == "soi"
+            else "promoteDetectionToTarget"
+        )
+
+        parameters = {
+            "detection": detection,
+            "requester_uid": self.socket_id,
+            "requester_callsign": "FISSURE Dashboard",
+        }
+
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER:
+                fissure.comms.Identifiers.DASHBOARD,
+            fissure.comms.MessageFields.MESSAGE_NAME:
+                message_name,
+            fissure.comms.MessageFields.PARAMETERS:
+                parameters,
+        }
+
+        await self.hiprfisr_socket.send_msg(
+            fissure.comms.MessageTypes.COMMANDS,
+            msg,
+        )
+
+
     async def tacticalPromoteSoiToTarget(
         self,
         target_id,
@@ -2546,6 +2603,36 @@ class DashboardBackend:
             )
 
 
+    async def tacticalNodeSoisRefresh(self, node_uid):
+            """
+            Requests the authoritative SOI record set from HIPRFISR for a node.
+
+            HIPRFISR owns the complete merged SOI lifecycle records. The Dashboard
+            response callback replaces the local cache for this node and refreshes
+            every SOI-dependent widget.
+            """
+            if self.hiprfisr_connected is True:
+                PARAMETERS = {
+                    "requester_uid": self.socket_id,
+                    "requester_type": "dashboard",
+                    "node_uid": node_uid,
+                }
+
+                msg = {
+                    fissure.comms.MessageFields.IDENTIFIER:
+                        fissure.comms.Identifiers.DASHBOARD,
+                    fissure.comms.MessageFields.MESSAGE_NAME:
+                        "sendSoisListTak",
+                    fissure.comms.MessageFields.PARAMETERS:
+                        PARAMETERS,
+                }
+
+                await self.hiprfisr_socket.send_msg(
+                    fissure.comms.MessageTypes.COMMANDS,
+                    msg,
+                )
+
+
     async def tacticalNodeArtifactsRefresh(self, node_uid):
         """
         Requests known artifact metadata from HIPRFISR for a selected node.
@@ -2570,6 +2657,53 @@ class DashboardBackend:
                 fissure.comms.MessageTypes.COMMANDS,
                 msg,
             )
+
+
+    async def requestDashboardArtifactDownload(
+            self,
+            artifact_id,
+            open_when_complete=False,
+        ):
+            """Request one managed artifact through the dedicated data plane."""
+            if not self.hiprfisr_connected:
+                raise RuntimeError("Dashboard is not connected to HIPRFISR")
+
+            if self.artifact_transfer_client is None:
+                raise RuntimeError("Artifact transfer channel is not connected")
+
+            transfer_id = str(uuid.uuid4())
+            self.artifact_transfer_controller.register_request(
+                transfer_id=transfer_id,
+                artifact_id=artifact_id,
+                open_when_complete=open_when_complete,
+            )
+
+            PARAMETERS = {
+                "transfer_id": transfer_id,
+                "artifact_id": artifact_id,
+            }
+            msg = {
+                fissure.comms.MessageFields.IDENTIFIER:
+                    fissure.comms.Identifiers.DASHBOARD,
+                fissure.comms.MessageFields.MESSAGE_NAME:
+                    "requestDashboardArtifactTransfer",
+                fissure.comms.MessageFields.PARAMETERS:
+                    PARAMETERS,
+            }
+
+            try:
+                await self.hiprfisr_socket.send_msg(
+                    fissure.comms.MessageTypes.COMMANDS,
+                    msg,
+                )
+            except Exception:
+                self.artifact_transfer_controller.fail_request(
+                    transfer_id,
+                    "Unable to send artifact request to HIPRFISR",
+                )
+                raise
+
+            return transfer_id
 
 
     async def queryPluginActions(
@@ -2652,6 +2786,55 @@ class DashboardBackend:
             fissure.comms.MessageTypes.COMMANDS,
             msg,
         )
+
+
+    async def tacticalConditionerPromoteToSoi(
+        self,
+        node_uid,
+        soi_id,
+        frequency_mhz=None,
+        status="EVIDENCE_READY",
+        operation_id="",
+        artifact_id="",
+        summary=None,
+    ):
+        """
+        Promotes existing Conditioner result metadata into a hub-backed SOI.
+
+        This does not start a sensor-node operation. It sends an SOI update directly
+        to HIPRFISR so the hub remains the source of truth.
+        """
+        if summary is None:
+            summary = {}
+
+        if self.hiprfisr_connected is True:
+            PARAMETERS = {
+                "node_uid": node_uid,
+                "soi_id": soi_id,
+                "frequency_mhz": frequency_mhz,
+                "status": status,
+                "operation_id": operation_id or "",
+                "artifact_id": artifact_id or "",
+                "summary": summary,
+                "lat": None,
+                "lon": None,
+                "alt": None,
+                "observation_time": None,
+            }
+
+            msg = {
+                fissure.comms.MessageFields.IDENTIFIER:
+                    fissure.comms.Identifiers.DASHBOARD,
+                fissure.comms.MessageFields.MESSAGE_NAME:
+                    "soiUpdate",
+                fissure.comms.MessageFields.PARAMETERS:
+                    PARAMETERS,
+            }
+
+            await self.hiprfisr_socket.send_msg(
+                fissure.comms.MessageTypes.COMMANDS,
+                msg,
+            )
 
 
 #######################################################################################

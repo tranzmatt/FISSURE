@@ -30,6 +30,7 @@ import fissure.callbacks
 import fissure.comms
 import fissure.utils
 from fissure.utils import PLUGIN_DIR
+from fissure.utils import plugin
 from fissure.utils.artifacts import ArtifactManager
 
 import uuid
@@ -253,7 +254,6 @@ class SensorNode(object):
         self.archive_flow_graph_loaded = False
         self.physical_fuzzing_stop_event = False
         self.attack_script_name = ""
-        self.inspection_script_name = ""
         self.triggers_running = False
         self.alert_senders = {}
 
@@ -270,6 +270,7 @@ class SensorNode(object):
 
         # ZMQ DEALER/ROUTER fields
         self.listener = None
+        self.artifact_transfer_client = None
         self.connected = False
         self.terminated = False  # TODO: not used?
         self.shutdown = False
@@ -313,17 +314,47 @@ class SensorNode(object):
         # initialize artifact manager
         self.artifact_manager = ArtifactManager(logger=self.logger)
 
-        # Store reference to original create_artifact method
-        self._original_create_artifact = self.artifact_manager.create_artifact
-        
-        # overload artifact manager create artifact to notify hiprfisr
-        def create_artifact_wrapper(source_id: str, operation_id: str, file_path: str, name: str, artifact_type: str, metadata: Union[Dict[str, Any], None] = None) -> str:
-            # Call original synchronous method
-            artifact_id = self._original_create_artifact(self.uuid, operation_id, file_path, name, artifact_type, metadata)
-            # Schedule async notification in background
-            asyncio.create_task(self._notify_hiprfisr_of_artifact(artifact_id))
-            return artifact_id
-        self.artifact_manager.create_artifact = create_artifact_wrapper
+        # Keep ArtifactManager as the only artifact-schema implementation.
+        # This wrapper only forces the authoritative Sensor Node source ID and
+        # schedules the existing HIPRFISR metadata notification.
+        self._original_create_artifact = (
+            self.artifact_manager.create_artifact
+        )
+
+        def create_artifact_wrapper(
+            source_id: str,
+            operation_id: str,
+            files,
+            name: str,
+            artifact_type: str,
+            metadata: Union[Dict[str, Any], None] = None,
+            relations=None,
+            file_metadata=None,
+            artifact_id: str = "",
+        ) -> str:
+            created_artifact_id = self._original_create_artifact(
+                source_id=self.uuid,
+                operation_id=operation_id,
+                files=files,
+                name=name,
+                artifact_type=artifact_type,
+                metadata=metadata,
+                relations=relations,
+                file_metadata=file_metadata,
+                artifact_id=artifact_id,
+            )
+
+            asyncio.create_task(
+                self._notify_hiprfisr_of_artifact(
+                    created_artifact_id
+                )
+            )
+
+            return created_artifact_id
+
+        self.artifact_manager.create_artifact = (
+            create_artifact_wrapper
+        )
 
 
     async def initialize_comms(self):
@@ -1289,6 +1320,25 @@ class SensorNode(object):
                 return
             self.logger.debug(f"Plugin actions module resolved: {plugin_actions_module}")
 
+            if not plugin.action_is_allowed(
+                plugin_name,
+                action_name,
+                requester_type=(
+                    requester_type
+                ),
+                node_location=(
+                    self.local_remote
+                ),
+                logger=self.logger,
+            ):
+                self.logger.warning(
+                    "Rejected plugin action execution: "
+                    f"{plugin_name}.{action_name}, "
+                    f"requester_type={requester_type}, "
+                    f"node_location={self.local_remote}"
+                )
+                return
+
             # Import and run the action function from the plugin script
             spec = importlib.util.spec_from_file_location("plugin_module", plugin_actions_module)
             if spec is None:
@@ -1328,6 +1378,14 @@ class SensorNode(object):
                 await asyncio.sleep(2)
             except:
                 pass
+
+        artifact_client = self.artifact_transfer_client
+        if artifact_client is not None:
+            try:
+                artifact_client.close()
+            except Exception:
+                pass
+        self.artifact_transfer_client = None
 
         if self.hiprfisr_socket:
             if self.network_type == "IP":
@@ -1402,6 +1460,20 @@ class SensorNode(object):
                     f"Connected to HIPRFISR @ {self.hiprfisr_address}"
                 )
                 await asyncio.sleep(0.1)  # For ZMQ handshake to complete
+
+                artifact_host = (
+                    "127.0.0.1"
+                    if self.hiprfisr_address.protocol == "ipc"
+                    else self.hiprfisr_address.address
+                )
+                self.artifact_transfer_client = fissure.comms.ArtifactTransferClient(
+                    endpoint=fissure.comms.build_artifact_endpoint(artifact_host),
+                    identity=f"sensor-artifacts-{self.uuid}",
+                    role=fissure.comms.ROLE_SENSOR_NODE,
+                    node_uid=self.uuid,
+                    logger=self.logger,
+                )
+                await self.artifact_transfer_client.connect()
             else:
                 self.logger.error("FAILED connecting to HIPRFISR")
                 return
@@ -1818,12 +1890,6 @@ class SensorNode(object):
                         fissure.comms.MessageFields.MESSAGE_NAME: "flowGraphFinishedIQ_Playback",
             }
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
-        elif flow_graph_type == "Inspection":
-            msg = {
-                        fissure.comms.MessageFields.IDENTIFIER: self.identifier,
-                        fissure.comms.MessageFields.MESSAGE_NAME: "flowGraphFinishedIQ_Inspection",
-            }
-            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
         elif flow_graph_type == "Sniffer - Stream":
             PARAMETERS = {"category": "Stream"}
             msg = {
@@ -1880,12 +1946,6 @@ class SensorNode(object):
             msg = {
                         fissure.comms.MessageFields.IDENTIFIER: self.identifier,
                         fissure.comms.MessageFields.MESSAGE_NAME: "flowGraphStartedIQ_Playback",
-            }
-            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
-        elif flow_graph_type == "Inspection":
-            msg = {
-                        fissure.comms.MessageFields.IDENTIFIER: self.identifier,
-                        fissure.comms.MessageFields.MESSAGE_NAME: "flowGraphStartedIQ_Inspection",
             }
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
         elif flow_graph_type == "Sniffer - Stream":
@@ -2405,51 +2465,69 @@ class SensorNode(object):
                 self.logger.error("Error running flow graph with GUI")
             
 
-    ##############  IQ Recording, IQ Playback Flow Graphs  #############
+    ##############  IQ Playback Flow Graphs  #############
     
-    def iqFlowGraphThread(self, flow_graph_filename, variable_names, variable_values, read_filepath, return_filepath):
-        """ Runs the IQ script in the new thread.
+    def iqFlowGraphThread(
+        self,
+        flow_graph_filename,
+        variable_names,
+        variable_values,
+    ):
         """
-        # Stop Any Running IQ Flow Graphs
+        Run an IQ playback flow graph in the worker thread.
+        """
         try:
             self.iqFlowGraphStop(None)
-        except:
+        except Exception:
             pass
 
         try:
-            # Overwrite Variables
-            loadedmod, class_name = self.overwriteFlowGraphVariables(flow_graph_filename, variable_names, variable_values)
+            loadedmod, class_name = (
+                self.overwriteFlowGraphVariables(
+                    flow_graph_filename,
+                    variable_names,
+                    variable_values,
+                )
+            )
 
-            # Call the "__init__" Function
-            self.iqflowtoexec = getattr(loadedmod,class_name)()
+            self.iqflowtoexec = getattr(
+                loadedmod,
+                class_name,
+            )()
 
-            # Start it
             self.iqflowtoexec.start()
-            if "iq_recorder" in flow_graph_filename:
-                asyncio.run(self.flowGraphStarted("IQ"))
-            elif "iq_playback" in flow_graph_filename:
-                asyncio.run(self.flowGraphStarted("IQ Playback"))
 
-            # Let it Run
+            asyncio.run(
+                self.flowGraphStarted(
+                    "IQ Playback"
+                )
+            )
+
             self.iqflowtoexec.wait()
 
-            # Signal on the PUB that the IQ Flow Graph is Finished
-            if "iq_recorder" in flow_graph_filename:
-                asyncio.run(self.flowGraphFinished("IQ", read_filepath, return_filepath))
-                self.iqFlowGraphStop(None)
-            elif "iq_playback" in flow_graph_filename:
-                asyncio.run(self.flowGraphFinished("IQ Playback"))
+            asyncio.run(
+                self.flowGraphFinished(
+                    "IQ Playback"
+                )
+            )
 
-        # Error Loading Flow Graph
-        except Exception as e:
-            if "iq_recorder" in flow_graph_filename:
-                asyncio.run(self.flowGraphStarted("IQ"))
-                asyncio.run(self.flowGraphFinished("IQ"))
+        except Exception:
+            asyncio.run(
+                self.flowGraphStarted(
+                    "IQ Playback"
+                )
+            )
+
+            asyncio.run(
+                self.flowGraphFinished(
+                    "IQ Playback"
+                )
+            )
+
+            try:
                 self.iqFlowGraphStop(None)
-            elif "iq_playback" in flow_graph_filename:
-                asyncio.run(self.flowGraphStarted("IQ Playback"))
-                asyncio.run(self.flowGraphFinished("IQ Playback"))
-                self.iqFlowGraphStop(None)
+            except Exception:
+                pass
 
 
     def iqFlowGraphStop(self, parameter=""):
@@ -2458,32 +2536,6 @@ class SensorNode(object):
         self.iqflowtoexec.stop()
         self.iqflowtoexec.wait()
         del self.iqflowtoexec  # Free up the ports
-
-
-    ####################  Inspection Flow Graphs  ######################
-
-    def inspectionFlowGraphGUI_Thread(self, flow_graph_filename, variable_names, variable_values):
-        """ Runs the inspection flow graph in the new thread.
-        """
-        try:
-            # Start it
-            filepath = self.replaceUsername(flow_graph_filename, os.getenv('USER'))
-            flow_graph_filename = flow_graph_filename.rsplit("/",1)[1]
-            arguments = ""
-            for n in range(0,len(variable_names)):
-                arguments = arguments + '--' + variable_names[n] + '="' + variable_values[n] + '" '
-
-            osCommandString = "python3 " + '"' + filepath + '" ' + arguments
-            proc = subprocess.Popen(osCommandString + " &", shell=True)
-
-            asyncio.run(self.flowGraphStarted("Inspection"))  # Signals to other components
-            self.inspection_script_name = flow_graph_filename
-
-        # Error Loading Flow Graph
-        except Exception as e:
-            asyncio.run(self.flowGraphStarted("Inspection"))
-            asyncio.run(self.flowGraphFinished("Inspection"))
-            asyncio.run(self.flowGraphError(str(e)))
 
 
     #######################  Protocol Discovery  #######################

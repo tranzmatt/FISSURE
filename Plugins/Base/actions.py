@@ -64,12 +64,81 @@ ACTION_TAGS = {
         "All",
         "iq.playback",
     ],
+    "iq_inspection_live": [
+        "All",
+        "iq.inspection",
+        "iq.inspection.source.radio",
+        "tactical.inspection",
+        "client.dashboard",
+        "node.local",
+    ],
+    "iq_inspection_file": [
+        "All",
+        "iq.inspection",
+        "iq.inspection.source.file",
+        "client.dashboard",
+        "node.local",
+    ],
 
     "promote_to_soi": ["All"],
 
     "take_photo": ["All"],
     "motion_detector": ["All"],
     "take_video": ["All"],
+
+    "signal_conditioning": [
+        "All",
+        "tsi.conditioner",
+        "tsi.conditioner.category.energy",
+        "tsi.conditioner.method.normal_decay",
+        "tsi.conditioner.source.frequencies",
+    ],
+    "signal_conditioning_file": [
+        "All",
+        "tsi.conditioner",
+        "tsi.conditioner.category.energy",
+        "tsi.conditioner.method.normal",
+        "tsi.conditioner.method.normal_decay",
+        "tsi.conditioner.method.power_squelch",
+        "tsi.conditioner.method.lowpass",
+        "tsi.conditioner.method.power_squelch_lowpass",
+        "tsi.conditioner.method.bandpass",
+        "tsi.conditioner.method.strongest_frequency_bandpass",
+        "tsi.conditioner.source.file",
+        "tsi.conditioner.source.folder",
+    ],
+    "feature_extract_time_domain": [
+        "All",
+        "tsi.feature_extractor",
+        "tsi.feature_extractor.profile.time_domain",
+        "tsi.feature_extractor.profile.all_available",
+        "tsi.feature_extractor.source.file",
+        "tsi.feature_extractor.source.folder",
+    ],
+    "feature_extract_frequency_domain": [
+        "All",
+        "tsi.feature_extractor",
+        "tsi.feature_extractor.profile.frequency_domain",
+        "tsi.feature_extractor.profile.all_available",
+        "tsi.feature_extractor.source.file",
+        "tsi.feature_extractor.source.folder",
+    ],
+    "feature_extract_time_frequency": [
+        "All",
+        "tsi.feature_extractor",
+        "tsi.feature_extractor.profile.time_frequency",
+        "tsi.feature_extractor.profile.all_available",
+        "tsi.feature_extractor.source.file",
+        "tsi.feature_extractor.source.folder",
+    ],
+    "feature_extract_custom": [
+        "All",
+        "tsi.feature_extractor",
+        "tsi.feature_extractor.profile.custom",
+        "tsi.feature_extractor.profile.all_available",
+        "tsi.feature_extractor.source.file",
+        "tsi.feature_extractor.source.folder",
+    ],
 }
 
 
@@ -82,8 +151,57 @@ ACTION_HARDWARE = {
     "lfm_beacon_detection": ["RTL2832U"],
     "lfm_beacon_geolocate": ["RTL2832U"],
     "usrp_b2x0_geolocate": ["USRP B20xmini", "USRP B2x0"],
-    "iq_record": ["USRP B20xmini", "USRP B2x0"],
-    "iq_playback": ["USRP B20xmini", "USRP B2x0"],
+    "iq_record": [
+        "USRP X3x0",
+        "USRP B2x0",
+        "HackRF",
+        "RTL2832U",
+        "USRP B20xmini",
+        "LimeSDR",
+        "bladeRF",
+        "PlutoSDR",
+        "USRP2",
+        "USRP N2xx",
+        "bladeRF 2.0",
+        "USRP X410",
+        "RSPduo",
+        "RSPdx",
+        "RSPdx R2",
+        "CaribouLite",
+    ],
+    "iq_playback": [
+        "USRP X3x0",
+        "USRP B2x0",
+        "HackRF",
+        "USRP B20xmini",
+        "LimeSDR",
+        "bladeRF",
+        "PlutoSDR",
+        "USRP2",
+        "USRP N2xx",
+        "bladeRF 2.0",
+        "USRP X410",
+        "CaribouLite",
+    ],
+    "iq_inspection_live": [
+        "USRP B20xmini",
+        "USRP B2x0",
+        "bladeRF",
+        "bladeRF 2.0",
+        "HackRF",
+        "LimeSDR",
+        "PlutoSDR",
+        "RTL2832U",
+        "USRP2",
+        "USRP N2xx",
+        "USRP X3x0",
+        "USRP X410",
+        "CaribouLite",
+        "RSPduo",
+        "RSPdx",
+        "RSPdx R2",
+    ],
+    "signal_conditioning": ["USRP B20xmini", "USRP B2x0"],
 }
 
 
@@ -621,6 +739,622 @@ async def usrp_b2x0_geolocate(
     )
 
 
+signal_conditioning_schema = {
+    "params": [
+        {
+            "name": "frequency_mhz",
+            "label": "Frequency (MHz)",
+            "type": "number",
+            "default": 915.0,
+            "decimals": 6,
+            "min": 0.0,
+            "max": 6000.0,
+            "step": 1.0,
+        },
+        {
+            "name": "dwell_s",
+            "label": "Dwell (s)",
+            "type": "number",
+            "default": 10.0,
+            "min": 0.1,
+            "max": 3600.0,
+            "step": 1.0,
+            "decimals": 1,
+        },
+        {
+            "name": "max_files",
+            "label": "Max Files / Frequency",
+            "type": "int",
+            "default": 5,
+            "min": 1,
+            "max": 999,
+            "step": 1,
+        },
+        {
+            "name": "sample_rate",
+            "label": "Sample Rate (S/s)",
+            "type": "number",
+            "default": 1000000.0,
+            "min": 1.0,
+            "max": 100000000.0,
+            "step": 100000.0,
+            "decimals": 0,
+        },
+        {
+            "name": "threshold",
+            "label": "Threshold",
+            "type": "number",
+            "default": 0.004,
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.001,
+            "decimals": 6,
+        },
+        {
+            "name": "decay",
+            "label": "Decay",
+            "type": "number",
+            "default": 0.0002,
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.0001,
+            "decimals": 6,
+        },
+        {
+            "name": "gain",
+            "label": "RX Gain",
+            "type": "number",
+            "default": 60.0,
+            "min": 0.0,
+            "max": 100.0,
+            "step": 1.0,
+            "decimals": 1,
+        },
+        {
+            "name": "channel",
+            "label": "RX Channel",
+            "type": "string",
+            "default": "A:A",
+            "options": ["A:A", "A:B"],
+        },
+        {
+            "name": "antenna",
+            "label": "RX Antenna",
+            "type": "string",
+            "default": "TX/RX",
+            "options": ["TX/RX", "RX2"],
+        },
+        {
+            "name": "emit_alert",
+            "label": "Emit Alert",
+            "type": "string",
+            "default": "false",
+            "options": ["false", "true"],
+        },
+        {
+            "name": "emit_tak",
+            "label": "Emit TAK",
+            "type": "string",
+            "default": "false",
+            "options": ["false", "true"],
+        },
+        {
+            "name": "description",
+            "label": "Description",
+            "type": "string",
+            "default": "Signal conditioning capture",
+        },
+    ]
+}
+async def signal_conditioning(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    component.logger.info(
+        f"Signal Conditioning action with parameters: {parameters}"
+    )
+
+    op_params = dict(parameters or {})
+
+    if not str(op_params.get("hardware_type", "") or "").strip():
+        compatible_types = ["USRP B20xmini", "USRP B2x0"]
+
+        sdr_uid, sdr_entry = fissure.utils.hardware.get_compatible_sdr(
+            getattr(component, "settings_dict", {}) or {},
+            compatible_types,
+        )
+
+        if not sdr_entry:
+            raise ValueError(
+                "No compatible SDR configured for signal_conditioning. "
+                f"Compatible types: {compatible_types}"
+            )
+
+        op_params.update(
+            fissure.utils.hardware.sdr_entry_to_operation_parameters(
+                sdr_uid,
+                sdr_entry,
+            )
+        )
+
+    op_params.setdefault(
+        "source_id",
+        node_uid or getattr(component, "uuid", "") or "sensor_node",
+    )
+
+    op_params.setdefault(
+        "serial",
+        op_params.get("hardware_serial_argument", "False"),
+    )
+    op_params.setdefault(
+        "ip_address",
+        op_params.get("hardware_ip", ""),
+    )
+    op_params.setdefault(
+        "channel",
+        op_params.get("rx_channel", "A:A"),
+    )
+    op_params.setdefault(
+        "antenna",
+        op_params.get("rx_antenna", "TX/RX"),
+    )
+    op_params.setdefault(
+        "gain",
+        op_params.get("rx_gain", 60.0),
+    )
+
+    component.logger.info(
+        f"Signal Conditioning resolved parameters: {op_params}"
+    )
+
+    await component.run_plugin_operation(
+        component,
+        PLUGIN_NAME,
+        "signal_conditioning.py",
+        op_params,
+        node_uid,
+    )
+
+
+signal_conditioning_file_schema = {
+    "params": [
+        {
+            "name": "data_type",
+            "label": "Data Type",
+            "type": "string",
+            "default": "Complex Float 32",
+            "options": [
+                "Complex Float 32",
+                "Complex Int 16",
+            ],
+        },
+        {
+            "name": "sample_rate",
+            "label": "Sample Rate (S/s)",
+            "type": "number",
+            "default": 1000000.0,
+            "min": 1.0,
+            "max": 100000000.0,
+            "step": 100000.0,
+            "decimals": 0,
+        },
+        {
+            "name": "threshold",
+            "label": "Threshold",
+            "type": "number",
+            "default": 0.004,
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.001,
+            "decimals": 6,
+        },
+        {
+            "name": "decay",
+            "label": "Decay",
+            "type": "number",
+            "default": 0.0002,
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.0001,
+            "decimals": 6,
+        },
+        {
+            "name": "max_files",
+            "label": "Max Files",
+            "type": "int",
+            "default": 15,
+            "min": 1,
+            "max": 9999,
+            "step": 1,
+        },
+        {
+            "name": "min_samples",
+            "label": "Min Samples",
+            "type": "int",
+            "default": 1,
+            "min": 0,
+            "max": 100000000,
+            "step": 1,
+        },
+        {
+            "name": "description",
+            "label": "Description",
+            "type": "string",
+            "default": "Local file/folder signal conditioning using file-source Conditioner flow graphs",
+        },
+    ]
+}
+async def signal_conditioning_file(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    component.logger.info(
+        f"Signal Conditioning File action with parameters: {parameters}"
+    )
+
+    op_params = dict(parameters or {})
+
+    op_params.setdefault(
+        "source_id",
+        node_uid or getattr(component, "uuid", "") or "sensor_node",
+    )
+
+    await component.run_plugin_operation(
+        component,
+        PLUGIN_NAME,
+        "signal_conditioning_file.py",
+        op_params,
+        node_uid,
+        wait=True,
+    )
+
+
+
+feature_extract_time_domain_schema = {
+    "params": [
+        {
+            "name": "preset",
+            "label": "Feature Preset",
+            "type": "string",
+            "default": "all",
+            "options": [
+                "core",
+                "statistical",
+                "all",
+            ],
+        },
+        {
+            "name": "core_includes",
+            "label": "Core Includes",
+            "type": "label",
+            "default": (
+                "Mean, Max, Peak, RMS, Variance, Standard Deviation, "
+                "Power, Samples"
+            ),
+        },
+        {
+            "name": "statistical_includes",
+            "label": "Statistical Includes",
+            "type": "label",
+            "default": (
+                "Mean, Variance, Standard Deviation, Kurtosis, "
+                "Skewness, Zero Crossings, Samples"
+            ),
+        },
+        {
+            "name": "all_includes",
+            "label": "All Includes",
+            "type": "label",
+            "default": (
+                "Mean, Max, Peak, Peak to Peak, RMS, Variance, "
+                "Standard Deviation, Power, Crest Factor, Pulse Indicator, "
+                "Margin, Kurtosis, Skewness, Zero Crossings, Samples"
+            ),
+        },
+        {
+            "name": "description",
+            "label": "Description",
+            "type": "string",
+            "default": "Extract time-domain IQ features",
+        },
+    ]
+}
+
+
+async def feature_extract_time_domain(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    """
+    Run the reusable Feature Extractor operation with the time-domain profile.
+    """
+    op_params = dict(parameters or {})
+    op_params["profile"] = "time_domain"
+
+    op_params.pop("core_includes", None)
+    op_params.pop("statistical_includes", None)
+    op_params.pop("all_includes", None)
+
+    op_params.setdefault(
+        "source_id",
+        node_uid or getattr(component, "uuid", "") or "sensor_node",
+    )
+
+    component.logger.info(
+        f"Feature Extractor time-domain action with parameters: {op_params}"
+    )
+
+    await component.run_plugin_operation(
+        component,
+        PLUGIN_NAME,
+        "feature_extraction.py",
+        op_params,
+        node_uid,
+        wait=True,
+    )
+
+
+feature_extract_frequency_domain_schema = {
+    "params": [
+        {
+            "name": "preset",
+            "label": "Feature Preset",
+            "type": "string",
+            "default": "all",
+            "options": [
+                "core",
+                "statistical",
+                "all",
+            ],
+        },
+        {
+            "name": "core_includes",
+            "label": "Core Includes",
+            "type": "label",
+            "default": (
+                "Mean of Band Power Spectrum, Max of Band Power Spectrum, "
+                "Sum of Total Band Power, Peak of Band Power, "
+                "Relative Spectral Peak per Band"
+            ),
+        },
+        {
+            "name": "statistical_includes",
+            "label": "Statistical Includes",
+            "type": "label",
+            "default": (
+                "Mean of Band Power Spectrum, Variance of Band Power, "
+                "Standard Deviation of Band Power, Skewness of Band Power, "
+                "Kurtosis of Band Power"
+            ),
+        },
+        {
+            "name": "all_includes",
+            "label": "All Includes",
+            "type": "label",
+            "default": (
+                "Mean of Band Power Spectrum, Max of Band Power Spectrum, "
+                "Sum of Total Band Power, Peak of Band Power, "
+                "Variance of Band Power, Standard Deviation of Band Power, "
+                "Skewness of Band Power, Kurtosis of Band Power, "
+                "Relative Spectral Peak per Band"
+            ),
+        },
+        {
+            "name": "description",
+            "label": "Description",
+            "type": "string",
+            "default": "Extract frequency-domain IQ features",
+        },
+    ]
+}
+
+
+async def feature_extract_frequency_domain(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    """
+    Run the reusable Feature Extractor operation with the frequency-domain profile.
+    """
+    op_params = dict(parameters or {})
+    op_params["profile"] = "frequency_domain"
+
+    op_params.pop("core_includes", None)
+    op_params.pop("statistical_includes", None)
+    op_params.pop("all_includes", None)
+
+    op_params.setdefault(
+        "source_id",
+        node_uid or getattr(component, "uuid", "") or "sensor_node",
+    )
+
+    component.logger.info(
+        f"Feature Extractor frequency-domain action with parameters: {op_params}"
+    )
+
+    await component.run_plugin_operation(
+        component,
+        PLUGIN_NAME,
+        "feature_extraction.py",
+        op_params,
+        node_uid,
+        wait=True,
+    )
+
+
+feature_extract_time_frequency_schema = {
+    "params": [
+        {
+            "name": "preset",
+            "label": "Feature Preset",
+            "type": "string",
+            "default": "all",
+            "options": [
+                "balanced",
+                "statistical",
+                "all",
+            ],
+        },
+        {
+            "name": "balanced_includes",
+            "label": "Balanced Includes",
+            "type": "label",
+            "default": (
+                "Mean, Max, Peak, RMS, Variance, Standard Deviation, "
+                "Power, Samples, Mean of Band Power Spectrum, "
+                "Max of Band Power Spectrum, Sum of Total Band Power, "
+                "Peak of Band Power, Relative Spectral Peak per Band"
+            ),
+        },
+        {
+            "name": "statistical_includes",
+            "label": "Statistical Includes",
+            "type": "label",
+            "default": (
+                "Mean, Variance, Standard Deviation, Kurtosis, Skewness, "
+                "Zero Crossings, Samples, Mean of Band Power Spectrum, "
+                "Variance of Band Power, Standard Deviation of Band Power, "
+                "Skewness of Band Power, Kurtosis of Band Power"
+            ),
+        },
+        {
+            "name": "all_includes",
+            "label": "All Includes",
+            "type": "label",
+            "default": (
+                "Mean, Max, Peak, Peak to Peak, RMS, Variance, "
+                "Standard Deviation, Power, Crest Factor, Pulse Indicator, "
+                "Margin, Kurtosis, Skewness, Zero Crossings, Samples, "
+                "Mean of Band Power Spectrum, Max of Band Power Spectrum, "
+                "Sum of Total Band Power, Peak of Band Power, "
+                "Variance of Band Power, Standard Deviation of Band Power, "
+                "Skewness of Band Power, Kurtosis of Band Power, "
+                "Relative Spectral Peak per Band"
+            ),
+        },
+        {
+            "name": "description",
+            "label": "Description",
+            "type": "string",
+            "default": "Extract time-domain and frequency-domain IQ features",
+        },
+    ]
+}
+
+
+async def feature_extract_time_frequency(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    """
+    Run the reusable Feature Extractor operation with the combined profile.
+    """
+    op_params = dict(parameters or {})
+    op_params["profile"] = "time_frequency"
+
+    op_params.pop("balanced_includes", None)
+    op_params.pop("statistical_includes", None)
+    op_params.pop("all_includes", None)
+
+    op_params.setdefault(
+        "source_id",
+        node_uid or getattr(component, "uuid", "") or "sensor_node",
+    )
+
+    component.logger.info(
+        f"Feature Extractor time/frequency action with parameters: {op_params}"
+    )
+
+    await component.run_plugin_operation(
+        component,
+        PLUGIN_NAME,
+        "feature_extraction.py",
+        op_params,
+        node_uid,
+        wait=True,
+    )
+
+
+feature_extract_custom_schema = {
+    "params": [
+        {
+            "name": "features",
+            "label": "Features",
+            "type": "string",
+            "default": "Mean, RMS, Variance, Power",
+        },
+        {
+            "name": "supported_time_domain",
+            "label": "Time-Domain Options",
+            "type": "label",
+            "default": (
+                "Mean, Max, Peak, Peak to Peak, RMS, Variance, "
+                "Standard Deviation, Power, Crest Factor, Pulse Indicator, "
+                "Margin, Kurtosis, Skewness, Zero Crossings, Samples"
+            ),
+        },
+        {
+            "name": "supported_frequency_domain",
+            "label": "Frequency-Domain Options",
+            "type": "label",
+            "default": (
+                "Mean of Band Power Spectrum, Max of Band Power Spectrum, "
+                "Sum of Total Band Power, Peak of Band Power, "
+                "Variance of Band Power, Standard Deviation of Band Power, "
+                "Skewness of Band Power, Kurtosis of Band Power, "
+                "Relative Spectral Peak per Band"
+            ),
+        },
+        {
+            "name": "description",
+            "label": "Description",
+            "type": "string",
+            "default": (
+                "Advanced mode: enter supported feature names separated by commas"
+            ),
+        },
+    ]
+}
+
+
+async def feature_extract_custom(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    """
+    Run the reusable Feature Extractor operation with a custom feature list.
+    """
+    op_params = dict(parameters or {})
+    op_params["profile"] = "custom"
+
+    op_params.pop("supported_time_domain", None)
+    op_params.pop("supported_frequency_domain", None)
+
+    op_params.setdefault(
+        "source_id",
+        node_uid or getattr(component, "uuid", "") or "sensor_node",
+    )
+
+    component.logger.info(
+        f"Feature Extractor custom action with parameters: {op_params}"
+    )
+
+    await component.run_plugin_operation(
+        component,
+        PLUGIN_NAME,
+        "feature_extraction.py",
+        op_params,
+        node_uid,
+        wait=True,
+    )
+
+
 promote_to_soi_schema = {
     "params": [
         {
@@ -637,7 +1371,6 @@ promote_to_soi_schema = {
         },
     ]
 }
-
 async def promote_to_soi(
     component: SensorNode,
     parameters: Dict[str, Any],
@@ -767,11 +1500,8 @@ async def promote_to_soi(
 
         operation_id = op1_id
 
-        capture_folder = os.path.join(
-            FISSURE_ROOT,
-            "artifacts",
-            op1_id,
-            "files",
+        _, capture_folder = (
+            component.artifact_manager.create_operation_dir(op1_id)
         )
 
         if not _has_capture_files(capture_folder):
@@ -1143,15 +1873,6 @@ async def take_video(
 iq_record_schema = {
     "params": [
         {
-            "name": "flow_graph_name",
-            "label": "Flow Graph",
-            "type": "string",
-            "default": "iq_recorder_b2x0",
-            "options": [
-                "iq_recorder_b2x0",
-            ],
-        },
-        {
             "name": "base_file_name",
             "label": "Base File Name",
             "type": "string",
@@ -1162,10 +1883,7 @@ iq_record_schema = {
             "label": "Artifact Format",
             "type": "string",
             "default": "raw",
-            "options": [
-                "raw",
-                "zip",
-            ],
+            "options": ["raw", "zip"],
         },
         {
             "name": "frequency_mhz",
@@ -1220,19 +1938,14 @@ iq_record_schema = {
             "label": "Data Type",
             "type": "string",
             "default": "Complex Float 32",
-            "options": [
-                "Complex Float 32",
-            ],
+            "options": ["Complex Float 32"],
         },
         {
             "name": "sigmf_enabled",
             "label": "SigMF Enabled",
             "type": "string",
             "default": "true",
-            "options": [
-                "true",
-                "false",
-            ],
+            "options": ["true", "false"],
         },
         {
             "name": "description",
@@ -1253,18 +1966,8 @@ async def iq_record(
 
     op_params = dict(parameters or {})
 
-    flow_graph_name = str(
-        op_params.get("flow_graph_name", "iq_recorder_b2x0")
-        or "iq_recorder_b2x0"
-    ).strip()
-
     if not str(op_params.get("hardware_type", "") or "").strip():
-        if flow_graph_name == "iq_recorder_b2x0":
-            compatible_types = ["USRP B20xmini", "USRP B2x0"]
-        else:
-            raise ValueError(
-                f"Unsupported IQ recorder flow graph: {flow_graph_name}"
-            )
+        compatible_types = ACTION_HARDWARE["iq_record"]
 
         sdr_uid, sdr_entry = fissure.utils.hardware.get_compatible_sdr(
             getattr(component, "settings_dict", {}) or {},
@@ -1273,7 +1976,7 @@ async def iq_record(
 
         if not sdr_entry:
             raise ValueError(
-                f"No compatible SDR configured for {flow_graph_name}. "
+                "No compatible SDR configured for iq_record. "
                 f"Compatible types: {compatible_types}"
             )
 
@@ -1300,13 +2003,13 @@ async def iq_record(
 iq_playback_schema = {
     "params": [
         {
-            "name": "flow_graph_name",
-            "label": "Flow Graph",
+            "name": "playback_mode",
+            "label": "Playback Mode",
             "type": "string",
-            "default": "iq_playback_b2x0",
+            "default": "continuous",
             "options": [
-                "iq_playback_b2x0",
-                "iq_playback_single_b2x0",
+                "continuous",
+                "single",
             ],
         },
         {
@@ -1381,32 +2084,60 @@ async def iq_playback(
         f"IQ Playback action with parameters: {parameters}"
     )
 
-    op_params = dict(parameters or {})
+    op_params = dict(
+        parameters
+        or {}
+    )
 
-    flow_graph_name = str(
-        op_params.get("flow_graph_name", "iq_playback_b2x0")
-        or "iq_playback_b2x0"
-    ).strip()
+    playback_mode = str(
+        op_params.get(
+            "playback_mode",
+            "continuous",
+        )
+        or "continuous"
+    ).strip().lower()
 
-    if flow_graph_name not in {
-        "iq_playback_b2x0",
-        "iq_playback_single_b2x0",
+    if playback_mode not in {
+        "continuous",
+        "single",
     }:
         raise ValueError(
-            f"Unsupported IQ playback flow graph: {flow_graph_name}"
+            "Unsupported IQ playback mode: "
+            f"{playback_mode}"
         )
 
-    if not str(op_params.get("hardware_type", "") or "").strip():
-        compatible_types = ["USRP B20xmini", "USRP B2x0"]
+    op_params[
+        "playback_mode"
+    ] = playback_mode
 
-        sdr_uid, sdr_entry = fissure.utils.hardware.get_compatible_sdr(
-            getattr(component, "settings_dict", {}) or {},
-            compatible_types,
+    if not str(
+        op_params.get(
+            "hardware_type",
+            "",
+        )
+        or ""
+    ).strip():
+        compatible_types = (
+            ACTION_HARDWARE[
+                "iq_playback"
+            ]
+        )
+
+        sdr_uid, sdr_entry = (
+            fissure.utils.hardware.get_compatible_sdr(
+                getattr(
+                    component,
+                    "settings_dict",
+                    {},
+                )
+                or {},
+                compatible_types,
+            )
         )
 
         if not sdr_entry:
             raise ValueError(
-                f"No compatible SDR configured for {flow_graph_name}. "
+                "No compatible SDR configured for iq_playback. "
                 f"Compatible types: {compatible_types}"
             )
 
@@ -1425,6 +2156,218 @@ async def iq_playback(
         component,
         PLUGIN_NAME,
         "iq_playback.py",
+        op_params,
+        node_uid,
+    )
+
+
+iq_inspection_live_schema = {
+    "params": [
+        {
+            "name": "inspection_method",
+            "label": "Inspection Method",
+            "type": "string",
+            "default": "waterfall",
+            "options": [
+                "instantaneous_frequency",
+                "signal_envelope",
+                "time_sink",
+                "time_sink_1_10_100",
+                "waterfall",
+            ],
+        },
+        {
+            "name": "rx_channel",
+            "label": "RX Channel",
+            "type": "string",
+            "default": "A:A",
+            "options": [
+                "A:A",
+                "A:B",
+            ],
+        },
+        {
+            "name": "description",
+            "label": "Description",
+            "type": "string",
+            "default": "Live IQ inspection",
+        },
+    ]
+}
+async def iq_inspection_live(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    component.logger.info(
+        f"IQ Inspection Live action with parameters: {parameters}"
+    )
+
+    op_params = dict(
+        parameters
+        or {}
+    )
+
+    supported_methods = {
+        "instantaneous_frequency",
+        "signal_envelope",
+        "time_sink",
+        "time_sink_1_10_100",
+        "waterfall",
+    }
+
+    inspection_method = str(
+        op_params.get(
+            "inspection_method",
+            "waterfall",
+        )
+        or "waterfall"
+    ).strip().lower()
+
+    if inspection_method not in supported_methods:
+        raise ValueError(
+            "Unsupported live IQ Inspection method: "
+            f"{inspection_method}"
+        )
+
+    op_params[
+        "inspection_method"
+    ] = inspection_method
+
+    if not str(
+        op_params.get(
+            "hardware_type",
+            "",
+        )
+        or ""
+    ).strip():
+        compatible_types = (
+            ACTION_HARDWARE[
+                "iq_inspection_live"
+            ]
+        )
+
+        sdr_uid, sdr_entry = (
+            fissure.utils.hardware.get_compatible_sdr(
+                getattr(
+                    component,
+                    "settings_dict",
+                    {},
+                )
+                or {},
+                compatible_types,
+            )
+        )
+
+        if not sdr_entry:
+            raise ValueError(
+                "No compatible SDR configured for iq_inspection_live. "
+                f"Compatible types: {compatible_types}"
+            )
+
+        op_params.update(
+            fissure.utils.hardware.sdr_entry_to_operation_parameters(
+                sdr_uid,
+                sdr_entry,
+            )
+        )
+
+    component.logger.info(
+        f"IQ Inspection Live resolved parameters: {op_params}"
+    )
+
+    await component.run_plugin_operation(
+        component,
+        PLUGIN_NAME,
+        "iq_inspection_live.py",
+        op_params,
+        node_uid,
+    )
+
+
+iq_inspection_file_schema = {
+    "params": [
+        {
+            "name": "inspection_method",
+            "label": "Inspection Method",
+            "type": "string",
+            "default": "waterfall",
+            "options": [
+                "instantaneous_frequency",
+                "signal_envelope",
+                "waterfall",
+            ],
+        },
+        {
+            "name": "filepath",
+            "label": "File Path",
+            "type": "string",
+            "default": "",
+        },
+        {
+            "name": "sample_rate",
+            "label": "Sample Rate (S/s)",
+            "type": "number",
+            "default": 1000000.0,
+            "min": 1.0,
+            "max": 100000000.0,
+            "step": 100000.0,
+            "decimals": 0,
+        },
+        {
+            "name": "description",
+            "label": "Description",
+            "type": "string",
+            "default": "IQ file inspection",
+        },
+    ]
+}
+async def iq_inspection_file(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    component.logger.info(
+        f"IQ Inspection File action with parameters: {parameters}"
+    )
+
+    op_params = dict(
+        parameters
+        or {}
+    )
+
+    supported_methods = {
+        "instantaneous_frequency",
+        "signal_envelope",
+        "waterfall",
+    }
+
+    inspection_method = str(
+        op_params.get(
+            "inspection_method",
+            "waterfall",
+        )
+        or "waterfall"
+    ).strip().lower()
+
+    if inspection_method not in supported_methods:
+        raise ValueError(
+            "Unsupported IQ file Inspection method: "
+            f"{inspection_method}"
+        )
+
+    op_params[
+        "inspection_method"
+    ] = inspection_method
+
+    component.logger.info(
+        f"IQ Inspection File resolved parameters: {op_params}"
+    )
+
+    await component.run_plugin_operation(
+        component,
+        PLUGIN_NAME,
+        "iq_inspection_file.py",
         op_params,
         node_uid,
     )
