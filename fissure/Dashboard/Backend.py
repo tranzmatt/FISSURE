@@ -749,146 +749,120 @@ class DashboardBackend:
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def attackFlowGraphStart(self, node_uid, flow_graph_filepath, variable_names, variable_values, file_type, run_with_sudo, autorun_index, trigger_values):
-        """
-        Sends a message to start a single-stage attack.
-        """
-        # Send the Message
-        if self.hiprfisr_connected is True:
-            PARAMETERS = {"node_uid": node_uid, "flow_graph_filepath": flow_graph_filepath, "variable_names": variable_names, "variable_values": variable_values, "file_type": file_type, "run_with_sudo": run_with_sudo, "autorun_index": autorun_index, "trigger_values": trigger_values}
-            msg = {
-                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "attackFlowGraphStart",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-            }
-            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
-
-
-    async def attackFlowGraphStop(self, node_uid, parameter, autorun_index):
-        """
-        Sends a message to stop a single-stage attack.
-        """
-        # Send the Message
-        if self.hiprfisr_connected is True:
-            PARAMETERS = {
-                "node_uid": node_uid, 
-                "parameter": parameter, 
-                "autorun_index": autorun_index
-            }
-            msg = {
-                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "attackFlowGraphStop",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-            }
-            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
-
-
-    async def multiStageAttackStart(
-        self, 
-        node_uid="",
-        filenames=[],
-        variable_names=[],
-        variable_values=[],
-        durations=[],
-        repeat=False,
-        file_types=[],
-        autorun_index=0,
-        trigger_values=[]
-    ):
-        """
-        Sends a message to start a multi-stage attack.
-        """
-        # Send the Message
+    async def attackFlowGraphStart(self, node_uid, flow_graph_filepath, variable_names, variable_values, file_type, run_with_sudo):
+        """Send the remaining legacy Fuzzing flow-graph start command."""
         if self.hiprfisr_connected is True:
             PARAMETERS = {
                 "node_uid": node_uid,
-                "filenames": filenames,
+                "flow_graph_filepath": flow_graph_filepath,
                 "variable_names": variable_names,
                 "variable_values": variable_values,
-                "durations": durations,
-                "repeat": repeat,
-                "file_types": file_types,
-                "autorun_index": autorun_index,
-                "trigger_values": trigger_values
+                "file_type": file_type,
+                "run_with_sudo": run_with_sudo,
             }
             msg = {
-                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "multiStageAttackStart",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+                fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+                fissure.comms.MessageFields.MESSAGE_NAME: "attackFlowGraphStart",
+                fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
             }
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def multiStageAttackStop(self, node_uid="", autorun_index=0):
-        """
-        Sends a message to stop a multi-stage attack.
-        """
-        # Send the Message
+    async def attackFlowGraphStop(self, node_uid, parameter):
+        """Send the remaining legacy Fuzzing flow-graph stop command."""
         if self.hiprfisr_connected is True:
-            PARAMETERS = {
-                "node_uid": node_uid,
-                "autorun_index": autorun_index,
-            }
+            PARAMETERS = {"node_uid": node_uid, "parameter": parameter}
             msg = {
-                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "multiStageAttackStop",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+                fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+                fissure.comms.MessageFields.MESSAGE_NAME: "attackFlowGraphStop",
+                fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
             }
             await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
-    async def autorunPlaylistStart(self, node_uid, playlist_dict, trigger_values):
-        """
-        Sends a message to transfer and start an autorun playlist.
-        """
-        # Send the Message
-        if self.hiprfisr_connected is True:
-            PARAMETERS = {
+    async def autorunPlaylistQuery(self, node_uid=""):
+        """Query YAML Autorun playlists stored on a Sensor Node."""
+        if self.hiprfisr_connected is not True:
+            return
+        PARAMETERS = {"node_uid": node_uid}
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+            fissure.comms.MessageFields.MESSAGE_NAME: "autorunPlaylistQuery",
+            fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+        }
+        await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+    async def autorunPlaylistLoad(self, node_uid="", playlist_filename=""):
+        """Load one stored Sensor Node Autorun playlist back to the Dashboard."""
+        if self.hiprfisr_connected is not True:
+            return
+        PARAMETERS = {"node_uid": node_uid, "playlist_filename": playlist_filename}
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+            fissure.comms.MessageFields.MESSAGE_NAME: "autorunPlaylistLoad",
+            fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+        }
+        await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+    async def autorunPlaylistSave(self, node_uid="", playlist_filename="", playlist_dict=None):
+        """Save the current plugin-backed Autorun playlist on a Sensor Node."""
+        if self.hiprfisr_connected is not True:
+            return
+        PARAMETERS = {
+            "node_uid": node_uid,
+            "playlist_filename": playlist_filename,
+            "playlist_dict": playlist_dict or {},
+        }
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+            fissure.comms.MessageFields.MESSAGE_NAME: "autorunPlaylistSave",
+            fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+        }
+        await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
+    async def autorunPlaylistStart(self, node_uid, playlist_dict):
+        """Start the current plugin-backed Autorun workspace on a Sensor Node."""
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: self.identifier,
+            fissure.comms.MessageFields.MESSAGE_NAME: "autorunPlaylistStart",
+            fissure.comms.MessageFields.PARAMETERS: {
                 "node_uid": node_uid,
-                "playlist_dict": playlist_dict,
-                "trigger_values": trigger_values,
-            }
-            msg = {
-                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "autorunPlaylistStart",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-            }
-            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+                "playlist_dict": playlist_dict or {},
+            },
+        }
+        await self.hiprfisr_socket.send_msg(
+            fissure.comms.MessageTypes.COMMANDS,
+            msg,
+        )
 
 
     async def autorunPlaylistExecute(self, node_uid="", playlist_filename=""):
-        """
-        Sends a message to execute an autorun playlist already located on the sensor node.
-        """
-        # Send the Message
-        if self.hiprfisr_connected is True:
-            PARAMETERS = {
-                "node_uid": node_uid,
-                "playlist_filename": playlist_filename,
-            }
-            msg = {
-                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "autorunPlaylistExecute",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-            }
-            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+        """Execute an Autorun YAML file already stored on the Sensor Node."""
+        if self.hiprfisr_connected is not True:
+            return
+        PARAMETERS = {"node_uid": node_uid, "playlist_filename": playlist_filename}
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+            fissure.comms.MessageFields.MESSAGE_NAME: "autorunPlaylistExecute",
+            fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+        }
+        await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
     async def autorunPlaylistStop(self, node_uid=""):
-        """
-        Sends a message to stop the running autorun playlist.
-        """
-        # Send the Message
-        if self.hiprfisr_connected is True:
-            PARAMETERS = {
-                "node_uid": node_uid,
-            }
-            msg = {
-                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
-                    fissure.comms.MessageFields.MESSAGE_NAME: "autorunPlaylistStop",
-                    fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
-            }
-            await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+        """Stop the active Autorun run on the selected Sensor Node."""
+        if self.hiprfisr_connected is not True:
+            return
+        PARAMETERS = {"node_uid": node_uid}
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+            fissure.comms.MessageFields.MESSAGE_NAME: "autorunPlaylistStop",
+            fissure.comms.MessageFields.PARAMETERS: PARAMETERS,
+        }
+        await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
     async def overwriteDefaultAutorunPlaylist(self, node_uid="", playlist_dict={}):
@@ -2704,6 +2678,33 @@ class DashboardBackend:
         )
 
 
+    async def tacticalTargetPatch(
+            self,
+            target_id,
+            patch,
+            history_entry=None,
+            artifact_id="",
+        ):
+            if history_entry is None:
+                history_entry = {}
+
+            if self.hiprfisr_connected is True:
+                parameters = {
+                    "target_id": target_id,
+                    "patch": patch,
+                    "history_entry": history_entry,
+                    "artifact_id": artifact_id or "",
+                }
+
+                msg = {
+                    fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+                    fissure.comms.MessageFields.MESSAGE_NAME: "targetPatch",
+                    fissure.comms.MessageFields.PARAMETERS: parameters,
+                }
+
+                await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
     async def tacticalPromoteSoiToTarget(
         self,
         target_id,
@@ -2711,30 +2712,7 @@ class DashboardBackend:
         history_entry=None,
         artifact_id="",
     ):
-        if history_entry is None:
-            history_entry = {}
-
-        if self.hiprfisr_connected is True:
-            PARAMETERS = {
-                "target_id": target_id,
-                "patch": patch,
-                "history_entry": history_entry,
-                "artifact_id": artifact_id or "",
-            }
-
-            msg = {
-                fissure.comms.MessageFields.IDENTIFIER:
-                    fissure.comms.Identifiers.DASHBOARD,
-                fissure.comms.MessageFields.MESSAGE_NAME:
-                    "targetPatch",
-                fissure.comms.MessageFields.PARAMETERS:
-                    PARAMETERS,
-            }
-
-            await self.hiprfisr_socket.send_msg(
-                fissure.comms.MessageTypes.COMMANDS,
-                msg,
-            )
+        await self.tacticalTargetPatch(target_id, patch, history_entry, artifact_id)
 
 
     async def tacticalTargetsGeolocateStart(
