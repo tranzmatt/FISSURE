@@ -1,6 +1,50 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2026-8-29
+
+Modernize Sensor Node activity and target action recommendations
+
+### Added
+
+- Added the Sensor Nodes → Activity workspace as a read-only node snapshot with existing node-state summary information, current plugin operations, selected-operation parameters/resources, structured alerts, and a bounded recent INFO/WARNING/ERROR log view without introducing polling or additional heartbeat traffic.
+- Added on-demand Sensor Node Activity snapshots using the existing operation registry and event log, including clean user-parameter capture for display, declared resource inspection, selected-node log filtering, and manual refresh for current activity/history details.
+- Added first-class Target Recommended Actions with a new plugin operation callback, authoritative HIPRFISR Target storage, recommendation IDs/deduplication, reasons and parameter overrides, and Target history entries for recommendation creation/removal.
+- Added Recommended Actions and History views to the Targets workspace, including selected-recommendation details, parameter payload inspection, full history entry details, and normal Target refresh persistence through the existing Target CoT synchronization path.
+- Added Stage Action support so a Target recommendation can populate the normal Single Action workflow with its plugin, action, compatible hardware selection, real action schema, and discovered parameter overrides without executing automatically.
+- Added a Dummy recommendation action for exercising the complete recommendation → Target → Stage Action workflow.
+
+### Changed
+
+- Reorganized Sensor Node operational visibility around Activity, reusing existing node state, TAK/structured alerts, operation bookkeeping, and log data instead of maintaining separate legacy status/alert history mechanisms.
+- Reworked plugin alerts into structured FISSURE alerts that continue through the existing CoT transport, appear in Tactical and Sensor Node Activity, and remain distinct from generic pin/track/event output produced through `tak_cot_callback`.
+- Migrated legacy listener-produced alert text onto the structured event-style alert path so secondary-channel callbacks continue reaching the Dashboard without relying on the old Sensor Nodes Alerts mechanism.
+- Replaced the legacy Sensor Node exploit-recommendation workflow with Target-owned Recommended Actions tied directly to plugin/action names and optional discovered parameter values, preserving the old “one action recommends the next” workflow within the current action architecture.
+- Removed the obsolete Sensor Nodes Alerts, Exploits, and Reports tabs and their Dashboard/HIPRFISR return paths, counters, staging/export controls, and legacy `exploit` / `exploitReturn` / `snreport` message handling now superseded by structured alerts, Target recommendations, and purpose-built artifacts/integrations.
+- Updated the Targets workspace layout and light/dark/custom styling for the new Details, Recommended Actions, and History views, including compact details text, recommendation staging controls, selected-detail sections, table sizing, and expanded history inspection.
+
+## 2026-8-27
+
+Rebuild Scapy around selected-node packet crafting and transmission
+
+### Added
+
+- Added the rebuilt Scapy workflow under Targets & Actions with packet presets, editable layer stacks, per-layer field editors, searchable Add Layer support, live Hexdump/Python output, interface selection, send/sendp/Auto transmit modes, count/loop/interval controls, and operation status/progress.
+- Added a Scapy compatibility layer to normalize layer discovery, field handling, packet serialization, interface discovery, and version-specific API differences so FISSURE can support multiple installed Scapy versions without scattering compatibility checks through the Dashboard.
+- Added selected-Sensor-Node interface discovery for both local and remote nodes, with remote interface queries routed through the Dashboard/HIPRFISR/Sensor Node path instead of assuming Dashboard-local interfaces.
+- Added Scapy transmission as a Sensor Node operation with operation IDs, progress updates, packet counts, send rate, Start/Stop lifecycle handling, and the selected node responsible for the actual network interface and packet transmission.
+- Added Packet Crafter → Scapy handoff so Library-defined packets and other crafted byte sequences can be opened in the Scapy workspace, edited/transmitted through the same path, and decoded independently by tools such as Wireshark even when Scapy has no native packet class for the protocol.
+- Added a declarative `scapy_presets.py` catalog with curated Wi-Fi, Ethernet/IPv4, and IPv6 starting packets, runtime filtering for unsupported Scapy layers, and generic nested-layer support for presets such as DNS.
+- Added generic Scapy `FlagsField` editing using the flag names exposed by the installed Scapy runtime, including multi-select checkbox popups, readable selected-flag values, preservation of unknown bits, and monitor-aware popup placement.
+
+### Changed
+
+- Moved Scapy packet handling away from hardcoded per-preset compatibility logic so normal presets are simple layer/field definitions while `scapy_compat.py` and the generic preset builder own runtime compatibility.
+- Reworked the Scapy transmit UI around the selected Sensor Node, including node/interface gating, automatic local/remote interface refresh, compact persistent Operation IDs with full UUID tooltips, short status summaries with full-message tooltips, and state-aware Start/Stop presentation.
+- Consolidated Packet Crafter Scapy integration around a single Open in Scapy action instead of maintaining a second set of Scapy load/show/interface/transmit controls inside Packet Crafter.
+- Replaced the legacy Dashboard/HIPRFISR/Sensor Node `startScapy` / `stopScapy` path and Python 2 `temp.cap` sender with the current Sensor Node operation lifecycle and Base Scapy transmit operation.
+- Removed the obsolete Packet Crafter Scapy controls, legacy `scapy_send.py` helper, and temporary `temp.cap` staging workflow now superseded by the rebuilt Scapy workspace.
+
 ## 2026-8-25
 
 Rebuild Fuzzing around protocol plugin actions

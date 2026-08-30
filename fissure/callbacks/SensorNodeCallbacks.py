@@ -4,6 +4,7 @@ import fissure.utils
 import fissure.utils.hardware
 from fissure.utils import plugin
 from fissure.utils.artifacts import ArtifactManager
+from fissure.utils import scapy_compat
 import logging
 import os
 import shutil
@@ -211,6 +212,187 @@ async def refreshSensorNodeFiles(component: object, sensor_node_folder=""):
         await component.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
+async def refreshSensorNodeActivity(component: object, log_limit=100):
+    """Return one bounded read-only Activity snapshot to HIPRFISR."""
+    def safe_text(value, max_chars=2048):
+        try:
+            text = str(value)
+        except Exception:
+            text = repr(value)
+
+        if len(text) > max_chars:
+            text = text[:max_chars] + "…"
+
+        return text
+
+    operations = []
+    for operation_id, operation in list((getattr(component, "operations", {}) or {}).items()):
+        if not isinstance(operation, dict):
+            continue
+
+        parameters = []
+        raw_parameters = operation.get("user_parameters") or {}
+        if isinstance(raw_parameters, dict):
+            for name, value in raw_parameters.items():
+                parameters.append({
+                    "name": safe_text(name, 256),
+                    "value": safe_text(value, 2048),
+                })
+
+        resources = []
+        raw_resources = operation.get("resources") or {}
+        if isinstance(raw_resources, dict):
+            for resource_key, resource in raw_resources.items():
+                resource = resource if isinstance(resource, dict) else {}
+                resources.append({
+                    "type": safe_text(resource.get("type") or "", 256),
+                    "name": safe_text(
+                        resource.get("description")
+                        or resource.get("model")
+                        or resource_key,
+                        512,
+                    ),
+                    "identifier": safe_text(resource.get("serial") or "", 512),
+                })
+
+        owner = "Autorun" if str(operation.get("owner") or "").strip() else ""
+
+        operations.append({
+            "plugin": safe_text(operation.get("plugin") or "", 256),
+            "activity": safe_text(operation.get("operation") or "", 512),
+            "operation_id": safe_text(operation_id, 128),
+            "start_time": operation.get("start_time") or 0,
+            "owner": owner,
+            "parameters": parameters,
+            "resources": resources,
+        })
+
+    operations.sort(
+        key=lambda operation: float(operation.get("start_time") or 0),
+        reverse=True,
+    )
+
+    try:
+        log_limit = max(0, min(int(log_limit), 100))
+    except (TypeError, ValueError):
+        log_limit = 100
+
+    log_entries = []
+    log_path = os.path.join(fissure.utils.LOG_DIR, "event.log")
+    logger_token = f"fissure.sensor node {component.uuid[:8]}".lower()
+    max_scan_bytes = 2 * 1024 * 1024
+
+    if log_limit > 0 and os.path.isfile(log_path):
+        def process_log_line(raw_line):
+            line = raw_line.decode("utf-8", errors="replace").strip()
+            lower_line = line.lower()
+
+            if logger_token not in lower_line:
+                return
+
+            level_match = re.search(
+                r"\[(INFO|WARNING|ERROR|CRITICAL)\]",
+                line,
+                re.IGNORECASE,
+            )
+            if level_match is None:
+                return
+
+            level = level_match.group(1).upper()
+            if level == "CRITICAL":
+                level = "ERROR"
+
+            # FISSURE event.log format:
+            # 08/28/2026 07:59:37 PM - fissure.sensor node d2674c57: [INFO] ...
+            timestamp_match = re.match(
+                r"^\d{2}/\d{2}/\d{4}\s+(\d{2}:\d{2}:\d{2}\s+[AP]M)\s+-\s+",
+                line,
+                re.IGNORECASE,
+            )
+
+            display_time = ""
+            if timestamp_match is not None:
+                raw_time = timestamp_match.group(1)
+                try:
+                    display_time = time.strftime(
+                        "%H:%M:%S",
+                        time.strptime(raw_time, "%I:%M:%S %p"),
+                    )
+                except ValueError:
+                    display_time = raw_time
+
+            logger_index = lower_line.find(logger_token)
+            message = line[logger_index + len(logger_token):]
+            message = re.sub(r"^[\s:\-\u2013\u2014]+", "", message).strip()
+
+            # The level already has its own table column. Remove one or more
+            # leading log-level tags from the message, while leaving tags that
+            # occur later in the actual payload untouched.
+            message = re.sub(
+                r"^(?:\[(?:INFO|WARNING|ERROR|CRITICAL)\]\s*)+",
+                "",
+                message,
+                flags=re.IGNORECASE,
+            ).strip()
+
+            log_entries.append({
+                "time": display_time,
+                "level": level,
+                "message": safe_text(message, 2048),
+            })
+
+        try:
+            with open(log_path, "rb") as log_file:
+                log_file.seek(0, os.SEEK_END)
+                position = log_file.tell()
+                remainder = b""
+                scanned = 0
+
+                while position > 0 and len(log_entries) < log_limit and scanned < max_scan_bytes:
+                    read_size = min(8192, position, max_scan_bytes - scanned)
+                    position -= read_size
+                    log_file.seek(position)
+                    block = log_file.read(read_size)
+                    scanned += read_size
+
+                    combined = block + remainder
+                    lines = combined.split(b"\n")
+                    remainder = lines[0]
+
+                    for raw_line in reversed(lines[1:]):
+                        process_log_line(raw_line)
+                        if len(log_entries) >= log_limit:
+                            break
+
+                if (
+                    position == 0
+                    and remainder
+                    and len(log_entries) < log_limit
+                    and scanned <= max_scan_bytes
+                ):
+                    process_log_line(remainder)
+
+        except Exception:
+            component.logger.debug(
+                "Could not read Sensor Node Activity log snapshot.",
+                exc_info=True,
+            )
+
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+        fissure.comms.MessageFields.MESSAGE_NAME: "refreshSensorNodeActivityResults",
+        fissure.comms.MessageFields.PARAMETERS: {
+            "node_uid": component.uuid,
+            "operations": operations,
+            "log_entries": log_entries,
+        },
+    }
+    await component.hiprfisr_socket.send_msg(
+        fissure.comms.MessageTypes.COMMANDS,
+        msg,
+    )
+    
+
 async def autorunPlaylistQuery(component: object):
     """Return stored Autorun playlist filenames to HIPRFISR."""
     playlists = component.get_autorun_playlist_names()
@@ -363,43 +545,104 @@ async def snifferFlowGraphStop(component: object, parameter=""):
         await component.flowGraphFinished("Sniffer - Message/PDU")
 
 
-async def startScapy(component: object, interface="", interval=0, loop=False, operating_system=""):
-    """
-    Start a new Scapy operation.
-    """
-    # Start Transmitting
-    if len(interface) > 0:
-        scapy_send_directory = os.path.join(fissure.utils.TOOLS_DIR)
+async def refreshScapyInterfaces(component: object):
+    """Return the Sensor Node's Scapy-visible network interfaces to HIPRFISR."""
+    interfaces = scapy_compat.get_interfaces()
 
-        if fissure.utils.get_default_expect_terminal(operating_system) == "gnome-terminal":
-            subprocess.Popen(
-                "gnome-terminal -- sudo python2 scapy_send.py " + interface + " " + interval + " " + loop,
-                cwd=scapy_send_directory,
-                shell=True,
-            )
-        elif fissure.utils.get_default_expect_terminal(operating_system) == "qterminal":
-            subprocess.Popen(
-                "qterminal -e sudo python2 scapy_send.py " + interface + " " + interval + " " + loop,
-                cwd=scapy_send_directory,
-                shell=True,
-            )
-        elif fissure.utils.get_default_expect_terminal(operating_system) == "lxterminal":
-            subprocess.Popen(
-                "lxterminal -e sudo python2 scapy_send.py " + interface + " " + interval + " " + loop,
-                cwd=scapy_send_directory,
-                shell=True,
-            )
-            
-    else:
-        component.logger.error("Specify wireless interface for Scapy")
+    parameters = {
+        "node_uid": str(getattr(component, "uuid", "") or ""),
+        "interfaces": interfaces,
+    }
+
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+        fissure.comms.MessageFields.MESSAGE_NAME: "refreshScapyInterfacesResults",
+        fissure.comms.MessageFields.PARAMETERS: parameters,
+    }
+
+    await component.hiprfisr_socket.send_msg(
+        fissure.comms.MessageTypes.COMMANDS,
+        msg,
+    )
 
 
-async def stopScapy(component: object):
-    """
-    Stop the currently running Scapy operation.
-    """
-    # Stop the Thread
-    os.system('sudo pkill -f "python2 scapy"')
+async def startScapyTransmission(
+    component: object,
+    operation_id="",
+    interface="",
+    method="",
+    interval=0.1,
+    count=1,
+    loop=False,
+    packet_hex="",
+    root_layer="Ether",
+):
+    """Start a Scapy transmission operation on this Sensor Node."""
+    operation_id = str(operation_id or "").strip()
+
+    async def progress_callback(
+            operation_id="",
+            state="",
+            message="",
+            packets_sent=0,
+            set_rate="",
+            started="",
+        ):
+            msg = {
+                fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+                fissure.comms.MessageFields.MESSAGE_NAME: "scapyTransmissionStatus",
+                fissure.comms.MessageFields.PARAMETERS: {
+                    "node_uid": str(getattr(component, "uuid", "") or ""),
+                    "operation_id": str(operation_id or ""),
+                    "state": str(state or ""),
+                    "message": str(message or ""),
+                    "packets_sent": int(packets_sent or 0),
+                    "set_rate": str(set_rate or ""),
+                    "started": str(started or ""),
+                },
+            }
+
+            await component.hiprfisr_socket.send_msg(
+                fissure.comms.MessageTypes.COMMANDS,
+                msg,
+            )
+
+    if not operation_id:
+        await progress_callback(
+            operation_id="",
+            state="error",
+            message="Missing operation ID.",
+        )
+        return
+
+    parameters = {
+        "operation_id": operation_id,
+        "requester": "scapy_tab",
+        "packet_hex": str(packet_hex or ""),
+        "root_layer": str(root_layer or "Ether"),
+        "interface": str(interface or ""),
+        "method": str(method or ""),
+        "interval": float(interval),
+        "count": int(count),
+        "loop": bool(loop),
+        "description": "Scapy packet transmission",
+        "progress_callback": progress_callback,
+    }
+
+    launched_operation_id = await component.run_plugin_operation(
+        component,
+        "Base",
+        "scapy_transmit.py",
+        parameters,
+        str(getattr(component, "uuid", "") or ""),
+    )
+
+    if launched_operation_id is None:
+        await progress_callback(
+            operation_id=operation_id,
+            state="error",
+            message="Could not start the Scapy transmit operation.",
+        )
 
 
 async def setVariable(component: object, flow_graph="", variable="", value=""):

@@ -7,6 +7,7 @@ from fissure.Dashboard.Slots import (
     TacticalTabSlots,
     DashboardSlots,
     FuzzingTabSlots,
+    ScapyTabSlots,
     IQDataTabSlots,
     LibraryTabSlots,
     LibraryTabPluginManagerTabSlots,
@@ -155,7 +156,6 @@ class Dashboard(QtWidgets.QMainWindow):
         self.remove_tab_by_text(self.ui.tabWidget_sensor_nodes, "Plugins")
         self.remove_tab_by_text(self.ui.tabWidget_sensor_nodes, "Operations")
         self.remove_tab_by_text(self.ui.tabWidget_library, "Plugin Manager")
-        self.ui.pushButton_sensor_nodes_exploit_run.setVisible(False)
 
         # Load FISSURE Logo
         self.ui.label_diagram.setPixmap(QtGui.QPixmap(os.path.join(fissure.utils.UI_DIR, "Icons", "logo.png")))
@@ -767,9 +767,9 @@ class Dashboard(QtWidgets.QMainWindow):
         SingleActionTabSlots.initialize_single_action_tab(self)
         SequentialActionTabSlots.initialize_sequential_actions_tab(self)
         FuzzingTabSlots.initialize_fuzzing_tab(self)
+        ScapyTabSlots.initialize_scapy_tab(self)
 
         # Packet Crafter
-        self.ui.textEdit_packet_scapy_interval.setPlainText(".1")
         self.ui.textEdit_packet_number_of_messages.setPlainText("1")
 
         protocols = fissure.utils.library.getProtocols(self.backend.library)
@@ -992,6 +992,7 @@ class Dashboard(QtWidgets.QMainWindow):
             ]
         )
 
+        SensorNodesTabSlots.initialize_sensor_nodes_activity_controls(self)
         SensorNodesTabSlots.initialize_sensor_nodes_autorun_controls(self)
         SensorNodesTabSlots.initialize_sensor_nodes_file_navigation_controls(self)
 
@@ -1778,6 +1779,7 @@ class Dashboard(QtWidgets.QMainWindow):
 
     def configureSensorNodeHardware(self):
         """Update Sensor Node tab state for the selected Sensor Node."""
+        SensorNodesTabSlots.update_sensor_nodes_activity_selected_node_gate(self)
         SensorNodesTabSlots.update_sensor_nodes_autorun_selected_node_gate(self)
 
         # Do not retrieve plugins for Meshtastic automatically.
@@ -1796,6 +1798,7 @@ class Dashboard(QtWidgets.QMainWindow):
         SingleActionTabSlots.update_single_action_selected_node_gate(self)
         SequentialActionTabSlots.update_sequential_actions_selected_node_gate(self)
         FuzzingTabSlots.update_fuzzing_selected_node_gate(self)
+        ScapyTabSlots.update_scapy_selected_node_gate(self)
         self.configureIQ_Hardware()
         self.configureArchiveHardware()
         self.configureSensorNodeHardware()
@@ -2131,6 +2134,7 @@ def connect_slots(dashboard: Dashboard):
     connect_single_action_slots(dashboard)
     connect_sequential_action_slots(dashboard)
     connect_fuzzing_slots(dashboard)
+    connect_scapy_slots(dashboard)
     connect_attack_slots(dashboard)
     connect_archive_slots(dashboard)
     connect_sensor_nodes_slots(dashboard)
@@ -4112,16 +4116,6 @@ def connect_targets_slots(dashboard: Dashboard):
         dashboard.ui.comboBox_ta_target.currentIndexChanged.connect(
             lambda: TargetsTabSlots._slotTargetContextChanged(dashboard)
         )
-        dashboard.ui.textEdit_ta_targets_search.textChanged.connect(
-            lambda: TargetsTabSlots._slotTargetsSearchChanged(dashboard)
-        )
-
-        dashboard.ui.tableWidget1_ta_targets.itemSelectionChanged.connect(
-            lambda: TargetsTabSlots._slotTargetsRowSelectionChanged(dashboard)
-        )
-        dashboard.ui.tableWidget1_ta_targets.itemDoubleClicked.connect(
-            lambda _item: TargetsTabSlots._slotTargetsOpenInTacticalClicked(dashboard)
-        )
 
         dashboard.ui.pushButton_ta_targets_refresh.clicked.connect(
             lambda: TargetsTabSlots._slotTargetsRefreshClicked(dashboard)
@@ -4141,6 +4135,29 @@ def connect_targets_slots(dashboard: Dashboard):
         dashboard.ui.pushButton_ta_targets_download_data.clicked.connect(
             lambda: TargetsTabSlots._slotTargetsDownloadDataClicked(dashboard)
         )
+        dashboard.ui.pushButton_ta_targets_recommended_actions_stage.clicked.connect(
+            lambda: TargetsTabSlots._slotTargetsRecommendedActionStageClicked(dashboard)
+        )
+        dashboard.ui.pushButton_ta_targets_recommended_actions_remove.clicked.connect(
+            lambda: TargetsTabSlots._slotTargetsRecommendedActionRemoveClicked(dashboard)
+        )
+
+        dashboard.ui.tableWidget1_ta_targets.itemSelectionChanged.connect(
+            lambda: TargetsTabSlots._slotTargetsRowSelectionChanged(dashboard)
+        )
+        dashboard.ui.tableWidget1_ta_targets.itemDoubleClicked.connect(
+            lambda _item: TargetsTabSlots._slotTargetsOpenInTacticalClicked(dashboard)
+        )
+        dashboard.ui.tableWidget_ta_targets_history.itemSelectionChanged.connect(
+            lambda: TargetsTabSlots._slotTargetsHistorySelectionChanged(dashboard)
+        )
+        dashboard.ui.tableWidget_ta_targets_recommended_actions.itemSelectionChanged.connect(
+            lambda: TargetsTabSlots._slotTargetsRecommendedActionSelectionChanged(dashboard)
+        )
+
+        dashboard.ui.textEdit_ta_targets_search.textChanged.connect(
+            lambda: TargetsTabSlots._slotTargetsSearchChanged(dashboard)
+        )        
 
 
 def connect_single_action_slots(dashboard: Dashboard):
@@ -4183,6 +4200,68 @@ def connect_fuzzing_slots(dashboard: Dashboard):
     dashboard.ui.tableWidget_ta_fuzzing_fields.cellChanged.connect(lambda row, column: FuzzingTabSlots._slotFuzzingFieldItemChanged(dashboard, row, column))
 
 
+def connect_scapy_slots(dashboard: Dashboard):
+    # Check Box
+    dashboard.ui.checkBox_ta_scapy_transmit_loop.toggled.connect(
+        lambda checked: ScapyTabSlots._slotScapyLoopToggled(dashboard, checked)
+    )
+
+    # Combo Box
+    dashboard.ui.comboBox_ta_scapy_layers_editing.currentIndexChanged.connect(
+        lambda index: ScapyTabSlots._slotScapyEditingLayerChanged(dashboard, index)
+    )
+
+    # Line Edit
+    dashboard.ui.lineEdit_ta_scapy_source_search.textChanged.connect(
+        lambda text: ScapyTabSlots._slotScapyPresetSearchChanged(dashboard, text)
+    )
+
+    # Push Button
+    dashboard.ui.pushButton_ta_scapy_stack_add_layer.clicked.connect(
+        lambda: ScapyTabSlots._slotScapyAddLayerClicked(dashboard)
+    )
+    dashboard.ui.pushButton_ta_scapy_stack_remove_layer.clicked.connect(
+        lambda: ScapyTabSlots._slotScapyRemoveLayerClicked(dashboard)
+    )
+    dashboard.ui.pushButton_ta_scapy_stack_move_up.clicked.connect(
+        lambda: ScapyTabSlots._slotScapyMoveLayerUpClicked(dashboard)
+    )
+    dashboard.ui.pushButton_ta_scapy_stack_move_down.clicked.connect(
+        lambda: ScapyTabSlots._slotScapyMoveLayerDownClicked(dashboard)
+    )
+    dashboard.ui.pushButton_ta_scapy_stack_clear_all.clicked.connect(
+        lambda: ScapyTabSlots._slotScapyClearAllClicked(dashboard)
+    )
+    dashboard.ui.pushButton_ta_scapy_layers_reset_layer.clicked.connect(
+        lambda: ScapyTabSlots._slotScapyResetLayerClicked(dashboard)
+    )
+    dashboard.ui.pushButton_ta_scapy_output_save_as.clicked.connect(
+        lambda: ScapyTabSlots._slotScapyOutputSaveAsClicked(dashboard)
+    )
+    dashboard.ui.pushButton_ta_scapy_output_copy.clicked.connect(
+        lambda: ScapyTabSlots._slotScapyOutputCopyClicked(dashboard)
+    )
+    dashboard.ui.pushButton_ta_scapy_transmit_interface_refresh.clicked.connect(
+        lambda: ScapyTabSlots._slotScapyInterfaceRefreshClicked(dashboard)
+    )
+    dashboard.ui.pushButton_ta_scapy_transmit_start_stop.clicked.connect(
+        lambda: ScapyTabSlots._slotScapyTransmitStartStopClicked(dashboard)
+    )
+
+    # Table Widget
+    dashboard.ui.tableWidget_ta_scapy_stack_layers.itemSelectionChanged.connect(
+        lambda: ScapyTabSlots._slotScapyStackSelectionChanged(dashboard)
+    )
+    dashboard.ui.tableWidget_ta_scapy_transmit_interfaces.itemSelectionChanged.connect(
+        lambda: ScapyTabSlots._slotScapyInterfaceSelectionChanged(dashboard)
+    )
+
+    # Tree Widget
+    dashboard.ui.treeWidget_ta_scapy_source_presets.itemClicked.connect(
+        lambda item, column: ScapyTabSlots._slotScapyPresetClicked(dashboard, item, column)
+    )
+
+
 def connect_attack_slots(dashboard: Dashboard):
     """Connect the remaining Packet Crafter controls under Targets & Actions."""
     dashboard.ui.comboBox_packet_protocols.currentIndexChanged.connect(lambda: AttackTabSlots._slotPacketProtocols(dashboard))
@@ -4196,17 +4275,12 @@ def connect_attack_slots(dashboard: Dashboard):
     dashboard.ui.pushButton_packet_all_binary.clicked.connect(lambda: AttackTabSlots._slotPacketAllBinaryClicked(dashboard))
     dashboard.ui.pushButton_packet_open.clicked.connect(lambda: AttackTabSlots._slotPacketOpenClicked(dashboard))
     dashboard.ui.pushButton_packet_append.clicked.connect(lambda: AttackTabSlots._slotPacketAppendClicked(dashboard))
-    dashboard.ui.pushButton_packet_scapy_show.clicked.connect(lambda: AttackTabSlots._slotPacketScapyShowClicked(dashboard))
-    dashboard.ui.pushButton_packet_scapy_refresh.clicked.connect(lambda: AttackTabSlots._slotPacketScapyRefreshClicked(dashboard))
-    dashboard.ui.pushButton_packet_scapy_start.clicked.connect(lambda: AttackTabSlots._slotPacketScapyStartClicked(dashboard))
-    dashboard.ui.pushButton_packet_scapy_load.clicked.connect(lambda: AttackTabSlots._slotPacketScapyLoadClicked(dashboard))
-    dashboard.ui.pushButton_packet_scapy_ls.clicked.connect(lambda: AttackTabSlots._slotPacketScapyLsClicked(dashboard))
     dashboard.ui.pushButton_packet_comma_separated.clicked.connect(lambda: AttackTabSlots._slotPacketCommaSeparatedClicked(dashboard))
     dashboard.ui.pushButton_packet_comma_separated2.clicked.connect(lambda: AttackTabSlots._slotPacketCommaSeparatedClicked2(dashboard))
     dashboard.ui.pushButton_packet_pattern1.clicked.connect(lambda: AttackTabSlots._slotPacketPattern1Clicked(dashboard))
-    dashboard.ui.pushButton_packet_scapy_stop.clicked.connect(lambda: AttackTabSlots._slotPacketScapyStopClicked(dashboard))
     dashboard.ui.pushButton_packet_import.clicked.connect(lambda: AttackTabSlots._slotPacketImportClicked(dashboard))
     dashboard.ui.pushButton_packet_export.clicked.connect(lambda: AttackTabSlots._slotPacketExportClicked(dashboard))
+    dashboard.ui.pushButton_packet_open_in_scapy.clicked.connect(lambda: AttackTabSlots._slotPacketOpenInScapyClicked(dashboard))
 
     dashboard.ui.tableWidget1_attack_packet_editor.cellChanged.connect(lambda row, col: AttackTabSlots._slotPacketItemChanged(dashboard, row, col))
 
@@ -4379,6 +4453,21 @@ def connect_sensor_nodes_slots(dashboard: Dashboard):
     )
 
     # Push Button
+    dashboard.ui.pushButton_sensor_nodes_activity_alerts_clear.clicked.connect(
+        lambda: SensorNodesTabSlots._slotSensorNodesActivityAlertsClearClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sensor_nodes_activity_log_refresh.clicked.connect(
+        lambda: SensorNodesTabSlots._slotSensorNodesActivityRefreshClicked(dashboard)
+    )
+    dashboard.ui.tableWidget_sensor_nodes_activity_current_activity.itemSelectionChanged.connect(
+        lambda: SensorNodesTabSlots._slotSensorNodesActivityCurrentSelectionChanged(dashboard)
+    )
+    dashboard.ui.tabWidget.currentChanged.connect(
+        lambda _index: SensorNodesTabSlots._slotSensorNodesActivityTabVisibilityChanged(dashboard)
+    )
+    dashboard.ui.tabWidget_sensor_nodes.currentChanged.connect(
+        lambda _index: SensorNodesTabSlots._slotSensorNodesActivityTabVisibilityChanged(dashboard)
+    )    
     dashboard.ui.pushButton_sensor_nodes_fn_local_delete.clicked.connect(
         lambda: SensorNodesTabSlots._slotSensorNodesFileNavigationLocalDeleteClicked(dashboard)
     )
@@ -4409,18 +4498,6 @@ def connect_sensor_nodes_slots(dashboard: Dashboard):
     dashboard.ui.pushButton_sensor_nodes_fn_local_transfer.clicked.connect(
         lambda: SensorNodesTabSlots._slotSensorNodesFileNavigationLocalTransferClicked(dashboard)
     )
-    dashboard.ui.pushButton_sensor_nodes_alerts_clear.clicked.connect(
-        lambda: SensorNodesTabSlots._slotSensorNodesAlertsClearClicked(dashboard)
-    )
-    dashboard.ui.pushButton_sensor_nodes_alerts_save.clicked.connect(
-        lambda: SensorNodesTabSlots._slotSensorNodesAlertsSaveClicked(dashboard)
-    )
-    dashboard.ui.pushButton_sensor_nodes_exploits_clear.clicked.connect(
-        lambda: SensorNodesTabSlots._slotSensorNodesExploitsClearClicked(dashboard)
-    )
-    dashboard.ui.pushButton_sensor_nodes_reports_clear.clicked.connect(
-        lambda: SensorNodesTabSlots._slotSensorNodesReportsClearClicked(dashboard)
-    )
     dashboard.ui.pushButton_sensor_nodes_listeners_meshtastic_info.clicked.connect(
         lambda: SensorNodesTabSlots._slotSensorNodesListenersMeshtasticInfoClicked(dashboard)
     )
@@ -4444,9 +4521,6 @@ def connect_sensor_nodes_slots(dashboard: Dashboard):
     )
     dashboard.ui.pushButton_sensor_nodes_listeners_serial_info.clicked.connect(
         lambda: SensorNodesTabSlots._slotSensorNodesListenersMeshtasticInfoClicked(dashboard)  # Reuse function
-    )
-    dashboard.ui.pushButton_sensor_nodes_reports_save.clicked.connect(
-        lambda: SensorNodesTabSlots._slotSensorNodesReportsSaveClicked(dashboard)
     )
     dashboard.ui.pushButton_sensor_nodes_autorun_query.clicked.connect(
         lambda: SensorNodesTabSlots._slotSensorNodesAutorunQueryClicked(dashboard)
