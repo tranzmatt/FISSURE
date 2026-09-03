@@ -2,7 +2,7 @@ from .Signals import DashboardSignals
 from fissure.Dashboard.Backend import DashboardBackend
 from fissure.Dashboard.Slots import (
     ArchiveTabSlots,
-    AttackTabSlots,
+    PacketCrafterTabSlots,
     TargetsTabSlots,
     TacticalTabSlots,
     DashboardSlots,
@@ -10,7 +10,6 @@ from fissure.Dashboard.Slots import (
     ScapyTabSlots,
     IQDataTabSlots,
     LibraryTabSlots,
-    LibraryTabPluginManagerTabSlots,
     ListeningPostsTabSlots,
     LogTabSlots,
     MenuBarSlots,
@@ -154,7 +153,8 @@ class Dashboard(QtWidgets.QMainWindow):
             self.window.actionRemember_Configuration.setChecked(False)
 
         # Hide works in progress
-        self.remove_tab_by_text(self.ui.tabWidget_library, "Plugin Manager")
+        #self.remove_tab_by_text(self.ui.<tab_widget>, <tab_text>)
+        self.remove_tab_by_text(self.ui.tabWidget_library, "Search")
 
         # Load FISSURE Logo
         self.ui.label_diagram.setPixmap(QtGui.QPixmap(os.path.join(fissure.utils.UI_DIR, "Icons", "logo.png")))
@@ -163,7 +163,7 @@ class Dashboard(QtWidgets.QMainWindow):
 
         # Set Initial Tab Positions
         self.ui.tabWidget.setCurrentIndex(0)
-        self.ui.tabWidget_tsi.setCurrentIndex(0)
+        self.ui.tabWidget_signal_analysis.setCurrentIndex(0)
         self.ui.tabWidget_protocol.setCurrentIndex(0)
         self.ui.tabWidget_attack_attack.setCurrentIndex(0)
         self.ui.tabWidget_archive.setCurrentIndex(0)
@@ -479,8 +479,18 @@ class Dashboard(QtWidgets.QMainWindow):
 
     def __init_TSI__(self):
         """
-        Initializes TSI Tabs on Dashboard launch.
+        Initializes Signal Analysis / legacy TSI tabs on Dashboard launch.
         """
+        try:
+            TSITabSlots.initialize_sa_sois_controls(
+                self
+            )
+        except Exception as e:
+            self.logger.debug(
+                "Could not initialize Signal Analysis SOIs "
+                f"controls: {e}"
+            )
+
         try:
             TSITabSlots.initialize_tsi_detector_controls(
                 self
@@ -541,17 +551,6 @@ class Dashboard(QtWidgets.QMainWindow):
             "Kurtosis of Band Power",
             "Relative Spectral Peak per Band",
         ]
-
-        # Legacy SOI Aggregator default.
-        self.ui.textEdit_tsi_soi_browse.setPlainText(
-            str(
-                os.path.join(
-                    fissure.utils.FISSURE_ROOT,
-                    "Conditioner Data",
-                    "Output",
-                )
-            )
-        )
 
         # Legacy Classifier defaults.
         TSITabSlots._slotTSI_ClassifierTrainingCategoryChanged(
@@ -761,7 +760,7 @@ class Dashboard(QtWidgets.QMainWindow):
 
 
     def __init_Attack__(self):
-        """Initialize Targets & Actions and Packet Crafter workflows."""
+        """Initialize Targets & Actions workflows."""
         TargetsTabSlots.initialize_targets_tab(self)
         ListeningPostsTabSlots.initialize_listening_posts_tab(self)
         SingleActionTabSlots.initialize_single_action_tab(self)
@@ -769,7 +768,9 @@ class Dashboard(QtWidgets.QMainWindow):
         FuzzingTabSlots.initialize_fuzzing_tab(self)
         ScapyTabSlots.initialize_scapy_tab(self)
 
-        # Packet Crafter
+
+    def __init_PacketCrafter__(self):
+        """Initialize Library Packet Crafter controls."""
         self.ui.textEdit_packet_number_of_messages.setPlainText("1")
         protocols = fissure.utils.library.getProtocols(self.backend.library)
         self.ui.comboBox_packet_protocols.clear()
@@ -1026,47 +1027,17 @@ class Dashboard(QtWidgets.QMainWindow):
                 protocols_with_images.append(p)
         self.ui.comboBox_library_gallery_protocol.addItems(sorted(protocols_with_images))
 
-        # Load Protocols into Add to Library ComboBox
-        self.ui.comboBox_library_pd_protocol.addItem("-- New Protocol --")
-        self.ui.comboBox_library_pd_protocol.addItems(sorted(protocols))
-
         # Initialize Plugins Editor Comboboxes
         # self.ui.comboBox_library_plugin_select.addItem("-- New Plugin --")  # doesn't exist, replace/delete
-
-        # Configure PD\Construct Packet Tables
-        self.ui.tableWidget_library_pd_packet.resizeRowsToContents()
-
-        # Resize the Protocol Discovery Add to Library Table
-        self.ui.tableWidget_library_pd_packet.setColumnWidth(0, 125)
-        self.ui.tableWidget_library_pd_packet.setColumnWidth(1, 100)
-        self.ui.tableWidget_library_pd_packet.setColumnWidth(3, 75)
-        self.ui.tableWidget_library_pd_packet.setColumnWidth(4, 130)
-        self.ui.tableWidget_library_pd_packet.horizontalHeader().setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
 
         # Hide the Searching Label
         self.ui.label2_library_search_searching.setVisible(False)
 
-        # Set up Add Attack Stacked Widget
-        self.ui.comboBox_library_attacks_subcategory.addItems(
-            [
-                "Denial of Service",
-                "Jamming",
-                "Spoofing",
-                "Sniffing/Snooping",
-                "Probe Attacks",
-                "Installation of Malware",
-                "Misuse of Resources",
-                "Other"
-            ]
-        )
-
         # Refresh Browse Table
         LibraryTabSlots._slotLibraryBrowseChanged(self)
 
-        # Plugin Manager Tab
-        # TODO: Implement this async functionality without errors in Frontend.py
-        # LibraryTabPluginManagerTabSlots._slot_local_plugin_pkg_path_auto(self, False)
-        # LibraryTabPluginManagerTabSlots._slot_plugin_download_dir_auto(self, False)
+        # Packet Crafter
+        self.__init_PacketCrafter__()
 
 
     def __init_signals__(self):
@@ -1083,6 +1054,9 @@ class Dashboard(QtWidgets.QMainWindow):
         """
         self.window = uic.loadUi(os.path.join(fissure.utils.UI_DIR, "FissureDashboard.ui"))
         self.setMenuBar(self.window.menuBar())
+
+        # Hide Demo menu while the Dashboard is being reorganized.
+        self.window.menuDemo.menuAction().setVisible(False)
 
         # Set Title
         self.setWindowTitle("FISSURE Dashboard")
@@ -1792,12 +1766,6 @@ class Dashboard(QtWidgets.QMainWindow):
         SensorNodesTabSlots.update_sensor_nodes_autorun_selected_node_gate(self)
         SensorNodesPluginsTabSlots.update_sensor_nodes_plugins_selected_node_gate(self)
 
-        # Do not retrieve plugins for Meshtastic automatically.
-        if selected_node_is_ip(self):
-            pass
-            # LibraryTabSlots._slotLibraryPluginPluginRefresh(self)
-            # SensorNodesPluginsTabSlots._slotSensorNodesPluginsPluginsListRefresh(self)
-
 
     def configureSelectedNodeHardware(self):
         """
@@ -2146,7 +2114,7 @@ def connect_slots(
     connect_sequential_action_slots(dashboard)
     connect_fuzzing_slots(dashboard)
     connect_scapy_slots(dashboard)
-    connect_attack_slots(dashboard)
+    connect_packet_crafter_slots(dashboard)
     connect_archive_slots(dashboard)
     connect_sensor_nodes_slots(dashboard)
     connect_library_slots(dashboard)
@@ -2650,7 +2618,6 @@ def connect_menuBar_slots(dashboard: Dashboard):
     dashboard.window.actionDemo_TSI_Feature_Extractor_Tab.triggered.connect(lambda: MenuBarSlots._slotMenuDemoTSI_FeatureExtractorTabClicked(dashboard))
     dashboard.window.actionDemo_TSI_Classifier_Tab.triggered.connect(lambda: MenuBarSlots._slotMenuDemoTSI_ClassifierTabClicked(dashboard))
     dashboard.window.actionDemo_TSI_Direction_Finding_Tab.triggered.connect(lambda: MenuBarSlots._slotMenuDemoTSI_DirectionFindingTabClicked(dashboard))
-    dashboard.window.actionDemo_TSI_SOI_Aggregator_Tab.triggered.connect(lambda: MenuBarSlots._slotMenuDemoTSI_SOI_AggregatorTabClicked(dashboard))
     dashboard.window.actionDemo_PD_All.triggered.connect(lambda: MenuBarSlots._slotMenuDemoPD_AllClicked(dashboard))
     dashboard.window.actionDemo_Attack_All.triggered.connect(lambda: MenuBarSlots._slotMenuDemoAttackAllClicked(dashboard))
     dashboard.window.actionDemo_Attack_Packet_Crafter_Tab.triggered.connect(lambda: MenuBarSlots._slotMenuDemoAttackPacketCrafterTabClicked(dashboard))
@@ -2974,13 +2941,89 @@ def connect_tactical_slots(dashboard: Dashboard):
     
 
 def connect_tsi_slots(dashboard: Dashboard):
+    # Signal Analysis - SOIs
+    dashboard.ui.lineEdit_sa_sois_list_search.textChanged.connect(
+        lambda _text: TSITabSlots._slotSA_SOIsSearchChanged(
+            dashboard
+        )
+    )
+    dashboard.ui.tableWidget_sa_sois_list.itemSelectionChanged.connect(
+        lambda: TSITabSlots._slotSA_SOIsListSelectionChanged(
+            dashboard
+        )
+    )
+    dashboard.ui.pushButton_sa_sois_list_add_soi.clicked.connect(
+        lambda: TSITabSlots._slotSA_SOIsAddClicked(
+            dashboard
+        )
+    )
+    dashboard.ui.pushButton_sa_sois_list_edit.clicked.connect(
+        lambda: TSITabSlots._slotSA_SOIsEditClicked(
+            dashboard
+        )
+    )
+    dashboard.ui.pushButton_sa_sois_list_delete.clicked.connect(
+        lambda: TSITabSlots._slotSA_SOIsDeleteClicked(
+            dashboard
+        )
+    )
+    dashboard.ui.pushButton_sa_sois_list_merge.clicked.connect(
+        lambda: TSITabSlots._slotSA_SOIsMergeClicked(
+            dashboard
+        )
+    )
+    dashboard.ui.pushButton_sa_sois_list_refresh.clicked.connect(
+        lambda: TSITabSlots._slotSA_SOIsRefreshClicked(
+            dashboard
+        )
+    )
+    dashboard.ui.pushButton_sa_sois_selected_promote_to_target.clicked.connect(
+        lambda: TSITabSlots._slotSA_SOIsPromoteToTargetClicked(
+            dashboard
+        )
+    )
+    dashboard.ui.pushButton_sa_sois_selected_capture.clicked.connect(
+        lambda: TSITabSlots._slotSA_SOIsWorkflowClicked(
+            dashboard,
+            "capture",
+        )
+    )
+    dashboard.ui.pushButton_sa_sois_selected_inspect.clicked.connect(
+        lambda: TSITabSlots._slotSA_SOIsWorkflowClicked(
+            dashboard,
+            "inspection",
+        )
+    )
+    dashboard.ui.pushButton_sa_sois_selected_classify.clicked.connect(
+        lambda: TSITabSlots._slotSA_SOIsWorkflowClicked(
+            dashboard,
+            "classifier",
+        )
+    )
+    dashboard.ui.pushButton_sa_sois_selected_protocol_discovery.clicked.connect(
+        lambda: TSITabSlots._slotSA_SOIsWorkflowClicked(
+            dashboard,
+            "protocol_discovery",
+        )
+    )
+    dashboard.ui.pushButton_sa_sois_selected_direction_finding.clicked.connect(
+        lambda: TSITabSlots._slotSA_SOIsWorkflowClicked(
+            dashboard,
+            "direction_finding",
+        )
+    )
+    dashboard.ui.label_sa_sois_evidence_details.linkActivated.connect(
+        lambda link: TSITabSlots._slotSA_SOIsEvidenceLinkActivated(
+            dashboard,
+            link,
+        )
+    )
+
+
     # Check Box
     dashboard.ui.checkBox_tsi_classifier_training_retrain2_manual.clicked.connect(
         lambda: TSITabSlots._slotTSI_ClassifierTrainingRetrain2_ManualChecked(dashboard)
     )
-    dashboard.ui.checkBox_tsi_soi_settings_iq_files.clicked.connect(
-        lambda: TSITabSlots._slotTSI_SOI_SettingsIncludeIQ_FilesChecked(dashboard)
-    )    
 
     # Combo Box
     dashboard.ui.comboBox_tsi_conditioner_input_source.currentIndexChanged.connect(
@@ -3263,33 +3306,6 @@ def connect_tsi_slots(dashboard: Dashboard):
     dashboard.ui.pushButton_tsi_classifier_classification_results_export.clicked.connect(
         lambda: TSITabSlots._slotTSI_ClassifierClassificationResultsExportClicked(dashboard)
     )
-    dashboard.ui.pushButton_tsi_soi_aggregate.clicked.connect(
-        lambda: TSITabSlots._slotTSI_SOI_AggregateClicked(dashboard)
-    )
-    dashboard.ui.pushButton_tsi_soi_remove.clicked.connect(
-        lambda: TSITabSlots._slotTSI_SOI_RemoveClicked(dashboard)
-    )
-    dashboard.ui.pushButton_tsi_soi_remove_all.clicked.connect(
-        lambda: TSITabSlots._slotTSI_SOI_RemoveAllClicked(dashboard)
-    )
-    dashboard.ui.pushButton_tsi_soi_edit_statistics.clicked.connect(
-        lambda: TSITabSlots._slotTSI_SOI_EditStatistics(dashboard)
-    )    
-    dashboard.ui.pushButton_tsi_soi_pd_list.clicked.connect(
-        lambda: TSITabSlots._slotTSI_SOI_PD_ListClicked(dashboard)
-    )
-    dashboard.ui.pushButton_tsi_soi_pd_list_all.clicked.connect(
-        lambda: TSITabSlots._slotTSI_SOI_PD_ListAllClicked(dashboard)
-    )
-    dashboard.ui.pushButton_tsi_soi_library.clicked.connect(
-        lambda: TSITabSlots._slotTSI_SOI_LibraryClicked(dashboard)
-    )
-    dashboard.ui.pushButton_tsi_soi_library_all.clicked.connect(
-        lambda: TSITabSlots._slotTSI_SOI_LibraryAllClicked(dashboard)
-    )
-    dashboard.ui.pushButton_tsi_soi_browse.clicked.connect(
-        lambda: TSITabSlots._slotTSI_SOI_BrowseClicked(dashboard)
-    ) 
     dashboard.ui.pushButton_tsi_detector_query.clicked.connect(
         lambda: TSITabSlots._slotTSI_DetectorQueryClicked(dashboard)
     )
@@ -3637,9 +3653,9 @@ def connect_pd_slots(dashboard: Dashboard):
     dashboard.ui.pushButton_pd_bit_slicing_plot_entropy.clicked.connect(
         lambda: PDTabSlots._slotPD_BitSlicingPlotEntropyClicked(dashboard)
     )
-    dashboard.ui.pushButton_pd_dissectors_construct.clicked.connect(
-        lambda: PDTabSlots._slotPD_DissectorsConstructClicked(dashboard, preview = False)
-    )
+    # dashboard.ui.pushButton_pd_dissectors_construct.clicked.connect(
+    #     lambda: PDTabSlots._slotPD_DissectorsConstructClicked(dashboard, preview = False)
+    # )
     dashboard.ui.pushButton_pd_status_buffer_apply.clicked.connect(
         lambda: PDTabSlots._slotPD_StatusBufferApplyClicked(dashboard)
     )
@@ -3676,21 +3692,21 @@ def connect_pd_slots(dashboard: Dashboard):
     dashboard.ui.pushButton_pd_bit_slicing_insert_field.clicked.connect(
         lambda: PDTabSlots._slotPD_BitSlicingInsertFieldClicked(dashboard)
     )
-    dashboard.ui.pushButton_pd_bit_slicing_add_to_library.clicked.connect(
-        lambda: PDTabSlots._slotPD_BitSlicingAddToLibraryClicked(dashboard)
-    )
+    # dashboard.ui.pushButton_pd_bit_slicing_add_to_library.clicked.connect(
+    #     lambda: PDTabSlots._slotPD_BitSlicingAddToLibraryClicked(dashboard)
+    # )
     dashboard.ui.pushButton_pd_bit_slicing_clear_buffer.clicked.connect(
         lambda: PDTabSlots._slotPD_StatusBufferClearClicked(dashboard)
     )
     dashboard.ui.pushButton_pd_bit_slicing_search_library.clicked.connect(
         lambda: PDTabSlots._slotPD_BitSlicingSearchLibraryClicked(dashboard)
     )
-    dashboard.ui.pushButton_pd_dissectors_remove.clicked.connect(
-        lambda: PDTabSlots._slotPD_DissectorRemoveClicked(dashboard)
-    )
-    dashboard.ui.pushButton_pd_dissectors_apply.clicked.connect(
-        lambda: PDTabSlots._slotPD_DissectorApplyClicked(dashboard)
-    )
+    # dashboard.ui.pushButton_pd_dissectors_remove.clicked.connect(
+    #     lambda: PDTabSlots._slotPD_DissectorRemoveClicked(dashboard)
+    # )
+    # dashboard.ui.pushButton_pd_dissectors_apply.clicked.connect(
+    #     lambda: PDTabSlots._slotPD_DissectorApplyClicked(dashboard)
+    # )
     dashboard.ui.pushButton_pd_sniffer_stream.clicked.connect(
         lambda: PDTabSlots._slotPD_SnifferStreamClicked(dashboard)
     )
@@ -4310,27 +4326,65 @@ def connect_scapy_slots(dashboard: Dashboard):
     )
 
 
-def connect_attack_slots(dashboard: Dashboard):
-    """Connect the remaining Packet Crafter controls under Targets & Actions."""
-    dashboard.ui.comboBox_packet_protocols.currentIndexChanged.connect(lambda: AttackTabSlots._slotPacketProtocols(dashboard))
-    dashboard.ui.comboBox_packet_subcategory.currentIndexChanged.connect(lambda: AttackTabSlots._slotPacketSubcategory(dashboard))
+def connect_packet_crafter_slots(dashboard: Dashboard):
+    """Connect Packet Crafter controls."""
+    dashboard.ui.comboBox_packet_protocols.currentIndexChanged.connect(
+        lambda: PacketCrafterTabSlots._slotPacketProtocols(dashboard)
+    )
+    dashboard.ui.comboBox_packet_subcategory.currentIndexChanged.connect(
+        lambda: PacketCrafterTabSlots._slotPacketSubcategory(dashboard)
+    )
 
-    dashboard.ui.pushButton_packet_restore_defaults.clicked.connect(lambda: AttackTabSlots._slotPacketRestoreDefaultsClicked(dashboard))
-    dashboard.ui.pushButton_packet_assemble.clicked.connect(lambda: AttackTabSlots._slotPacketAssembleClicked(dashboard))
-    dashboard.ui.pushButton_packet_save_as.clicked.connect(lambda: AttackTabSlots._slotPacketSaveAs(dashboard))
-    dashboard.ui.pushButton_packet_calculate_crcs.clicked.connect(lambda: AttackTabSlots._slotPacketCalculateCRCsClicked(dashboard))
-    dashboard.ui.pushButton_packet_all_hex.clicked.connect(lambda: AttackTabSlots._slotPacketAllHexClicked(dashboard))
-    dashboard.ui.pushButton_packet_all_binary.clicked.connect(lambda: AttackTabSlots._slotPacketAllBinaryClicked(dashboard))
-    dashboard.ui.pushButton_packet_open.clicked.connect(lambda: AttackTabSlots._slotPacketOpenClicked(dashboard))
-    dashboard.ui.pushButton_packet_append.clicked.connect(lambda: AttackTabSlots._slotPacketAppendClicked(dashboard))
-    dashboard.ui.pushButton_packet_comma_separated.clicked.connect(lambda: AttackTabSlots._slotPacketCommaSeparatedClicked(dashboard))
-    dashboard.ui.pushButton_packet_comma_separated2.clicked.connect(lambda: AttackTabSlots._slotPacketCommaSeparatedClicked2(dashboard))
-    dashboard.ui.pushButton_packet_pattern1.clicked.connect(lambda: AttackTabSlots._slotPacketPattern1Clicked(dashboard))
-    dashboard.ui.pushButton_packet_import.clicked.connect(lambda: AttackTabSlots._slotPacketImportClicked(dashboard))
-    dashboard.ui.pushButton_packet_export.clicked.connect(lambda: AttackTabSlots._slotPacketExportClicked(dashboard))
-    dashboard.ui.pushButton_packet_open_in_scapy.clicked.connect(lambda: AttackTabSlots._slotPacketOpenInScapyClicked(dashboard))
+    dashboard.ui.pushButton_packet_restore_defaults.clicked.connect(
+        lambda: PacketCrafterTabSlots._slotPacketRestoreDefaultsClicked(dashboard)
+    )
+    dashboard.ui.pushButton_packet_assemble.clicked.connect(
+        lambda: PacketCrafterTabSlots._slotPacketAssembleClicked(dashboard)
+    )
+    dashboard.ui.pushButton_packet_save_as.clicked.connect(
+        lambda: PacketCrafterTabSlots._slotPacketSaveAs(dashboard)
+    )
+    dashboard.ui.pushButton_packet_calculate_crcs.clicked.connect(
+        lambda: PacketCrafterTabSlots._slotPacketCalculateCRCsClicked(dashboard)
+    )
+    dashboard.ui.pushButton_packet_all_hex.clicked.connect(
+        lambda: PacketCrafterTabSlots._slotPacketAllHexClicked(dashboard)
+    )
+    dashboard.ui.pushButton_packet_all_binary.clicked.connect(
+        lambda: PacketCrafterTabSlots._slotPacketAllBinaryClicked(dashboard)
+    )
+    dashboard.ui.pushButton_packet_open.clicked.connect(
+        lambda: PacketCrafterTabSlots._slotPacketOpenClicked(dashboard)
+    )
+    dashboard.ui.pushButton_packet_append.clicked.connect(
+        lambda: PacketCrafterTabSlots._slotPacketAppendClicked(dashboard)
+    )
+    dashboard.ui.pushButton_packet_comma_separated.clicked.connect(
+        lambda: PacketCrafterTabSlots._slotPacketCommaSeparatedClicked(dashboard)
+    )
+    dashboard.ui.pushButton_packet_comma_separated2.clicked.connect(
+        lambda: PacketCrafterTabSlots._slotPacketCommaSeparatedClicked2(dashboard)
+    )
+    dashboard.ui.pushButton_packet_pattern1.clicked.connect(
+        lambda: PacketCrafterTabSlots._slotPacketPattern1Clicked(dashboard)
+    )
+    dashboard.ui.pushButton_packet_import.clicked.connect(
+        lambda: PacketCrafterTabSlots._slotPacketImportClicked(dashboard)
+    )
+    dashboard.ui.pushButton_packet_export.clicked.connect(
+        lambda: PacketCrafterTabSlots._slotPacketExportClicked(dashboard)
+    )
+    dashboard.ui.pushButton_packet_open_in_scapy.clicked.connect(
+        lambda: PacketCrafterTabSlots._slotPacketOpenInScapyClicked(dashboard)
+    )
 
-    dashboard.ui.tableWidget1_attack_packet_editor.cellChanged.connect(lambda row, col: AttackTabSlots._slotPacketItemChanged(dashboard, row, col))
+    dashboard.ui.tableWidget1_attack_packet_editor.cellChanged.connect(
+        lambda row, col: PacketCrafterTabSlots._slotPacketItemChanged(
+            dashboard,
+            row,
+            col,
+        )
+    )
 
 
 def connect_archive_slots(dashboard: Dashboard):
@@ -4612,18 +4666,6 @@ def connect_library_slots(dashboard: Dashboard):
     dashboard.ui.comboBox_library_gallery_protocol.currentIndexChanged.connect(
         lambda: LibraryTabSlots._slotLibraryGalleryProtocolChanged(dashboard)
     )
-    dashboard.ui.comboBox_library_pd_protocol.currentIndexChanged.connect(
-        lambda: LibraryTabSlots._slotPD_AddToLibraryProtocolChanged(dashboard)
-    )
-    dashboard.ui.comboBox_library_attacks_attack_type.currentIndexChanged.connect(
-        lambda: LibraryTabSlots._slotAttackImportAttackTypeChanged(dashboard)
-    )
-    dashboard.ui.comboBox_library_attacks_file_type.currentIndexChanged.connect(
-        lambda: LibraryTabSlots._slotAttackImportFileTypeChanged(dashboard)
-    )
-    dashboard.ui.comboBox_library_pd_data_type.currentIndexChanged.connect(
-        lambda: LibraryTabSlots._slotLibraryAddDataTypeChanged(dashboard)
-    )
     dashboard.ui.comboBox_library_browse.currentIndexChanged.connect(
         lambda: LibraryTabSlots._slotLibraryBrowseChanged(dashboard)
     )
@@ -4646,41 +4688,14 @@ def connect_library_slots(dashboard: Dashboard):
     dashboard.ui.pushButton_library_search_current_soi.clicked.connect(
         lambda: LibraryTabSlots._slotLibrarySearchCurrentSOI_Clicked(dashboard)
     )
-    dashboard.ui.pushButton_library_pd_browse.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryAddBrowseClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_pd_current_soi.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryAddCurrentSOI_Clicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_pd_add_field.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryAddAddFieldClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_pd_remove_field.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryAddRemoveFieldClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_pd_up.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryAddUpClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_pd_down.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryAddDownClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_attacks_file.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryAddAttacksSelectClicked(dashboard)
-    )
     dashboard.ui.pushButton_library_search_search_library.clicked.connect(
         lambda: LibraryTabSlots._slotLibrarySearchSearchLibraryClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_pd_add_to_library.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryAddAddToLibrary_Clicked(dashboard)
     )
     dashboard.ui.pushButton_library_browse_pgadmin4.clicked.connect(
         lambda: LibraryTabSlots._slotLibraryBrowsePgAdmin4_Clicked(dashboard)
     )
     dashboard.ui.pushButton_library_browse_delete_row.clicked.connect(
         lambda: LibraryTabSlots._slotLibraryBrowseDeleteRowClicked(dashboard)
-    )
-    dashboard.ui.pushButton_library_browse_copy_row.clicked.connect(
-        lambda: LibraryTabSlots._slotLibraryBrowseCopyClicked(dashboard)
     )
     dashboard.ui.pushButton_library_browse_refresh.clicked.connect(
         lambda: LibraryTabSlots._slotLibraryBrowseRefreshClicked(dashboard)
@@ -4693,9 +4708,6 @@ def connect_library_slots(dashboard: Dashboard):
     dashboard.ui.radioButton_library_search_hex.clicked.connect(
         lambda: LibraryTabSlots._slotLibrarySearchHexClicked(dashboard)
     )
-
-    # Connect library tab plugin manager slots
-    LibraryTabPluginManagerTabSlots.connect_slots(dashboard)
 
 
 def connect_log_slots(dashboard: Dashboard):

@@ -1,4 +1,3 @@
-import binascii
 import fissure.comms
 import time
 from PyQt5 import QtCore, QtWidgets
@@ -11,15 +10,11 @@ import asyncio
 from typing import List
 import json
 import qasync
-import zipfile
 from fissure.Dashboard.Slots import TacticalTabSlots
 
-from fissure.utils.plugin import get_fissure_plugin_editor_plugins_path
 from fissure.Dashboard.UI_Components.Qt5 import MyMessageBox
-# from ..Dashboard.Slots import StatusBarSlots  # how do you go from callbacks to slots?
 from fissure.Dashboard.Slots import (
     ArchiveTabSlots,
-    AttackTabSlots,
     DashboardSlots,
     FuzzingTabSlots,
     IQDataTabSlots,
@@ -1276,259 +1271,6 @@ async def responsePluginOperationStopped(
     )
 
 
-async def savePlugin(component: object, plugin_name: str, plugin_data: str) -> None:
-    """Save Plugin Data to File
-
-    Parameters
-    ----------
-    component : object
-        Component
-    plugin_name : str
-        Name of the plugin
-    plugin_data : str
-        Plugin data to save
-    """
-    # get the local plugin path from the UI or default to Downloads
-    local_plugin_path = await get_fissure_plugin_editor_plugins_path()
-    if not local_plugin_path:
-        local_plugin_path = os.path.join(os.path.expanduser("~"), "Downloads")
-
-    # Decode hex data
-    plugin_data = binascii.a2b_hex(plugin_data)
-
-    # Save file
-    pathname = os.path.join(local_plugin_path, plugin_name + '.zip')
-    with open(pathname, "wb") as f:
-        f.write(plugin_data)
-
-    # Create a path for the plugin to be extracted to
-    extract_path = os.path.join(local_plugin_path, plugin_name)
-    if os.path.exists(extract_path):
-        copy_num = 1
-        base_name = plugin_name
-        while os.path.exists(extract_path):
-            extract_path = os.path.join(local_plugin_path, f"{base_name} (Copy {copy_num})")
-            copy_num += 1
-    os.makedirs(extract_path, exist_ok=True)
-
-    # Extract the zip file to the plugin directory
-    with zipfile.ZipFile(pathname, "r") as zip_ref:
-        zip_ref.extractall(extract_path)
-
-    # Remove the zip file
-    os.remove(pathname)
-
-    # Refresh the local plugin list in the UI
-    component.frontend.ui.toolButton_plugin_pkg_path_refresh.clicked.emit()
-
-
-# async def responsePluginTableData(component: object, plugin_name: str, table_data_json: dict, install_files: List[str]):
-#     """Populates table data after opening a plugin.
-
-#     Parameters
-#     ----------
-#     component : object
-#         Component
-#     """
-#     # Populate CSV Tables
-#     table_data = json.loads(table_data_json)  # Convert JSON back to dictionary
-
-#     for table_name, rows in table_data.items():
-#         # Match Table to ComboBox Item
-#         current_combobox_index = component.frontend.ui.comboBox_library_plugin_edit.findText(table_name)
-#         if current_combobox_index == -1:
-#             continue
-
-#         # Get Corresponding Table Widget
-#         component.frontend.ui.stackedWidget_library_plugin_tables.setCurrentIndex(current_combobox_index)
-#         current_page = component.frontend.ui.stackedWidget_library_plugin_tables.currentWidget()
-#         target_table = current_page.findChild(QtWidgets.QTableWidget)
-
-#         if target_table:
-#             # Get the headers from the table (expected headers from the database)
-#             expected_headers = [
-#                 target_table.horizontalHeaderItem(col).text() if target_table.horizontalHeaderItem(col) else ""
-#                 for col in range(target_table.columnCount())
-#             ]
-
-#             # Check if the first row matches the expected headers
-#             if rows and len(rows) > 0:
-#                 first_row = rows[0]  # First row of data
-
-#                 if len(first_row) != len(expected_headers):
-#                     # Handle the mismatch in column count
-#                     asyncio.ensure_future(
-#                         fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
-#                             component.frontend,
-#                             f"Column count mismatch in table '{table_name}' between data and table headers."
-#                         )
-#                     )
-#                     continue
-
-#                 # Check if the first row values match the headers
-#                 for col_index in range(len(first_row)):
-#                     if first_row[col_index] != expected_headers[col_index]:
-#                         # Handle the header mismatch
-#                         asyncio.ensure_future(
-#                             fissure.Dashboard.UI_Components.Qt5.async_ok_dialog(
-#                                 component.frontend,
-#                                 f"In table '{table_name}', the value '{first_row[col_index]}' in the first row does not match the expected header '{expected_headers[col_index]}'."
-#                             )
-#                         )
-#                         continue
-
-#             # Insert rows into the table if header matches
-#             for row in rows[1:]:  # Skip the first row (header row)
-#                 target_row = target_table.rowCount()
-#                 target_table.insertRow(target_row)
-#                 for col_index, value in enumerate(row):
-#                     item = QtWidgets.QTableWidgetItem(value)
-#                     item.setTextAlignment(QtCore.Qt.AlignCenter)
-#                     target_table.setItem(target_row, col_index, item)
-
-#     # Populate Support Files Tables
-#     page_mapping = {
-#         "Single-Stage Flow Graphs": component.frontend.ui.tableWidget_library_plugin_attacks_support,
-#         "Fuzzing Flow Graphs": component.frontend.ui.tableWidget_library_plugin_attacks_support,
-#         "PD Flow Graphs": component.frontend.ui.tableWidget_library_plugin_demodulation_flow_graphs_support,
-#         "Inspection Flow Graphs": component.frontend.ui.tableWidget_library_plugin_inspection_flow_graphs_support,
-#         "Triggers": component.frontend.ui.tableWidget_library_plugin_triggers_support,
-#     }
-
-#     for filepath in install_files:
-#         # Determine the table widget based on the keywords in the filepath
-#         target_table = None
-#         for keyword, table_widget in page_mapping.items():
-#             if keyword in filepath:
-#                 target_table = table_widget
-#                 break
-        
-#         if target_table:
-#             # Add a new row to the table
-#             row_position = target_table.rowCount()
-#             target_table.insertRow(row_position)
-            
-#             # Add the filepath as a new item
-#             filepath_item = QtWidgets.QTableWidgetItem(filepath)
-#             filepath_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-#             filepath_item.setFlags(filepath_item.flags() & ~QtCore.Qt.ItemIsEditable)
-#             target_table.setItem(row_position, 0, filepath_item)
-
-#             # Empty New Filepath Item
-#             new_filepath_item = QtWidgets.QTableWidgetItem("")
-#             new_filepath_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-#             # new_filepath_item.setFlags(new_filepath_item.flags() & ~QtCore.Qt.ItemIsEditable)
-#             target_table.setItem(row_position, 2, new_filepath_item)
-
-#             # Action Comboboxes
-#             new_action_combobox = QtWidgets.QComboBox(target_table, objectName='comboBox2_')
-#             new_action_combobox.setFixedSize(73, 23)
-#             target_table.setCellWidget(row_position, 1, new_action_combobox)
-#             new_action_combobox.addItem("Keep")
-#             new_action_combobox.addItem("Replace")
-#             new_action_combobox.addItem("Delete")
-
-#             # Function to handle enabling/disabling columns
-#             def handle_combobox_change(target_table, row_position, index):
-#                 if index == 0 or index == 2:  # Keep or Delete
-#                     for col in [2, 3]:
-#                         cell_widget = target_table.cellWidget(row_position, col)
-#                         if isinstance(cell_widget, QtWidgets.QPushButton):
-#                             cell_widget.setEnabled(False)
-#                         else:
-#                             item = target_table.item(row_position, col)
-#                             if item:
-#                                 item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEnabled)
-#                 elif index == 1:  # Replace
-#                     for col in [2, 3]:
-#                         cell_widget = target_table.cellWidget(row_position, col)
-#                         if isinstance(cell_widget, QtWidgets.QPushButton):
-#                             cell_widget.setEnabled(True)
-#                         else:
-#                             item = target_table.item(row_position, col)
-#                             if item:
-#                                 item.setFlags(item.flags() | QtCore.Qt.ItemIsEnabled)
-
-#                 # Ensure the table updates visually
-#                 target_table.viewport().update()
-
-#             # Create Pushbutton
-#             new_pushbutton = QtWidgets.QPushButton(target_table, objectName='pushButton_')
-#             new_pushbutton.setText("...")
-#             new_pushbutton.setFixedSize(36, 23)
-#             target_table.setCellWidget(row_position, 3, new_pushbutton)
-#             new_pushbutton.clicked.connect(lambda checked, table=target_table, row=row_position: LibraryTabSlots._slotLibraryPluginSupportFileSelectionClicked(component.frontend, table, row))
-
-#             # Activate Combobox Slot
-#             new_action_combobox.currentIndexChanged.connect(
-#                 lambda index, table=target_table, row=row_position: handle_combobox_change(table, row, index)
-#             )
-#             new_action_combobox.setCurrentIndex(0)
-#             handle_combobox_change(target_table, row_position, 0)
-            
-#             # Resize Rows
-#             target_table.resizeRowsToContents()
-#         else:
-#             component.logger.error(f"Supporting Files: No matching table widget for filepath '{filepath}'")
-
-#     # Reset Combobox/Pages
-#     if component.frontend.ui.comboBox_library_plugin_edit.currentIndex() == 0:
-#         LibraryTabSlots._slotLibraryPluginEditChanged(component.frontend)
-#     else:
-#         component.frontend.ui.comboBox_library_plugin_edit.setCurrentIndex(0)  # Function not called when already 0
-
-
-async def responsePluginProtocolParameters(component: object, plugin_name: str, protocol_name: str, parameters: dict):
-    """Handle Request for Plugin Names
-
-    Parameters
-    ----------
-    component : object
-        Component
-    """
-    # UI Widgets
-    doubleSpinBox_protocol_data_rate: QtWidgets.QDoubleSpinBox = component.frontend.ui.doubleSpinBox_protocol_data_rate
-    checkBox_protocol_data_rates: QtWidgets.QCheckBox = component.frontend.ui.checkBox_protocol_data_rates
-    doubleSpinBox_protocol_median_packet_lengths: QtWidgets.QDoubleSpinBox = component.frontend.ui.doubleSpinBox_protocol_median_packet_lengths
-    checkBox_protocol_median_packet_lengths: QtWidgets.QCheckBox = component.frontend.ui.checkBox_protocol_median_packet_lengths
-    listWidget_plugin_protocol_mod_type_list: QtWidgets.QListWidget = component.frontend.ui.listWidget_plugin_protocol_mod_type_list
-    tableWidget_protocol_packet_type: QtWidgets.QTableWidget = component.frontend.ui.tableWidget_protocol_packet_type
-
-    # Update Values
-    data_rates = parameters.get('data_rates')
-    if data_rates is None:
-        doubleSpinBox_protocol_data_rate.setEnabled(False)
-        checkBox_protocol_data_rates.setChecked(True)
-    else:
-        doubleSpinBox_protocol_data_rate.setEnabled(True)
-        doubleSpinBox_protocol_data_rate.setValue(data_rates)
-        checkBox_protocol_data_rates.setChecked(False)
-
-    median_packet_lengths = parameters.get('median_packet_lengths')
-    if median_packet_lengths is None:
-        doubleSpinBox_protocol_median_packet_lengths.setEnabled(False)
-        checkBox_protocol_median_packet_lengths.setChecked(True)
-    else:
-        doubleSpinBox_protocol_median_packet_lengths.setEnabled(True)
-        doubleSpinBox_protocol_median_packet_lengths.setValue(median_packet_lengths)
-        checkBox_protocol_median_packet_lengths.setChecked(False)
-
-    listWidget_plugin_protocol_mod_type_list.clear()
-    listWidget_plugin_protocol_mod_type_list.addItems(parameters.get('mod_types'))
-
-    pkt_types = parameters.get('pkt_types')
-    tableWidget_protocol_packet_type.clearContents()
-    tableWidget_protocol_packet_type.setWordWrap(True)
-    if not pkt_types is None:
-        tableWidget_protocol_packet_type.setRowCount(len(pkt_types))
-        cols = range(len(pkt_types[0]))
-        for (r, row) in enumerate(pkt_types):
-            for c in cols:
-                tableWidget_protocol_packet_type.setItem(r, c, QtWidgets.QTableWidgetItem(row[c]))
-    else:
-        tableWidget_protocol_packet_type.setRowCount(0)
-
-
 async def findGPS_CoordinatesResults(component: object, coordinates=""):
     """
     Returns the GPS coordinate results to the NodeConfigureDialog.
@@ -2391,6 +2133,15 @@ async def sendArtifactsListTakReturn(
                 f"{error}"
             )
 
+    try:
+        TSITabSlots.refresh_sa_sois_selected_details(
+            dashboard
+        )
+    except Exception as error:
+        component.logger.debug(
+            f"Could not refresh Signal Analysis SOI evidence: {error}"
+        )            
+
 
 async def sendSoisListTakReturn(
     component: object,
@@ -2398,11 +2149,10 @@ async def sendSoisListTakReturn(
     sois=None,
 ):
     """
-    Replaces the Dashboard SOI cache for one node with HIPRFISR's
-    authoritative merged SOI records, then refreshes every SOI consumer.
+    Replace the Dashboard SOI cache with HIPRFISR's authoritative records.
 
-    Linked Artifact metadata is also requested because Feature Extractor SOI
-    inputs resolve their files through the shared Artifact cache.
+    A non-empty node_uid replaces one node's records. A blank node_uid is a
+    Signal Analysis global refresh and replaces the entire Dashboard SOI cache.
     """
     frontend = component.frontend
     sois = sois or []
@@ -2411,12 +2161,15 @@ async def sendSoisListTakReturn(
     if not hasattr(frontend, "tactical_sois"):
         frontend.tactical_sois = {}
 
-    stale_keys = [
-        soi_key
-        for soi_key, record in frontend.tactical_sois.items()
-        if isinstance(record, dict)
-        and str(record.get("node_uid", "") or "").strip() == node_uid
-    ]
+    if node_uid:
+        stale_keys = [
+            soi_key
+            for soi_key, record in frontend.tactical_sois.items()
+            if isinstance(record, dict)
+            and str(record.get("node_uid", "") or "").strip() == node_uid
+        ]
+    else:
+        stale_keys = list(frontend.tactical_sois.keys())
 
     for soi_key in stale_keys:
         frontend.tactical_sois.pop(soi_key, None)
@@ -2426,30 +2179,48 @@ async def sendSoisListTakReturn(
         except Exception:
             pass
 
-    for soi in sois:
-        if not isinstance(soi, dict):
-            continue
+    frontend.sa_sois_bulk_refreshing = True
 
-        await soiUpdate(
-            component,
-            soi=soi,
-        )
+    try:
+        for soi in sois:
+            if not isinstance(soi, dict):
+                continue
+
+            await soiUpdate(
+                component,
+                soi=soi,
+            )
+    finally:
+        frontend.sa_sois_bulk_refreshing = False
 
     selected_node_uid = str(
         getattr(frontend, "selected_tactical_node_uid", "")
         or ""
     ).strip()
 
-    if selected_node_uid == node_uid:
+    if selected_node_uid and (
+        not node_uid
+        or selected_node_uid == node_uid
+    ):
         try:
             TacticalTabSlots.rebuild_tactical_node_sois(
                 frontend,
-                node_uid,
+                selected_node_uid,
             )
         except Exception as error:
             component.logger.debug(
                 f"Could not rebuild Tactical SOIs after refresh: {error}"
             )
+
+    try:
+        TSITabSlots.refresh_sa_sois_table(
+            frontend
+        )
+    except Exception as error:
+        component.logger.debug(
+            "Could not refresh Signal Analysis SOIs "
+            f"after authoritative SOI refresh: {error}"
+        )
 
     try:
         TSITabSlots.refresh_tsi_fe_input_sois(
@@ -2919,6 +2690,120 @@ async def soiUpdate(component: object, soi=None):
         frontend,
         record,
     )
+
+    if not getattr(frontend, "sa_sois_bulk_refreshing", False):
+        try:
+            TSITabSlots.refresh_sa_sois_table(
+                frontend
+            )
+        except Exception as error:
+            component.logger.debug(
+                f"Could not refresh Signal Analysis SOIs: {error}"
+            )    
+
+
+async def soiDeleted(
+    component: object,
+    soi_key: str = "",
+    node_uid: str = "",
+    soi_id: str = "",
+    success: bool = False,
+):
+    """Remove a hub-deleted SOI from Dashboard caches and views."""
+    if not success:
+        component.logger.warning(
+            "HIPRFISR could not delete SOI "
+            f"soi_key={soi_key}, soi_id={soi_id}"
+        )
+        return
+
+    frontend = component.frontend
+    soi_key = str(soi_key or "").strip()
+    node_uid = str(node_uid or "").strip()
+    soi_id = str(soi_id or "").strip()
+
+    if not soi_key and soi_id:
+        for candidate_key, record in list(
+            getattr(frontend, "tactical_sois", {}).items()
+        ):
+            if not isinstance(record, dict):
+                continue
+
+            if str(record.get("soi_id", "") or "").strip() != soi_id:
+                continue
+
+            candidate_node_uid = str(
+                record.get("node_uid", "")
+                or ""
+            ).strip()
+
+            if node_uid and candidate_node_uid != node_uid:
+                continue
+
+            soi_key = candidate_key
+            break
+
+    removed = None
+    if soi_key:
+        removed = getattr(frontend, "tactical_sois", {}).pop(
+            soi_key,
+            None,
+        )
+
+        try:
+            frontend.tactical_map.remove_soi(soi_key)
+        except Exception:
+            pass
+
+        if getattr(
+            frontend,
+            "selected_tactical_node_soi_id",
+            None,
+        ) == soi_key:
+            frontend.selected_tactical_node_soi_id = None
+
+    removed_node_uid = str(
+        (removed or {}).get("node_uid", "")
+        or node_uid
+        or ""
+    ).strip()
+
+    selected_node_uid = str(
+        getattr(frontend, "selected_tactical_node_uid", "")
+        or ""
+    ).strip()
+
+    if selected_node_uid and selected_node_uid == removed_node_uid:
+        try:
+            TacticalTabSlots.rebuild_tactical_node_sois(
+                frontend,
+                selected_node_uid,
+            )
+        except Exception as error:
+            component.logger.debug(
+                f"Could not rebuild Tactical SOIs after delete: {error}"
+            )
+
+    try:
+        TSITabSlots.refresh_sa_sois_table(
+            frontend
+        )
+    except Exception as error:
+        component.logger.debug(
+            f"Could not refresh Signal Analysis SOIs after delete: {error}"
+        )
+
+    try:
+        TSITabSlots.refresh_tsi_fe_input_sois(
+            frontend
+        )
+        TSITabSlots.refresh_tsi_fe_run_sois(
+            frontend
+        )
+    except Exception as error:
+        component.logger.debug(
+            f"Could not refresh Feature Extractor SOIs after delete: {error}"
+        )
 
 
 async def dashboardArtifactTransferStatus(
