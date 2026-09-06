@@ -1,6 +1,67 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2026-9-5
+
+Build plugin-driven Signal Analysis Capture workflows
+
+### Added
+
+- Added the new Signal Analysis → Capture workspace with optional SOI context, hardware-aware plugin action discovery, dynamic parameter customization, Start/Stop execution, capture estimates, and managed Last Capture results.
+- Added the `sa.capture` plugin action path so Capture can expose plugin-provided acquisition capabilities beyond the built-in IQ recorder without hardcoding capture methods into the Dashboard.
+- Added post-capture artifact actions for Download/Open Folder, Inspection handoff, and explicit SOI linking so users can review a capture before deciding whether to associate it with an SOI.
+
+### Changed
+
+- Changed the Base IQ Record workflow to use human-readable duration per capture while preserving sample-count handling internally for the existing recorder flowgraphs.
+- Changed Capture execution to use operation-specific lifecycle control and the existing artifact pipeline for both local and remote IP Sensor Nodes.
+- Changed SOI-to-Capture workflow handling so a selected SOI can prefill compatible capture parameters without automatically linking the resulting artifact.
+- Changed IQ Record metadata and result handling to expose capture duration, file count, size, frequency, sample rate, and acquisition timing in the Capture workspace.
+
+## 2026-9-4
+
+Add remote graphical Detector workflows
+
+### Added
+
+- Added remote graphical Fixed Detection support for IP Sensor Nodes using the existing Xpra presentation path while keeping detector execution, lifecycle, detections, status, and results on the normal FISSURE Sensor Node/HIPRFISR messaging path.
+
+### Changed
+
+- Changed Detector Stop behavior to target the active plugin operation by operation ID instead of stopping all plugin operations on the selected Sensor Node.
+- Changed Fixed Detection to default to GUI mode while retaining headless execution as an explicit option.
+- Changed Fixed Detection graphical launches to honor FISSURE execution context and subprocess display environments so the same operation works locally or through remote Xpra presentation.
+- Changed the Detector interface to hide the stale Search control until the Library Search workflow is restored.
+
+### Fixed
+
+- Fixed Fixed Detection hardware selection so the selected B2x0 serial is passed through to the GNU Radio flowgraph instead of being dropped before launch.
+
+## 2026-9-4
+
+Add remote graphical Survey workflows
+
+### Added
+
+- Added the new Signal Analysis → Survey workspace for exploratory live RF analysis with hardware-aware plugin action discovery, dynamic parameter customization, Start/Stop execution, Add SOI, execution status/results, and curated Third-Party Tools.
+- Added remote graphical Survey support for IP Sensor Nodes using Xpra as a separate presentation channel while keeping plugin execution, lifecycle, status, detections, and results on the normal FISSURE Sensor Node/HIPRFISR path.
+- Added Xpra execution context support for graphical plugin operations, including remote display selection, X11 environment isolation, and Sensor Node display-readiness waiting before GUI launch.
+- Added remote Third-Party Tool launching through Xpra for Universal Radio Hacker, Gqrx, QSpectrumAnalyzer, and Spektrum, including remote PATH handling and per-tool command definitions.
+- Added Passwordless SSH setup under Sensor Node Remote Actions with existing-key detection, optional Ed25519 key creation, secure public-key installation, verification, and password-based fallback when key authentication is not configured.
+- Added Xpra host installation support, including source-built version selection, host-only Apptainer handling, OpenSSH dependencies, verification, and cleanup of installer staging files.
+
+### Changed
+
+- Changed the live IQ inspection action to support both local and remote Sensor Nodes through the same plugin action instead of introducing a separate remote action path.
+- Changed remote Survey authentication to prefer noninteractive SSH key access and otherwise use the Dashboard password dialog with system OpenSSH, avoiding terminal-based password entry.
+- Changed Survey Third-Party Tools into clearer grouped button/description blocks and expanded compatible hardware exposure where supported, including USRP B20xmini/B2x0 for Gqrx and QSpectrumAnalyzer.
+- Changed the Ubuntu 24.04 QSpectrumAnalyzer installer and launch paths to explicitly use PyQt5 compatibility without altering the system-wide Qt binding preference.
+- Changed Apptainer host setup so Xpra remains a host dependency for remote graphical presentation rather than being installed inside the container.
+
+### Fixed
+
+- Fixed QSpectrumAnalyzer startup on Ubuntu 24.04 by forcing the PyQt5 binding required by its Qt5-era interface.
+
 ## 2026-9-2
 
 Redesign Signal Analysis around centralized SOI workflows
