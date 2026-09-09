@@ -10241,9 +10241,9 @@ p, li { white-space: pre-wrap; }
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>530</y>
+           <y>535</y>
            <width>1198</width>
-           <height>275</height>
+           <height>270</height>
           </rect>
          </property>
          <property name="frameShape">
@@ -10298,7 +10298,7 @@ p, li { white-space: pre-wrap; }
          <widget class="QPushButton" name="pushButton_tsi_fe_results_export_csv">
           <property name="geometry">
            <rect>
-            <x>915</x>
+            <x>665</x>
             <y>235</y>
             <width>130</width>
             <height>27</height>
@@ -10337,7 +10337,7 @@ p, li { white-space: pre-wrap; }
          <widget class="QPushButton" name="pushButton_tsi_fe_results_export_json">
           <property name="geometry">
            <rect>
-            <x>1055</x>
+            <x>805</x>
             <y>235</y>
             <width>130</width>
             <height>27</height>
@@ -10360,12 +10360,28 @@ p, li { white-space: pre-wrap; }
            <string>Open Folder</string>
           </property>
          </widget>
+         <widget class="QPushButton" name="pushButton_tsi_fe_results_promote_to_soi">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="geometry">
+           <rect>
+            <x>1055</x>
+            <y>235</y>
+            <width>130</width>
+            <height>28</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Create SOI</string>
+          </property>
+         </widget>
         </widget>
         <widget class="QLabel" name="label1_22">
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>510</y>
+           <y>515</y>
            <width>1198</width>
            <height>22</height>
           </rect>
@@ -10389,13 +10405,13 @@ p, li { white-space: pre-wrap; }
           <string>Feature Results</string>
          </property>
         </widget>
-        <widget class="QFrame" name="frame1_20">
+        <widget class="QFrame" name="frame_sa_fe_method">
          <property name="geometry">
           <rect>
            <x>412</x>
-           <y>135</y>
+           <y>115</y>
            <width>393</width>
-           <height>365</height>
+           <height>390</height>
           </rect>
          </property>
          <property name="frameShape">
@@ -10408,7 +10424,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>75</x>
-            <y>10</y>
+            <y>45</y>
             <width>310</width>
             <height>27</height>
            </rect>
@@ -10427,7 +10443,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>10</y>
+            <y>45</y>
             <width>65</width>
             <height>27</height>
            </rect>
@@ -10448,7 +10464,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>75</x>
-            <y>40</y>
+            <y>75</y>
             <width>310</width>
             <height>27</height>
            </rect>
@@ -10467,7 +10483,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>40</y>
+            <y>75</y>
             <width>65</width>
             <height>27</height>
            </rect>
@@ -10491,9 +10507,9 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>40</x>
-            <y>75</y>
+            <y>110</y>
             <width>140</width>
-            <height>27</height>
+            <height>28</height>
            </rect>
           </property>
           <property name="text">
@@ -10507,22 +10523,22 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>215</x>
-            <y>75</y>
+            <y>110</y>
             <width>140</width>
-            <height>27</height>
+            <height>28</height>
            </rect>
           </property>
           <property name="text">
-           <string>Query Parameters</string>
+           <string>Customize</string>
           </property>
          </widget>
          <widget class="QScrollArea" name="scrollArea_tsi_fe_method">
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>110</y>
+            <y>145</y>
             <width>383</width>
-            <height>245</height>
+            <height>240</height>
            </rect>
           </property>
           <property name="widgetResizable">
@@ -10534,39 +10550,40 @@ p, li { white-space: pre-wrap; }
              <x>0</x>
              <y>0</y>
              <width>381</width>
-             <height>243</height>
+             <height>238</height>
             </rect>
            </property>
           </widget>
          </widget>
-        </widget>
-        <widget class="QLabel" name="label1_45">
-         <property name="geometry">
-          <rect>
-           <x>815</x>
-           <y>115</y>
-           <width>393</width>
-           <height>22</height>
-          </rect>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <family>Ubuntu</family>
-           <pointsize>10</pointsize>
-           <weight>75</weight>
-           <italic>false</italic>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>3. Run Extraction</string>
-         </property>
+         <widget class="QLabel" name="label_sa_fe_method_badge">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>10</y>
+            <width>28</width>
+            <height>28</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>2</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_sa_fe_method_title">
+          <property name="geometry">
+           <rect>
+            <x>50</x>
+            <y>10</y>
+            <width>240</width>
+            <height>28</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Extraction Method</string>
+          </property>
+         </widget>
         </widget>
         <widget class="QFrame" name="frame_tsi_fe_workflow">
          <property name="geometry">
@@ -10831,41 +10848,13 @@ p, li { white-space: pre-wrap; }
           </property>
          </widget>
         </widget>
-        <widget class="QLabel" name="label1_35">
-         <property name="geometry">
-          <rect>
-           <x>412</x>
-           <y>115</y>
-           <width>393</width>
-           <height>22</height>
-          </rect>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <family>Ubuntu</family>
-           <pointsize>10</pointsize>
-           <weight>75</weight>
-           <italic>false</italic>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>2. Extraction Method</string>
-         </property>
-        </widget>
-        <widget class="QFrame" name="frame1_46">
+        <widget class="QFrame" name="frame_sa_fe_run">
          <property name="geometry">
           <rect>
            <x>815</x>
-           <y>135</y>
+           <y>115</y>
            <width>393</width>
-           <height>365</height>
+           <height>390</height>
           </rect>
          </property>
          <property name="frameShape">
@@ -10878,9 +10867,9 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>105</x>
-            <y>230</y>
+            <y>195</y>
             <width>175</width>
-            <height>20</height>
+            <height>25</height>
            </rect>
           </property>
           <property name="maximum">
@@ -10897,7 +10886,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>70</y>
+            <y>75</y>
             <width>90</width>
             <height>27</height>
            </rect>
@@ -10914,32 +10903,11 @@ p, li { white-space: pre-wrap; }
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
           </property>
          </widget>
-         <widget class="QLabel" name="label2_tsi_fe_run_node_label">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>10</y>
-            <width>65</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Node:</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-          </property>
-         </widget>
          <widget class="QLabel" name="label2_tsi_fe_run_status_label">
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>200</y>
+            <y>275</y>
             <width>65</width>
             <height>27</height>
            </rect>
@@ -10956,32 +10924,11 @@ p, li { white-space: pre-wrap; }
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
           </property>
          </widget>
-         <widget class="QLabel" name="label2_tsi_fe_run_node">
-          <property name="geometry">
-           <rect>
-            <x>105</x>
-            <y>10</y>
-            <width>280</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>—</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-          </property>
-         </widget>
          <widget class="QLabel" name="label2_tsi_fe_run_status">
           <property name="geometry">
            <rect>
             <x>105</x>
-            <y>200</y>
+            <y>275</y>
             <width>280</width>
             <height>27</height>
            </rect>
@@ -11001,10 +10948,10 @@ p, li { white-space: pre-wrap; }
          <widget class="QPushButton" name="pushButton_tsi_fe_run_start_stop">
           <property name="geometry">
            <rect>
-            <x>109</x>
-            <y>330</y>
+            <x>105</x>
+            <y>228</y>
             <width>175</width>
-            <height>28</height>
+            <height>36</height>
            </rect>
           </property>
           <property name="text">
@@ -11015,7 +10962,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>40</y>
+            <y>45</y>
             <width>90</width>
             <height>27</height>
            </rect>
@@ -11036,7 +10983,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>105</x>
-            <y>70</y>
+            <y>75</y>
             <width>240</width>
             <height>27</height>
            </rect>
@@ -11056,9 +11003,9 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>225</y>
+            <y>195</y>
             <width>65</width>
-            <height>27</height>
+            <height>25</height>
            </rect>
           </property>
           <property name="font">
@@ -11077,7 +11024,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>105</x>
-            <y>40</y>
+            <y>45</y>
             <width>240</width>
             <height>27</height>
            </rect>
@@ -11095,17 +11042,7 @@ p, li { white-space: pre-wrap; }
           </item>
           <item>
            <property name="text">
-            <string>New Analysis Artifact</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Attach to Existing SOI</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Create New SOI from Input</string>
+            <string>Artifact</string>
            </property>
           </item>
          </widget>
@@ -11113,7 +11050,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>1</x>
-            <y>135</y>
+            <y>110</y>
             <width>391</width>
             <height>3</height>
            </rect>
@@ -11126,7 +11063,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>105</x>
-            <y>140</y>
+            <y>320</y>
             <width>280</width>
             <height>27</height>
            </rect>
@@ -11147,7 +11084,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>140</y>
+            <y>320</y>
             <width>65</width>
             <height>27</height>
            </rect>
@@ -11168,7 +11105,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>250</y>
+            <y>115</y>
             <width>65</width>
             <height>27</height>
            </rect>
@@ -11189,7 +11126,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>105</x>
-            <y>250</y>
+            <y>115</y>
             <width>280</width>
             <height>27</height>
            </rect>
@@ -11210,7 +11147,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>275</y>
+            <y>140</y>
             <width>75</width>
             <height>27</height>
            </rect>
@@ -11231,7 +11168,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>105</x>
-            <y>275</y>
+            <y>140</y>
             <width>280</width>
             <height>27</height>
            </rect>
@@ -11252,7 +11189,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>300</y>
+            <y>165</y>
             <width>65</width>
             <height>27</height>
            </rect>
@@ -11273,7 +11210,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>105</x>
-            <y>300</y>
+            <y>165</y>
             <width>280</width>
             <height>27</height>
            </rect>
@@ -11290,120 +11227,72 @@ p, li { white-space: pre-wrap; }
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
           </property>
          </widget>
-         <widget class="QLabel" name="label2_tsi_fe_run_soi">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>100</y>
-            <width>90</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>SOI:</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-         <widget class="QComboBox" name="comboBox_tsi_fe_run_soi">
-          <property name="geometry">
-           <rect>
-            <x>105</x>
-            <y>100</y>
-            <width>240</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="layoutDirection">
-           <enum>Qt::LeftToRight</enum>
-          </property>
-          <property name="inputMethodHints">
-           <set>Qt::ImhNone</set>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="pushButton_tsi_fe_run_soi_refresh">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>350</x>
-            <y>100</y>
-            <width>27</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
          <widget class="QPushButton" name="pushButton_tsi_fe_run_download_artifact">
           <property name="enabled">
            <bool>false</bool>
           </property>
           <property name="geometry">
            <rect>
-            <x>105</x>
-            <y>170</y>
-            <width>175</width>
-            <height>27</height>
+            <x>121</x>
+            <y>350</y>
+            <width>150</width>
+            <height>28</height>
            </rect>
           </property>
           <property name="text">
            <string>Download Artifact</string>
           </property>
          </widget>
+         <widget class="QLabel" name="label_sa_fe_run_badge">
+          <property name="geometry">
+           <rect>
+            <x>15</x>
+            <y>10</y>
+            <width>28</width>
+            <height>28</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>3</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_sa_fe_run_title">
+          <property name="geometry">
+           <rect>
+            <x>55</x>
+            <y>10</y>
+            <width>240</width>
+            <height>28</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Run Extraction</string>
+          </property>
+         </widget>
+         <widget class="Line" name="line2_13">
+          <property name="geometry">
+           <rect>
+            <x>1</x>
+            <y>310</y>
+            <width>391</width>
+            <height>3</height>
+           </rect>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
         </widget>
-        <widget class="QLabel" name="label1_37">
+        <widget class="QFrame" name="frame_sa_fe_input">
          <property name="geometry">
           <rect>
            <x>9</x>
            <y>115</y>
            <width>393</width>
-           <height>20</height>
-          </rect>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <family>Ubuntu</family>
-           <pointsize>10</pointsize>
-           <weight>75</weight>
-           <italic>false</italic>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>1. Input Source</string>
-         </property>
-         <property name="scaledContents">
-          <bool>false</bool>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-         <property name="margin">
-          <number>0</number>
-         </property>
-        </widget>
-        <widget class="QFrame" name="frame1_15">
-         <property name="geometry">
-          <rect>
-           <x>9</x>
-           <y>135</y>
-           <width>393</width>
-           <height>365</height>
+           <height>390</height>
           </rect>
          </property>
          <property name="frameShape">
@@ -11416,13 +11305,13 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>50</y>
+            <y>85</y>
             <width>385</width>
             <height>40</height>
            </rect>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="page_28">
            <widget class="QPushButton" name="pushButton_tsi_fe_input_folder">
@@ -11521,9 +11410,9 @@ p, li { white-space: pre-wrap; }
            <widget class="QComboBox" name="comboBox_tsi_fe_input_artifact">
             <property name="geometry">
              <rect>
-              <x>105</x>
+              <x>65</x>
               <y>5</y>
-              <width>240</width>
+              <width>280</width>
               <height>27</height>
              </rect>
             </property>
@@ -11551,68 +11440,13 @@ p, li { white-space: pre-wrap; }
             </property>
            </widget>
           </widget>
-          <widget class="QWidget" name="page_35">
-           <widget class="QLabel" name="label2_tsi_fe_input_soi">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>5</y>
-              <width>90</width>
-              <height>27</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>SOI:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-           <widget class="QComboBox" name="comboBox_tsi_fe_input_soi">
-            <property name="geometry">
-             <rect>
-              <x>105</x>
-              <y>5</y>
-              <width>240</width>
-              <height>27</height>
-             </rect>
-            </property>
-            <property name="layoutDirection">
-             <enum>Qt::LeftToRight</enum>
-            </property>
-            <property name="inputMethodHints">
-             <set>Qt::ImhNone</set>
-            </property>
-           </widget>
-           <widget class="QPushButton" name="pushButton_tsi_fe_input_soi_refresh">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="geometry">
-             <rect>
-              <x>350</x>
-              <y>5</y>
-              <width>27</width>
-              <height>27</height>
-             </rect>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </widget>
          </widget>
          <widget class="QComboBox" name="comboBox_tsi_fe_input_source">
           <property name="geometry">
            <rect>
-            <x>130</x>
-            <y>10</y>
-            <width>210</width>
+            <x>55</x>
+            <y>45</y>
+            <width>110</width>
             <height>27</height>
            </rect>
           </property>
@@ -11640,18 +11474,13 @@ p, li { white-space: pre-wrap; }
             <string>Artifact</string>
            </property>
           </item>
-          <item>
-           <property name="text">
-            <string>SOI</string>
-           </property>
-          </item>
          </widget>
          <widget class="QLabel" name="label2_tsi_fe_input_source_type">
           <property name="geometry">
            <rect>
-            <x>50</x>
-            <y>10</y>
-            <width>80</width>
+            <x>5</x>
+            <y>45</y>
+            <width>50</width>
             <height>27</height>
            </rect>
           </property>
@@ -11661,7 +11490,7 @@ p, li { white-space: pre-wrap; }
            </font>
           </property>
           <property name="text">
-           <string>Source Type:</string>
+           <string>Source:</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -11671,7 +11500,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>1</x>
-            <y>45</y>
+            <y>80</y>
             <width>391</width>
             <height>3</height>
            </rect>
@@ -11684,7 +11513,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>245</x>
-            <y>325</y>
+            <y>355</y>
             <width>90</width>
             <height>27</height>
            </rect>
@@ -11697,7 +11526,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>55</x>
-            <y>325</y>
+            <y>355</y>
             <width>80</width>
             <height>27</height>
            </rect>
@@ -11718,7 +11547,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>135</x>
-            <y>295</y>
+            <y>325</y>
             <width>200</width>
             <height>27</height>
            </rect>
@@ -11809,9 +11638,9 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>90</y>
+            <y>125</y>
             <width>385</width>
-            <height>155</height>
+            <height>150</height>
            </rect>
           </property>
           <property name="horizontalScrollBarPolicy">
@@ -11822,7 +11651,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>180</x>
-            <y>250</y>
+            <y>280</y>
             <width>70</width>
             <height>27</height>
            </rect>
@@ -11840,7 +11669,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>190</x>
-            <y>325</y>
+            <y>355</y>
             <width>50</width>
             <height>27</height>
            </rect>
@@ -11861,7 +11690,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>130</x>
-            <y>250</y>
+            <y>280</y>
             <width>45</width>
             <height>27</height>
            </rect>
@@ -11882,7 +11711,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>55</x>
-            <y>295</y>
+            <y>325</y>
             <width>75</width>
             <height>27</height>
            </rect>
@@ -11903,7 +11732,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>135</x>
-            <y>325</y>
+            <y>355</y>
             <width>50</width>
             <height>27</height>
            </rect>
@@ -11926,7 +11755,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>255</x>
-            <y>250</y>
+            <y>280</y>
             <width>50</width>
             <height>27</height>
            </rect>
@@ -11946,7 +11775,7 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>45</x>
-            <y>250</y>
+            <y>280</y>
             <width>75</width>
             <height>27</height>
            </rect>
@@ -11967,13 +11796,82 @@ p, li { white-space: pre-wrap; }
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>285</y>
+            <y>310</y>
             <width>383</width>
             <height>3</height>
            </rect>
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_sa_fe_input_title">
+          <property name="geometry">
+           <rect>
+            <x>50</x>
+            <y>10</y>
+            <width>240</width>
+            <height>28</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Input Source</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_sa_fe_input_badge">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>10</y>
+            <width>28</width>
+            <height>28</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>1</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+         <widget class="QComboBox" name="comboBox_tsi_fe_input_soi">
+          <property name="geometry">
+           <rect>
+            <x>205</x>
+            <y>45</y>
+            <width>180</width>
+            <height>27</height>
+           </rect>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="inputMethodHints">
+           <set>Qt::ImhNone</set>
+          </property>
+          <property name="currentIndex">
+           <number>-1</number>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label2_tsi_fe_input_soi">
+          <property name="geometry">
+           <rect>
+            <x>175</x>
+            <y>45</y>
+            <width>30</width>
+            <height>27</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>SOI:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
           </property>
          </widget>
         </widget>

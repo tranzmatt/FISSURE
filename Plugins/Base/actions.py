@@ -127,6 +127,7 @@ ACTION_TAGS = {
         "tsi.feature_extractor.profile.all_available",
         "tsi.feature_extractor.source.file",
         "tsi.feature_extractor.source.folder",
+        "tsi.feature_extractor.source.artifact",        
     ],
     "feature_extract_frequency_domain": [
         "All",
@@ -135,6 +136,7 @@ ACTION_TAGS = {
         "tsi.feature_extractor.profile.all_available",
         "tsi.feature_extractor.source.file",
         "tsi.feature_extractor.source.folder",
+        "tsi.feature_extractor.source.artifact",        
     ],
     "feature_extract_time_frequency": [
         "All",
@@ -143,6 +145,7 @@ ACTION_TAGS = {
         "tsi.feature_extractor.profile.all_available",
         "tsi.feature_extractor.source.file",
         "tsi.feature_extractor.source.folder",
+        "tsi.feature_extractor.source.artifact",        
     ],
     "feature_extract_custom": [
         "All",
@@ -151,6 +154,7 @@ ACTION_TAGS = {
         "tsi.feature_extractor.profile.all_available",
         "tsi.feature_extractor.source.file",
         "tsi.feature_extractor.source.folder",
+        "tsi.feature_extractor.source.artifact",        
     ],
     "sensor_node_time": [
         "All",

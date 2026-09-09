@@ -1421,7 +1421,10 @@ QLabel#label_tsi_conditioner_workflow_promoted[promoted="true"] {
 
 QLabel#label_sa_conditioner_input_badge,
 QLabel#label_sa_conditioner_method_badge,
-QLabel#label_sa_conditioner_run_badge {
+QLabel#label_sa_conditioner_run_badge,
+QLabel#label_sa_fe_input_badge,
+QLabel#label_sa_fe_method_badge,
+QLabel#label_sa_fe_run_badge {
     qproperty-alignment: AlignCenter;
     color: @color4;
     background-color: @color3;
@@ -1436,7 +1439,10 @@ QLabel#label_sa_conditioner_run_badge {
 
 QLabel#label_sa_conditioner_input_title,
 QLabel#label_sa_conditioner_method_title,
-QLabel#label_sa_conditioner_run_title {
+QLabel#label_sa_conditioner_run_title,
+QLabel#label_sa_fe_input_title,
+QLabel#label_sa_fe_method_title,
+QLabel#label_sa_fe_run_title {
     color: @color4;
     background-color: transparent;
     border: none;
@@ -1445,7 +1451,10 @@ QLabel#label_sa_conditioner_run_title {
 
 QFrame#frame_sa_conditioner_source,
 QFrame#frame_sa_conditioner_method,
-QFrame#frame_sa_conditioner_run {
+QFrame#frame_sa_conditioner_run,
+QFrame#frame_sa_fe_input,
+QFrame#frame_sa_fe_method,
+QFrame#frame_sa_fe_run {
     background-color: @color2;
     border: 1px solid @color3;
     border-radius: 8px;
@@ -1454,7 +1463,11 @@ QFrame#frame_sa_conditioner_run {
 QPushButton#pushButton_tsi_conditioner_method_query_actions,
 QPushButton#pushButton_tsi_conditioner_method_query_parameters,
 QPushButton#pushButton_tsi_conditioner_run_download_artifact,
-QPushButton#pushButton_tsi_conditioner_results_promote_to_soi {
+QPushButton#pushButton_tsi_conditioner_results_promote_to_soi,
+QPushButton#pushButton_tsi_fe_method_query_actions,
+QPushButton#pushButton_tsi_fe_method_query_parameters,
+QPushButton#pushButton_tsi_fe_run_download_artifact,
+QPushButton#pushButton_tsi_fe_results_promote_to_soi {
     color: #FFFFFF;
     border: 1px solid #0B2D52;
     border-radius: 4px;
@@ -1472,7 +1485,11 @@ QPushButton#pushButton_tsi_conditioner_results_promote_to_soi {
 QPushButton#pushButton_tsi_conditioner_method_query_actions:hover,
 QPushButton#pushButton_tsi_conditioner_method_query_parameters:hover,
 QPushButton#pushButton_tsi_conditioner_run_download_artifact:hover,
-QPushButton#pushButton_tsi_conditioner_results_promote_to_soi:hover {
+QPushButton#pushButton_tsi_conditioner_results_promote_to_soi:hover,
+QPushButton#pushButton_tsi_fe_method_query_actions:hover,
+QPushButton#pushButton_tsi_fe_method_query_parameters:hover,
+QPushButton#pushButton_tsi_fe_run_download_artifact:hover,
+QPushButton#pushButton_tsi_fe_results_promote_to_soi:hover {
     color: #FFFFFF;
     border: 1px solid #0B2D52;
     background-color: qlineargradient(
@@ -1486,7 +1503,11 @@ QPushButton#pushButton_tsi_conditioner_results_promote_to_soi:hover {
 QPushButton#pushButton_tsi_conditioner_method_query_actions:pressed,
 QPushButton#pushButton_tsi_conditioner_method_query_parameters:pressed,
 QPushButton#pushButton_tsi_conditioner_run_download_artifact:pressed,
-QPushButton#pushButton_tsi_conditioner_results_promote_to_soi:pressed {
+QPushButton#pushButton_tsi_conditioner_results_promote_to_soi:pressed,
+QPushButton#pushButton_tsi_fe_method_query_actions:pressed,
+QPushButton#pushButton_tsi_fe_method_query_parameters:pressed,
+QPushButton#pushButton_tsi_fe_run_download_artifact:pressed,
+QPushButton#pushButton_tsi_fe_results_promote_to_soi:pressed {
     color: #FFFFFF;
     border: 1px solid #061F3A;
     background-color: qlineargradient(

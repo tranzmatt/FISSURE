@@ -363,6 +363,15 @@ class ArtifactTransferController:
         except Exception:
             pass
 
+        try:
+            from fissure.Dashboard.Slots import TSITabSlots
+            TSITabSlots.handle_tsi_fe_artifact_download_complete(
+                self.frontend,
+                failed_artifact_id,
+            )
+        except Exception:
+            pass        
+
     def _handle_start(
         self,
         frame: ArtifactTransferFrame,
@@ -1041,7 +1050,19 @@ class ArtifactTransferController:
                 "after Artifact download: %s",
                 error,
             )
-            
+
+        try:
+            from fissure.Dashboard.Slots import TSITabSlots
+            TSITabSlots.handle_tsi_fe_artifact_download_complete(
+                self.frontend,
+                transfer.artifact_id,
+            )
+        except Exception as error:
+            self.logger.debug(
+                "Could not refresh Feature Extractor after Artifact download: %s",
+                error,
+            )            
+
         if transfer.open_when_complete:
             subprocess.Popen(
                 [

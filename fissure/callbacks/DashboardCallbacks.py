@@ -2319,12 +2319,9 @@ async def sendSoisListTakReturn(
         TSITabSlots.refresh_tsi_fe_input_sois(
             frontend
         )
-        TSITabSlots.refresh_tsi_fe_run_sois(
-            frontend
-        )
     except Exception as error:
         component.logger.debug(
-            "Could not refresh Feature Extractor SOI selectors "
+            "Could not refresh Feature Extractor SOI selector "
             f"after authoritative SOI refresh: {error}"
         )
 
@@ -2963,7 +2960,6 @@ async def soiDeleted(
 
     try:
         TSITabSlots.refresh_tsi_fe_input_sois(frontend)
-        TSITabSlots.refresh_tsi_fe_run_sois(frontend)
     except Exception as error:
         component.logger.debug(
             f"Could not refresh Feature Extractor SOIs after delete: {error}"

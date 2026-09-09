@@ -3261,9 +3261,6 @@ def connect_tsi_slots(dashboard: Dashboard):
     dashboard.ui.comboBox_tsi_fe_input_source.currentIndexChanged.connect(
         lambda: TSITabSlots._slotTSI_FE_InputSourceChanged(dashboard)
     )
-    dashboard.ui.comboBox_tsi_fe_run_soi.currentIndexChanged.connect(
-        lambda: TSITabSlots._slotTSI_FE_RunSOIChanged(dashboard)
-    )
     dashboard.ui.comboBox_tsi_classifier_training_category.currentIndexChanged.connect(
         lambda: TSITabSlots._slotTSI_ClassifierTrainingCategoryChanged(dashboard)
     )
@@ -3372,9 +3369,6 @@ def connect_tsi_slots(dashboard: Dashboard):
     )
     dashboard.ui.pushButton_tsi_fe_input_artifact_refresh.clicked.connect(
         lambda: TSITabSlots._slotTSI_FE_InputArtifactRefreshClicked(dashboard)
-    )
-    dashboard.ui.pushButton_tsi_fe_input_soi_refresh.clicked.connect(
-        lambda: TSITabSlots._slotTSI_FE_InputSOIRefreshClicked(dashboard)
     )
     dashboard.ui.pushButton_tsi_classifier_training_import_fe.clicked.connect(
         lambda: TSITabSlots._slotTSI_ClassifierTrainingImportFE_Clicked(dashboard)
@@ -3586,8 +3580,8 @@ def connect_tsi_slots(dashboard: Dashboard):
     dashboard.ui.pushButton_tsi_fe_results_plot_distribution.clicked.connect(
         lambda: TSITabSlots._slotTSI_FE_ResultsPlotDistributionClicked(dashboard)
     )
-    dashboard.ui.pushButton_tsi_fe_run_soi_refresh.clicked.connect(
-        lambda: TSITabSlots._slotTSI_FE_RunSOIRefreshClicked(dashboard)
+    dashboard.ui.pushButton_tsi_fe_results_promote_to_soi.clicked.connect(
+        lambda: TSITabSlots._slotTSI_FE_ResultsPromoteToSoiClicked(dashboard)
     )
     dashboard.ui.pushButton_tsi_detector_blacklist.clicked.connect(
         lambda: TSITabSlots._slotTSI_DetectorBlacklistClicked(dashboard)

@@ -1,6 +1,29 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2026-9-9
+
+Align Feature Extractor with artifact-first Signal Analysis workflows
+
+### Added
+
+- Added SOI-aware Artifact feature extraction with linked Artifact filtering, direct managed IQ member selection, multi-file batch execution, and explicit Save to SOI / Create SOI actions after results are reviewed.
+- Added Feature Analysis Artifacts that preserve source Artifact and SOI provenance, register feature/report JSON files directly, and automatically retrieve small result Artifacts to the Dashboard for tables, plots, and exports.
+- Added explicit Artifact-source capability tags to Base Feature Extractor actions so plugin discovery can distinguish actions that support managed Artifact input.
+
+### Changed
+
+- Changed Feature Extractor inputs from separate Files, Folder, Artifact, and SOI source modes to Files, Folder, and Artifact with optional SOI context, matching the Conditioner workflow.
+- Changed Feature Extractor outputs to Local Results or Artifact, separating feature extraction from SOI mutation and linking completed Feature Analysis Artifacts to SOIs only through the result promotion controls.
+- Changed managed Artifact execution so selected members are resolved on the Sensor Node for both local and remote runs without requiring the source Artifact to be downloaded to the Dashboard.
+- Changed Feature Extractor output packaging to use normal multi-file Artifacts instead of ZIP bundles, preserving Artifact-to-Artifact provenance for downstream classification.
+- Changed the Feature Extractor interface to the numbered Signal Analysis workflow-card style with clearer input, extraction, run, result, and node-specific state handling.
+
+### Fixed
+
+- Fixed stale Feature Extractor state when switching Sensor Nodes or input source types so SOIs, Artifacts, members, queried actions, run state, and results no longer carry across incompatible contexts.
+- Fixed existing SOI Artifact links being overwritten with Feature Extractor source roles when saving feature results, preserving Conditioner/Capture evidence roles and appending only the new Feature Analysis relationship.
+
 ## 2026-9-8
 
 Expand Conditioner with artifact-first tactical workflows
