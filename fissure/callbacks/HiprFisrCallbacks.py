@@ -2902,6 +2902,39 @@ async def findGPS_CoordinatesResults(component: object, coordinates=""):
         await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
 
 
+async def inspectionReturn(
+    component: object,
+    node_uid: str = "",
+    operation_id: str = "",
+    inspection: dict = None,
+    final: bool = True,
+    timestamp: str = "",
+):
+    """Forward one structured Inspection result from a Sensor Node."""
+    if not isinstance(inspection, dict):
+        component.logger.error("inspectionReturn requires an inspection dictionary.")
+        return
+
+    if not component.dashboard_connected:
+        return
+
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+        fissure.comms.MessageFields.MESSAGE_NAME: "inspectionReturn",
+        fissure.comms.MessageFields.PARAMETERS: {
+            "node_uid": str(node_uid or ""),
+            "operation_id": str(operation_id or ""),
+            "inspection": dict(inspection),
+            "final": bool(final),
+            "timestamp": str(timestamp or ""),
+        },
+    }
+    await component.dashboard_socket.send_msg(
+        fissure.comms.MessageTypes.COMMANDS,
+        msg,
+    )
+
+    
 async def detectionReturn(
     component,
     detection: dict,

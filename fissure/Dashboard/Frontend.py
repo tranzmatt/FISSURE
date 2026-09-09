@@ -521,6 +521,16 @@ class Dashboard(QtWidgets.QMainWindow):
                 f"controls: {e}"
             )
 
+        try:
+            TSITabSlots.initialize_sa_inspection_controls(
+                self
+            )
+        except Exception as e:
+            self.logger.debug(
+                "Could not initialize Signal Analysis Inspection "
+                f"controls: {e}"
+            )            
+
         self.target_soi = []
         self.soi_blacklist = []
 
@@ -1808,6 +1818,7 @@ class Dashboard(QtWidgets.QMainWindow):
         Refreshes hardware combo boxes and selected-node page gates.
         """
         self.configureTSI_Hardware()
+        TSITabSlots.refresh_sa_inspection_action_state(self)
         self.configurePD_Hardware()
         SingleActionTabSlots.update_single_action_selected_node_gate(self)
         SequentialActionTabSlots.update_sequential_actions_selected_node_gate(self)
@@ -3113,12 +3124,116 @@ def connect_tsi_slots(dashboard: Dashboard):
         lambda: TSITabSlots._slotSA_CaptureLinkToSoiClicked(dashboard)
     )
 
+        # Signal Analysis - Inspection
+    dashboard.ui.pushButton_sa_inspection_selection_source_artifact.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionSourceArtifactClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_selection_source_local_file.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionSourceLocalFileClicked(dashboard)
+    )
+    dashboard.ui.comboBox_sa_inspection_selection_soi.currentIndexChanged.connect(
+        lambda: TSITabSlots._slotSA_InspectionSoiChanged(dashboard)
+    )
+    dashboard.ui.comboBox_sa_inspection_selection_artifact.currentIndexChanged.connect(
+        lambda: TSITabSlots._slotSA_InspectionArtifactChanged(dashboard)
+    )
+    dashboard.ui.comboBox_sa_inspection_selection_file.currentIndexChanged.connect(
+        lambda: TSITabSlots._slotSA_InspectionFileChanged(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_selection_artifact_left.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionPreviousArtifactClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_selection_artifact_right.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionNextArtifactClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_selection_file_left.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionPreviousFileClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_selection_file_right.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionNextFileClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_selection_file_select.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionLocalFileSelectClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_selection_prepare.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionPrepareClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_overview_zoom.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionOverviewZoomClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_overview_reset.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionOverviewResetClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_overview_full_file.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionOverviewFullFileClicked(dashboard)
+    )
+    dashboard.ui.tabWidget_sa_inspection_view.currentChanged.connect(
+        lambda: TSITabSlots._slotSA_InspectionViewChanged(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_measurements_time.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionMeasurementTimeClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_measurements_frequency.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionMeasurementFrequencyClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_measurements_set_from_selection.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionMeasurementFromSelectionClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_measurements_save_as_finding.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionMeasurementSaveFindingClicked(dashboard)
+    )
+    dashboard.ui.tableWidget_sa_inspection_findings.itemSelectionChanged.connect(
+        lambda: TSITabSlots._slotSA_InspectionFindingSelectionChanged(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_findings_add.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionAddFindingClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_findings_delete.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionDeleteFindingClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_findings_save_changes.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionSaveFindingChangesClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_findings_save_to_soi.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionSaveFindingToSoiClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_actions_query.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionActionsQueryClicked(dashboard)
+    )
+    dashboard.ui.comboBox_sa_inspection_actions_plugin.currentIndexChanged.connect(
+        lambda: TSITabSlots._slotSA_InspectionActionsPluginChanged(dashboard)
+    )
+    dashboard.ui.comboBox_sa_inspection_actions_action.currentIndexChanged.connect(
+        lambda: TSITabSlots._slotSA_InspectionActionsActionChanged(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_actions_customize.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionActionsCustomizeClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_actions_start_stop.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionActionsStartStopClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_actions_view_result.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionActionsViewResultClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_inspection_actions_save_as_finding.clicked.connect(
+        lambda: TSITabSlots._slotSA_InspectionActionsSaveFindingClicked(dashboard)
+    )
+    dashboard.ui.tabWidget_signal_analysis.currentChanged.connect(
+        lambda: TSITabSlots._slotSA_InspectionTabChanged(dashboard)
+    )
+
     # Check Box
     dashboard.ui.checkBox_tsi_classifier_training_retrain2_manual.clicked.connect(
         lambda: TSITabSlots._slotTSI_ClassifierTrainingRetrain2_ManualChecked(dashboard)
     )
 
     # Combo Box
+    dashboard.ui.comboBox_tsi_conditioner_input_soi.currentIndexChanged.connect(
+        lambda: TSITabSlots._slotTSI_ConditionerInputSOIChanged(dashboard)
+    )
+    dashboard.ui.comboBox_tsi_conditioner_input_artifact.currentIndexChanged.connect(
+        lambda: TSITabSlots._slotTSI_ConditionerInputArtifactChanged(dashboard)
+    )
     dashboard.ui.comboBox_tsi_conditioner_input_source.currentIndexChanged.connect(
         lambda: TSITabSlots._slotTSI_ConditionerInputSourceChanged(dashboard)
     )

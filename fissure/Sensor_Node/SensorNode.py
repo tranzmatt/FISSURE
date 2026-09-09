@@ -691,6 +691,48 @@ class SensorNode(object):
         )
 
 
+    async def send_inspection(
+        self,
+        node_uid: str = "",
+        opid: str = "",
+        inspection: dict = None,
+        final: bool = True,
+        logger=None,
+    ) -> None:
+        """Publish one structured Inspection analysis result to HIPRFISR."""
+        if not isinstance(inspection, dict):
+            self.logger.error("send_inspection() requires an inspection dictionary.")
+            return
+
+        if self.network_type != "IP":
+            self.logger.warning(
+                "Structured Inspection returns are currently supported only "
+                "for IP Sensor Nodes."
+            )
+            return
+
+        resolved_node_uid = str(node_uid or self.uuid).strip() or self.uuid
+        operation_id = str(opid or "").strip()
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: self.identifier,
+            fissure.comms.MessageFields.MESSAGE_NAME: "inspectionReturn",
+            fissure.comms.MessageFields.PARAMETERS: {
+                "node_uid": resolved_node_uid,
+                "operation_id": operation_id,
+                "inspection": dict(inspection),
+                "final": bool(final),
+                "timestamp": timestamp,
+            },
+        }
+
+        await self.hiprfisr_socket.send_msg(
+            fissure.comms.MessageTypes.COMMANDS,
+            msg,
+        )
+
+
     async def send_tak_cot(self, msg: dict) -> None:
         """Send a generic TAK pin, track, or event from a plugin operation.
 
@@ -1297,6 +1339,7 @@ class SensorNode(object):
         parameters["target_callback"] = self.send_target_patch  #self.send_target_update
         parameters["soi_callback"] = self.send_soi_update
         parameters["recommendation_callback"] = self.send_recommendation
+        parameters["inspection_callback"] = self.send_inspection
         parameters["artifact_manager"] = self.artifact_manager
         parameters["logger"] = self.logger
 

@@ -313,10 +313,15 @@ class ArtifactTransferController:
             transfer_id,
             None,
         )
-        self.pending_requests.pop(
+        pending_request = self.pending_requests.pop(
             transfer_id,
             None,
         )
+        failed_artifact_id = str(
+            (transfer.artifact_id if transfer is not None else "")
+            or ((pending_request or {}).get("artifact_id", ""))
+            or ""
+        ).strip()
 
         self.frontend.iq_record_select_after_download_id = ""
 
@@ -348,6 +353,15 @@ class ArtifactTransferController:
             False,
             "Download",
         )
+
+        try:
+            from fissure.Dashboard.Slots import TSITabSlots
+            TSITabSlots.handle_sa_inspection_artifact_download_complete(
+                self.frontend,
+                failed_artifact_id,
+            )
+        except Exception:
+            pass
 
     def _handle_start(
         self,
@@ -1015,6 +1029,19 @@ class ArtifactTransferController:
             except Exception:
                 pass
 
+        try:
+            from fissure.Dashboard.Slots import TSITabSlots
+            TSITabSlots.handle_sa_inspection_artifact_download_complete(
+                self.frontend,
+                transfer.artifact_id,
+            )
+        except Exception as error:
+            self.logger.debug(
+                "Could not refresh Signal Analysis Inspection "
+                "after Artifact download: %s",
+                error,
+            )
+            
         if transfer.open_when_complete:
             subprocess.Popen(
                 [
@@ -1422,7 +1449,7 @@ class ArtifactTransferController:
 
         except Exception:
             pass
-        
+
         # IQ Record Artifact button.
         try:
             selected_artifact_id = str(

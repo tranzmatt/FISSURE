@@ -689,9 +689,7 @@ def _render_sa_sois_analysis(dashboard, soi):
 
 
 def _render_sa_sois_history(dashboard, soi):
-    """
-    Render a reverse-chronological history from stored SOI, detection, and analysis timestamps.
-    """
+    """Render all stored SOI history entries newest-first and resize the scroll content."""
     events = []
 
     created_at = soi.get("created_at")
@@ -705,7 +703,6 @@ def _render_sa_sois_history(dashboard, soi):
     for snapshot in snapshots:
         if not isinstance(snapshot, dict):
             continue
-
         timestamp = snapshot.get("timestamp") or snapshot.get("observation_time") or snapshot.get("time") or 0
         label = snapshot.get("detection_id") or snapshot.get("event_uid") or "Detection Observed"
         events.append((timestamp, f"Detection: {label}", snapshot))
@@ -717,46 +714,51 @@ def _render_sa_sois_history(dashboard, soi):
     for entry in analysis_history:
         if not isinstance(entry, dict):
             continue
-
-        timestamp = (
-            entry.get("timestamp")
-            or entry.get("observation_time")
-            or entry.get("created_at")
-            or entry.get("updated_at")
-            or 0
-        )
-        label = (
-            entry.get("event")
-            or entry.get("stage")
-            or entry.get("name")
-            or entry.get("operation_id")
-            or "Analysis Updated"
-        )
+        timestamp = entry.get("timestamp") or entry.get("observation_time") or entry.get("created_at") or entry.get("updated_at") or 0
+        label = entry.get("event") or entry.get("stage") or entry.get("name") or entry.get("operation_id") or "Analysis Updated"
         events.append((timestamp, str(label), entry))
 
     updated_at = soi.get("updated_at")
     if updated_at not in (None, "", "None"):
         events.append((updated_at, "SOI Updated", {"timestamp": _sa_sois_format_time(updated_at)}))
 
+    label_widget = dashboard.ui.label_sa_sois_history_details
+    content_widget = dashboard.ui.scrollAreaWidgetContents_sa_sois_history
+    scroll_area = dashboard.ui.scrollArea_sa_sois_history
+
     if not events:
-        dashboard.ui.label_sa_sois_history_details.setText("No chronological history is stored for this SOI yet.")
-        return
+        label_widget.setText("No chronological history is stored for this SOI yet.")
+    else:
+        events.sort(key=lambda item: _sa_sois_time_sort_value(item[0]), reverse=True)
+        parts = []
 
-    events.sort(key=lambda item: _sa_sois_time_sort_value(item[0]), reverse=True)
+        for index, (timestamp, label, payload) in enumerate(events):
+            parts.append(f"<b>{html.escape(_sa_sois_format_time(timestamp))}</b> — {html.escape(str(label))}<br>")
 
-    parts = []
-    for index, (timestamp, label, payload) in enumerate(events):
-        time_text = _sa_sois_format_time(timestamp)
-        parts.append(f"<b>{html.escape(time_text)}</b> — {html.escape(str(label))}<br>")
+            if isinstance(payload, dict) and len(payload) > 1:
+                parts.append(_sa_sois_dict_html(payload, skip_keys={"timestamp"}))
 
-        if isinstance(payload, dict) and len(payload) > 1:
-            parts.append(_sa_sois_dict_html(payload, skip_keys={"timestamp"}))
+            if index != len(events) - 1:
+                parts.append("<hr>")
 
-        if index != len(events) - 1:
-            parts.append("<hr>")
+        label_widget.setText("".join(parts))
 
-    dashboard.ui.label_sa_sois_history_details.setText("".join(parts))
+    label_widget.setWordWrap(True)
+    label_widget.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+    label_widget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
 
+    width = max(100, scroll_area.viewport().width() - 24)
+    label_widget.setMinimumWidth(width)
+    history_height = label_widget.heightForWidth(width)
+
+    if history_height <= 0:
+        history_height = label_widget.sizeHint().height()
+
+    label_widget.setMinimumHeight(history_height)
+    content_widget.setMinimumHeight(history_height + 12)
+    label_widget.updateGeometry()
+    content_widget.updateGeometry()
+    
 
 def populate_sa_sois_selected(dashboard, soi_key, soi):
     """

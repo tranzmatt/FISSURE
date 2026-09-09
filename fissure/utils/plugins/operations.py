@@ -25,6 +25,7 @@ _base_params = [
     'target_callback', 
     'soi_callback', 
     'recommendation_callback', 
+    'inspection_callback',
     'artifact_manager'
 ]
 
@@ -90,6 +91,27 @@ async def send_recommendation(target_id, recommendation, logger=None):
     if logger:
         logger.info(f"[recommendation] target={target_id}: {recommendation}")
 
+async def send_inspection(
+    node_uid="",
+    opid="",
+    inspection=None,
+    final=True,
+    logger=None,
+):
+    """Placeholder Inspection callback used outside a Sensor Node."""
+    if not isinstance(inspection, dict):
+        if logger:
+            logger.warning("inspection_callback requires a dictionary payload")
+        return
+    if logger:
+        logger.info(
+            "[inspection] %s %s final=%s: %s",
+            node_uid,
+            opid,
+            bool(final),
+            inspection,
+        )
+        
 def setup_decorator(func):
     async def wrapper(self) -> bool:
         self.logger.info("Setting up operation environment...")
@@ -236,6 +258,7 @@ class Operation(object):
             target_callback: Union[Callable, None] = None, 
             soi_callback: Union[Callable, None] = None, 
             recommendation_callback: Union[Callable, None] = None, 
+            inspection_callback: Union[Callable, None] = None,
             artifact_manager: Union[ArtifactManager, None] = None
         ) -> None:
         """Initialize the Operation class.
@@ -260,6 +283,8 @@ class Operation(object):
             Callback function for reporting SOIs to TAK and Dashboard
         recommendation_callback : Union[Callable, None], optional
             Callback function for attaching recommended follow-on actions to Targets
+        inspection_callback : Union[Callable, None], optional
+            Callback function for structured Inspection measurements and analysis results
         artifact_manager : Union[ArtifactManager, None], optional
             ArtifactManager instance for managing artifacts, by default None to use the global artifact manager
         """
@@ -281,6 +306,8 @@ class Operation(object):
             soi_callback = send_soi
         if recommendation_callback is None:
             recommendation_callback = send_recommendation
+        if inspection_callback is None:
+            inspection_callback = send_inspection
         self.alert_callback = alert_callback
         self.tak_cot_callback = tak_cot_callback
         self.detection_callback = detection_callback
@@ -288,6 +315,7 @@ class Operation(object):
         self.target_callback = target_callback
         self.soi_callback = soi_callback
         self.recommendation_callback = recommendation_callback
+        self.inspection_callback = inspection_callback
         if artifact_manager is not None:
             self.artifact_manager = artifact_manager
         else:

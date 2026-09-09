@@ -319,6 +319,12 @@ def refreshCustomWidgets(dashboard: QtWidgets.QMainWindow):
     except Exception as e:
         pass
 
+    try:
+        TSITabSlots.restyle_sa_inspection_canvases(dashboard)
+    except Exception:
+        pass
+
+
 @QtCore.pyqtSlot()
 def _slotMenuHelpUserManualClicked():
     """ Opens the local user manual in a browser."""

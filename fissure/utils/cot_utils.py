@@ -1409,7 +1409,14 @@ def handle_tactical_soi_message(dashboard, cot_message):
     except Exception as error:
         frontend.logger.debug(
             f"Could not refresh Capture SOI context from Tactical update: {error}"
-        )        
+        )
+
+    try:
+        TSITabSlots.refresh_tsi_conditioner_soi_context(frontend)
+    except Exception as error:
+        frontend.logger.debug(
+            f"Could not refresh Conditioner SOI context from Tactical update: {error}"
+        )
 
     try:
         TSITabSlots.refresh_tsi_fe_input_sois(frontend)

@@ -83,6 +83,13 @@ ACTION_TAGS = {
         "node.local",
     ],
 
+    "iq_basic_analysis": [
+        "All",
+        "sa.inspection",
+        "client.dashboard",
+        "node.local",
+    ],
+
     "promote_to_soi": ["All"],
 
     "take_photo": ["All"],
@@ -99,15 +106,19 @@ ACTION_TAGS = {
         "All",
         "tsi.conditioner",
         "tsi.conditioner.category.energy",
-        "tsi.conditioner.method.normal",
         "tsi.conditioner.method.normal_decay",
-        "tsi.conditioner.method.power_squelch",
-        "tsi.conditioner.method.lowpass",
-        "tsi.conditioner.method.power_squelch_lowpass",
-        "tsi.conditioner.method.bandpass",
-        "tsi.conditioner.method.strongest_frequency_bandpass",
         "tsi.conditioner.source.file",
         "tsi.conditioner.source.folder",
+        "tsi.conditioner.source.artifact",
+    ],
+    "signal_conditioning_file_power_squelch": [
+        "All",
+        "tsi.conditioner",
+        "tsi.conditioner.category.energy",
+        "tsi.conditioner.method.power_squelch",
+        "tsi.conditioner.source.file",
+        "tsi.conditioner.source.folder",
+        "tsi.conditioner.source.artifact",
     ],
     "feature_extract_time_domain": [
         "All",
@@ -1287,10 +1298,7 @@ signal_conditioning_file_schema = {
             "label": "Data Type",
             "type": "string",
             "default": "Complex Float 32",
-            "options": [
-                "Complex Float 32",
-                "Complex Int 16",
-            ],
+            "options": ["Complex Float 32", "Complex Int 16"],
         },
         {
             "name": "sample_rate",
@@ -1344,7 +1352,7 @@ signal_conditioning_file_schema = {
             "name": "description",
             "label": "Description",
             "type": "string",
-            "default": "Local file/folder signal conditioning using file-source Conditioner flow graphs",
+            "default": "Normal Decay file/folder conditioning",
         },
     ]
 }
@@ -1358,7 +1366,7 @@ async def signal_conditioning_file(
     )
 
     op_params = dict(parameters or {})
-
+    op_params["method"] = "normal_decay"
     op_params.setdefault(
         "source_id",
         node_uid or getattr(component, "uuid", "") or "sensor_node",
@@ -1373,6 +1381,96 @@ async def signal_conditioning_file(
         wait=True,
     )
 
+
+signal_conditioning_file_power_squelch_schema = {
+    "params": [
+        {
+            "name": "data_type",
+            "label": "Data Type",
+            "type": "string",
+            "default": "Complex Float 32",
+            "options": ["Complex Float 32", "Complex Int 16"],
+        },
+        {
+            "name": "sample_rate",
+            "label": "Sample Rate (S/s)",
+            "type": "number",
+            "default": 1000000.0,
+            "min": 1.0,
+            "max": 100000000.0,
+            "step": 100000.0,
+            "decimals": 0,
+        },
+        {
+            "name": "squelch",
+            "label": "Squelch (dB)",
+            "type": "number",
+            "default": -70.0,
+            "min": -200.0,
+            "max": 0.0,
+            "step": 1.0,
+            "decimals": 1,
+        },
+        {
+            "name": "threshold",
+            "label": "Threshold",
+            "type": "number",
+            "default": 0.002,
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.001,
+            "decimals": 6,
+        },
+        {
+            "name": "max_files",
+            "label": "Max Files",
+            "type": "int",
+            "default": 15,
+            "min": 1,
+            "max": 9999,
+            "step": 1,
+        },
+        {
+            "name": "min_samples",
+            "label": "Min Samples",
+            "type": "int",
+            "default": 1,
+            "min": 0,
+            "max": 100000000,
+            "step": 1,
+        },
+        {
+            "name": "description",
+            "label": "Description",
+            "type": "string",
+            "default": "Power Squelch file/folder conditioning",
+        },
+    ]
+}
+async def signal_conditioning_file_power_squelch(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    component.logger.info(
+        f"Signal Conditioning Power Squelch action with parameters: {parameters}"
+    )
+
+    op_params = dict(parameters or {})
+    op_params["method"] = "power_squelch"
+    op_params.setdefault(
+        "source_id",
+        node_uid or getattr(component, "uuid", "") or "sensor_node",
+    )
+
+    await component.run_plugin_operation(
+        component,
+        PLUGIN_NAME,
+        "signal_conditioning_file.py",
+        op_params,
+        node_uid,
+        wait=True,
+    )
 
 
 feature_extract_time_domain_schema = {
@@ -2738,6 +2836,57 @@ async def iq_inspection_file(
         component,
         PLUGIN_NAME,
         "iq_inspection_file.py",
+        op_params,
+        node_uid,
+    )
+
+
+iq_basic_analysis_schema = {
+    "params": [
+        {
+            "name": "max_samples",
+            "label": "Max Samples",
+            "type": "integer",
+            "default": 1000000,
+            "min": 1000,
+            "max": 10000000,
+            "step": 1000,
+            "description": "Maximum samples used for the basic statistics calculation.",
+        },
+    ]
+}
+async def iq_basic_analysis(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    """Run basic IQ analysis against the active Inspection evidence/range."""
+    parameters = dict(parameters or {})
+    context = parameters.get("_fissure_inspection_context", {})
+    if not isinstance(context, dict):
+        context = {}
+
+    filepath = str(context.get("filepath") or "").strip()
+    if not filepath:
+        raise ValueError("Inspection context did not provide a local IQ filepath.")
+
+    op_params = {
+        "operation_id": str(parameters.get("operation_id") or ""),
+        "filepath": filepath,
+        "data_type": str(context.get("data_type") or "Complex Float 32"),
+        "sigmf_datatype": str(context.get("sigmf_datatype") or ""),
+        "sample_rate_hz": float(context.get("sample_rate_hz") or 0.0),
+        "center_frequency_hz": float(context.get("center_frequency_hz") or 0.0),
+        "sample_count": int(context.get("sample_count") or 0),
+        "start_sample": int(context.get("start_sample") or 0),
+        "end_sample": int(context.get("end_sample") or 0),
+        "max_samples": int(parameters.get("max_samples") or 1000000),
+    }
+
+    await component.run_plugin_operation(
+        component,
+        PLUGIN_NAME,
+        "iq_basic_analysis.py",
         op_params,
         node_uid,
     )

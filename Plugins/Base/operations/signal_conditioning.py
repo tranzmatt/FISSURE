@@ -452,6 +452,9 @@ class OperationMain(Operation):
         prefix: str = "output_",
         data_type: str = "Complex Float 32",
         description: str = "Signal conditioning capture",
+        input_soi_id: str = "",
+        input_soi_key: str = "",
+        input_soi_frequency_mhz: Any = "",
         emit_alert: Any = False,
         emit_tak: Any = False,
         **kwargs,
@@ -500,6 +503,17 @@ class OperationMain(Operation):
         self.prefix = str(prefix or "output_")
         self.data_type = str(data_type or "Complex Float 32").strip()
         self.description = str(description or "Signal conditioning capture").strip()
+        self.input_soi_id = str(
+            input_soi_id
+            or ""
+        ).strip()
+        self.input_soi_key = str(
+            input_soi_key
+            or ""
+        ).strip()
+        self.input_soi_frequency_mhz = (
+            input_soi_frequency_mhz
+        )
         self.emit_alert = self._safe_bool(emit_alert, False)
         self.emit_tak = self._safe_bool(emit_tak, False)
 
@@ -1874,6 +1888,9 @@ class OperationMain(Operation):
             "source_type": self.source_type,
             "category": self.category,
             "method": self.method,
+            "input_soi_id": self.input_soi_id,
+            "input_soi_key": self.input_soi_key,
+            "input_soi_frequency_mhz": self.input_soi_frequency_mhz,
             "frequency_mhz": first_frequency,
             "frequency_plan": self.frequency_plan,
             "sample_rate": self.sample_rate,
