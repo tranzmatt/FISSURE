@@ -195,6 +195,13 @@ async def recallSettingsReturn(component: object, node_uuid: str, node_ip_addres
             f"Could not update TSI Feature Extractor selected-node gate "
             f"after recallSettingsReturn: {e}"
         )
+
+    try:
+        TSITabSlots.update_sa_classifier_selected_node_gate(component.frontend)
+    except Exception as e:
+        component.logger.debug(
+            f"Could not update Classifier selected-node gate after recallSettingsReturn: {e}"
+        )
     
     try:
         IQDataTabSlots.update_iq_record_selected_node_gate(
@@ -1608,6 +1615,13 @@ async def nodeStateUpdate(component: object, node_uid="", node={}):
                 )
 
             try:
+                TSITabSlots.update_sa_classifier_selected_node_gate(frontend)
+            except Exception as e:
+                component.logger.debug(
+                    f"Could not update Classifier selected-node gate after connection-state change: {e}"
+                )
+
+            try:
                 IQDataTabSlots.update_iq_record_selected_node_gate(frontend)
             except Exception as e:
                 component.logger.debug(
@@ -1652,6 +1666,17 @@ async def nodeStateUpdate(component: object, node_uid="", node={}):
         component.logger.debug(
             f"Could not update TSI Conditioner status: {e}"
         )
+
+    try:
+        TSITabSlots.update_sa_classifier_status_from_selected_node(
+            frontend,
+            node_uid=node_uid,
+            status=node.get("status", ""),
+        )
+    except Exception as e:
+        component.logger.debug(
+            f"Could not update Signal Analysis Classifier status: {e}"
+        )        
 
     try:
         TSITabSlots.update_sa_survey_status_from_selected_node(
@@ -1874,6 +1899,13 @@ async def nodeStateRemove(component: object, node_uid=""):
             component.logger.debug(
                 f"Could not update TSI Feature Extractor gate "
                 f"after selected node removal: {e}"
+            )
+
+        try:
+            TSITabSlots.update_sa_classifier_selected_node_gate(frontend)
+        except Exception as e:
+            component.logger.debug(
+                f"Could not update Classifier gate after selected node removal: {e}"
             )
         
     # Recompute ecosystem selected-node labels/buttons after row removal.
@@ -2157,6 +2189,18 @@ async def sendArtifactsListTakReturn(
             f"{error}"
         )
 
+    try:
+        TSITabSlots.handle_sa_classifier_artifact_metadata(
+            dashboard,
+            node_uid=node_uid,
+            artifacts=normalized_records,
+        )
+    except Exception as error:
+        component.logger.debug(
+            "Could not route Artifact metadata to Classifier: "
+            f"{error}"
+        )        
+
     for artifact_record in normalized_records:
         try:
             IQDataTabSlots.handle_iq_record_artifact_complete(
@@ -2336,6 +2380,26 @@ async def sendSoisListTakReturn(
         )
 
 
+def classifierLibraryMatchReturn(
+    component: object,
+    request_id: str = "",
+    frequency_mhz=None,
+    matches: list = None,
+    error: str = "",
+):
+    """Route hub-side Classifier library-match results to Signal Analysis."""
+    try:
+        TSITabSlots.handle_sa_classifier_library_match_results(
+            component.frontend,
+            request_id=request_id,
+            frequency_mhz=frequency_mhz,
+            matches=matches or [],
+            error=error,
+        )
+    except Exception as exc:
+        component.logger.debug(f"Could not route Classifier library match results: {exc}")
+
+
 def queryPluginActionsResults(
     component: object,
     requester_uid: str = "",
@@ -2443,6 +2507,15 @@ def queryPluginActionsResults(
             actions=actions,
         )
         return
+    
+    if context.startswith("sa.classifier.model"):
+        TSITabSlots.handle_sa_classifier_action_query_results(
+            frontend,
+            node_uid=node_uid,
+            context=context,
+            actions=actions,
+        )
+        return    
 
     if context.startswith("tsi.feature_extractor"):
         TSITabSlots.handle_tsi_fe_action_query_results(
@@ -2626,6 +2699,17 @@ def queryPluginActionSchemaResults(
         )
         return
 
+    if context.startswith("sa.classifier.model"):
+        TSITabSlots.handle_sa_classifier_action_schema(
+            frontend,
+            plugin_name=plugin_name,
+            action_name=action_name,
+            node_uid=node_uid,
+            parameters=schema.get("params", []),
+            schema=schema,
+        )
+        return
+    
     if context.startswith("tsi.feature_extractor"):
         TSITabSlots.handle_tsi_fe_action_schema(
             frontend,
@@ -2838,6 +2922,16 @@ async def soiUpdate(component: object, soi=None):
         record,
     )
 
+    try:
+        TSITabSlots.refresh_sa_sois_selected_details(
+            frontend
+        )
+    except Exception as error:
+        component.logger.debug(
+            "Could not refresh selected Signal Analysis SOI details "
+            f"after SOI update: {error}"
+        )
+
     if not getattr(frontend, "sa_sois_bulk_refreshing", False):
         try:
             TSITabSlots.refresh_sa_sois_table(frontend)
@@ -2861,7 +2955,12 @@ async def soiUpdate(component: object, soi=None):
         try:
             TSITabSlots.refresh_tsi_conditioner_soi_context(frontend)
         except Exception as error:
-            component.logger.debug(f"Could not refresh Conditioner SOI context: {error}") 
+            component.logger.debug(f"Could not refresh Conditioner SOI context: {error}")
+
+        try:
+            TSITabSlots.refresh_sa_classifier_context(frontend)
+        except Exception as error:
+            component.logger.debug(f"Could not refresh Classifier SOI context: {error}")
 
 
 async def soiDeleted(

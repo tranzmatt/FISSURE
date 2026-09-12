@@ -370,9 +370,15 @@ def get_selected_sa_soi(dashboard):
     return soi_key, soi
 
 
-def _sa_sois_set_selected_widgets_enabled(dashboard, enabled):
+def _sa_sois_set_selected_widgets_enabled(
+    dashboard,
+    enabled,
+):
     """
     Enable or disable controls that require a selected SOI.
+
+    The detail tabs remain enabled so their empty-state messages can still be
+    viewed when no SOI is selected.
     """
     widgets = [
         dashboard.ui.pushButton_sa_sois_list_edit,
@@ -383,19 +389,28 @@ def _sa_sois_set_selected_widgets_enabled(dashboard, enabled):
         dashboard.ui.pushButton_sa_sois_selected_classify,
         dashboard.ui.pushButton_sa_sois_selected_protocol_discovery,
         dashboard.ui.pushButton_sa_sois_selected_direction_finding,
-        dashboard.ui.tabWidget_sa_sois,
     ]
 
     for widget in widgets:
-        widget.setEnabled(bool(enabled))
+        widget.setEnabled(
+            bool(enabled)
+        )
+
+    dashboard.ui.tabWidget_sa_sois.setEnabled(
+        True
+    )
 
 
-def clear_sa_sois_selected(dashboard):
+def clear_sa_sois_selected(
+    dashboard,
+):
     """
     Clear the selected-SOI summary and detail panels.
     """
     dashboard.selected_sa_soi_key = None
-    dashboard.ui.label_sa_sois_selected_title.setText("Selected SOI:")
+    dashboard.ui.label_sa_sois_selected_title.setText(
+        "Selected SOI:"
+    )
 
     value_labels = [
         dashboard.ui.label2_sa_sois_selected_name,
@@ -416,13 +431,30 @@ def clear_sa_sois_selected(dashboard):
         label.setText("—")
         label.setToolTip("")
 
-    dashboard.ui.label2_sa_sois_selected_snapshot_status.setText("No snapshot available")
-    dashboard.ui.plainTextEdit_sa_sois_record_details.setPlainText("Select an SOI to view the complete record.")
-    dashboard.ui.label_sa_sois_evidence_details.setText("Select an SOI to view linked evidence.")
-    dashboard.ui.label_sa_sois_detections_details.setText("Select an SOI to view contributing detections.")
-    dashboard.ui.label_sa_sois_analysis_details.setText("Select an SOI to view analysis results.")
-    dashboard.ui.label_sa_sois_history_details.setText("Select an SOI to view record history.")
-    _sa_sois_set_selected_widgets_enabled(dashboard, False)
+    dashboard.ui.label2_sa_sois_selected_snapshot_status.setText(
+        "No snapshot available"
+    )
+
+    dashboard.ui.plainTextEdit_sa_sois_record_details.setPlainText(
+        "Select an SOI to view the complete record."
+    )
+    dashboard.ui.label_sa_sois_evidence_details.setText(
+        "Select an SOI to view linked evidence."
+    )
+    dashboard.ui.label_sa_sois_detections_details.setText(
+        "Select an SOI to view contributing detections."
+    )
+    dashboard.ui.label_sa_sois_analysis_details.setText(
+        "Select an SOI to view analysis results."
+    )
+    dashboard.ui.label_sa_sois_history_details.setText(
+        "Select an SOI to view record history."
+    )
+
+    _sa_sois_set_selected_widgets_enabled(
+        dashboard,
+        False,
+    )
 
 
 def _sa_sois_link_color(dashboard):
@@ -499,18 +531,44 @@ def _sa_sois_dict_html(data, skip_keys=None):
     return "<table cellspacing='3'>" + "".join(rows) + "</table>"
 
 
-def _render_sa_sois_record(dashboard, soi):
+def _render_sa_sois_record(
+    dashboard,
+    soi,
+):
     """
-    Render the complete normalized SOI record without raw transport XML.
+    Render the current normalized SOI record without stale raw transport data.
     """
-    canonical = soi.get("raw") if isinstance(soi.get("raw"), dict) else soi
-    record = dict(canonical)
+    if not isinstance(soi, dict):
+        record = {}
+    else:
+        record = {
+            key: value
+            for key, value in soi.items()
+            if key != "raw"
+        }
 
-    for key in ("raw_xml", "cot_xml", "xml", "raw_message", "raw_payload"):
-        record.pop(key, None)
+    for key in (
+        "raw_xml",
+        "cot_xml",
+        "xml",
+        "raw_message",
+        "raw_payload",
+    ):
+        record.pop(
+            key,
+            None,
+        )
 
-    rendered = json.dumps(record, indent=2, sort_keys=True, default=str)
-    dashboard.ui.plainTextEdit_sa_sois_record_details.setPlainText(rendered)
+    rendered = json.dumps(
+        record,
+        indent=2,
+        sort_keys=True,
+        default=str,
+    )
+
+    dashboard.ui.plainTextEdit_sa_sois_record_details.setPlainText(
+        rendered
+    )
 
 
 def _render_sa_sois_evidence(dashboard, soi_key, soi):
@@ -758,56 +816,235 @@ def _render_sa_sois_history(dashboard, soi):
     content_widget.setMinimumHeight(history_height + 12)
     label_widget.updateGeometry()
     content_widget.updateGeometry()
-    
 
-def populate_sa_sois_selected(dashboard, soi_key, soi):
+
+def populate_sa_sois_selected(
+    dashboard,
+    soi_key,
+    soi,
+):
     """
     Populate the selected-SOI summary and lower detail tabs.
     """
+    if not soi_key or not isinstance(soi, dict) or not soi:
+        clear_sa_sois_selected(
+            dashboard
+        )
+        return
+
     dashboard.selected_sa_soi_key = soi_key
 
-    name = _sa_sois_display_name(soi)
-    raw = soi.get("raw", {})
-    if not isinstance(raw, dict):
+    _sa_sois_set_selected_widgets_enabled(
+        dashboard,
+        True,
+    )
+
+    name = _sa_sois_display_name(
+        soi
+    )
+
+    raw = soi.get(
+        "raw",
+        {},
+    )
+    if not isinstance(
+        raw,
+        dict,
+    ):
         raw = {}
 
-    first_seen = soi.get("created_at") or raw.get("created_at")
-    last_seen = soi.get("updated_at") or raw.get("updated_at")
+    first_seen = (
+        soi.get("created_at")
+        or raw.get("created_at")
+    )
+    last_seen = (
+        soi.get("updated_at")
+        or raw.get("updated_at")
+    )
 
-    dashboard.ui.label_sa_sois_selected_title.setText(f"Selected SOI: {name}")
+    dashboard.ui.label_sa_sois_selected_title.setText(
+        f"Selected SOI: {name}"
+    )
 
     field_values = [
-        (dashboard.ui.label2_sa_sois_selected_name, name),
-        (dashboard.ui.label2_sa_sois_selected_soi_id, soi.get("soi_id", "") or "—"),
+        (
+            dashboard.ui.label2_sa_sois_selected_name,
+            name,
+        ),
+        (
+            dashboard.ui.label2_sa_sois_selected_soi_id,
+            soi.get("soi_id", "") or "—",
+        ),
         (
             dashboard.ui.label2_sa_sois_selected_frequency,
-            _sa_sois_format_frequency(_sa_sois_value(soi, "frequency_mhz", "center_frequency_mhz")),
+            _sa_sois_format_frequency(
+                _sa_sois_value(
+                    soi,
+                    "frequency_mhz",
+                    "center_frequency_mhz",
+                )
+            ),
         ),
-        (dashboard.ui.label2_sa_sois_selected_bandwidth, _sa_sois_format_bandwidth(soi)),
-        (dashboard.ui.label2_sa_sois_selected_modulation, _sa_sois_value(soi, "modulation", default="—") or "—"),
-        (dashboard.ui.label2_sa_sois_selected_classification, _sa_sois_classification(soi) or "—"),
-        (dashboard.ui.label2_sa_sois_selected_protocol, _sa_sois_protocol(soi) or "—"),
-        (dashboard.ui.label2_sa_sois_selected_stage, _sa_sois_stage(soi) or "—"),
-        (dashboard.ui.label2_sa_sois_selected_first_seen, _sa_sois_format_time(first_seen)),
-        (dashboard.ui.label2_sa_sois_selected_last_seen, _sa_sois_format_time(last_seen)),
-        (dashboard.ui.label2_sa_sois_selected_location, _sa_sois_format_location(soi)),
-        (dashboard.ui.label2_sa_sois_selected_notes, _sa_sois_value(soi, "notes", "description", default="—") or "—"),
+        (
+            dashboard.ui.label2_sa_sois_selected_bandwidth,
+            _sa_sois_format_bandwidth(
+                soi
+            ),
+        ),
+        (
+            dashboard.ui.label2_sa_sois_selected_modulation,
+            _sa_sois_value(
+                soi,
+                "modulation",
+                default="—",
+            )
+            or "—",
+        ),
+        (
+            dashboard.ui.label2_sa_sois_selected_classification,
+            _sa_sois_classification(
+                soi
+            )
+            or "—",
+        ),
+        (
+            dashboard.ui.label2_sa_sois_selected_protocol,
+            _sa_sois_protocol(
+                soi
+            )
+            or "—",
+        ),
+        (
+            dashboard.ui.label2_sa_sois_selected_stage,
+            _sa_sois_stage(
+                soi
+            )
+            or "—",
+        ),
+        (
+            dashboard.ui.label2_sa_sois_selected_first_seen,
+            _sa_sois_format_time(
+                first_seen
+            ),
+        ),
+        (
+            dashboard.ui.label2_sa_sois_selected_last_seen,
+            _sa_sois_format_time(
+                last_seen
+            ),
+        ),
+        (
+            dashboard.ui.label2_sa_sois_selected_location,
+            _sa_sois_format_location(
+                soi
+            ),
+        ),
+        (
+            dashboard.ui.label2_sa_sois_selected_notes,
+            _sa_sois_value(
+                soi,
+                "notes",
+                "description",
+                default="—",
+            )
+            or "—",
+        ),
     ]
 
     for label, value in field_values:
-        text = str(value)
-        label.setText(text)
-        label.setToolTip(text if text != "—" else "")
+        text = str(
+            value
+        )
+        label.setText(
+            text
+        )
+        label.setToolTip(
+            text
+            if text != "—"
+            else ""
+        )
 
-    dashboard.ui.label2_sa_sois_selected_snapshot_status.setText("No snapshot available")
-    _render_sa_sois_evidence(dashboard, soi_key, soi)
-    _render_sa_sois_detections(dashboard, soi)
-    _render_sa_sois_analysis(dashboard, soi)
-    _render_sa_sois_history(dashboard, soi)
-    _render_sa_sois_record(dashboard, soi)
-    _sa_sois_set_selected_widgets_enabled(dashboard, True)
+    dashboard.ui.label2_sa_sois_selected_snapshot_status.setText(
+        "No snapshot available"
+    )
 
+    try:
+        _render_sa_sois_record(
+            dashboard,
+            soi,
+        )
+    except Exception as error:
+        dashboard.ui.plainTextEdit_sa_sois_record_details.setPlainText(
+            "Could not render SOI record."
+        )
+        dashboard.logger.exception(
+            "[SOIs] Failed rendering Record for SOI %s: %s",
+            soi_key,
+            error,
+        )
 
+    try:
+        _render_sa_sois_evidence(
+            dashboard,
+            soi_key,
+            soi,
+        )
+    except Exception as error:
+        dashboard.ui.label_sa_sois_evidence_details.setText(
+            "Could not render evidence details."
+        )
+        dashboard.logger.exception(
+            "[SOIs] Failed rendering Evidence for SOI %s: %s",
+            soi_key,
+            error,
+        )
+
+    try:
+        _render_sa_sois_detections(
+            dashboard,
+            soi,
+        )
+    except Exception as error:
+        dashboard.ui.label_sa_sois_detections_details.setText(
+            "Could not render detection details."
+        )
+        dashboard.logger.exception(
+            "[SOIs] Failed rendering Detections for SOI %s: %s",
+            soi_key,
+            error,
+        )
+
+    try:
+        _render_sa_sois_analysis(
+            dashboard,
+            soi,
+        )
+    except Exception as error:
+        dashboard.ui.label_sa_sois_analysis_details.setText(
+            "Could not render analysis details."
+        )
+        dashboard.logger.exception(
+            "[SOIs] Failed rendering Analysis for SOI %s: %s",
+            soi_key,
+            error,
+        )
+
+    try:
+        _render_sa_sois_history(
+            dashboard,
+            soi,
+        )
+    except Exception as error:
+        dashboard.ui.label_sa_sois_history_details.setText(
+            "Could not render history details."
+        )
+        dashboard.logger.exception(
+            "[SOIs] Failed rendering History for SOI %s: %s",
+            soi_key,
+            error,
+        )
+
+        
 def refresh_sa_sois_selected_details(dashboard):
     """
     Refresh the visible selected SOI without clearing a stable table selection.
@@ -1005,21 +1242,38 @@ def _slotSA_SOIsSearchChanged(dashboard: QtCore.QObject):
 
 
 @QtCore.pyqtSlot(QtCore.QObject)
-def _slotSA_SOIsListSelectionChanged(dashboard: QtCore.QObject):
+def _slotSA_SOIsListSelectionChanged(
+    dashboard: QtCore.QObject,
+):
     """
-    Populate details for a user-selected SOI and ignore transient rebuild states.
+    Populate details for the selected SOI and ignore transient table rebuilds.
     """
-    if getattr(dashboard, "sa_sois_table_refreshing", False):
+    if getattr(
+        dashboard,
+        "sa_sois_table_refreshing",
+        False,
+    ):
         return
 
-    soi_key, soi = get_selected_sa_soi(dashboard)
+    soi_key, soi = get_selected_sa_soi(
+        dashboard
+    )
 
     if not soi_key or not soi:
-        if dashboard.ui.tableWidget_sa_sois_list.rowCount() == 0:
-            clear_sa_sois_selected(dashboard)
+        if (
+            dashboard.ui.tableWidget_sa_sois_list.rowCount()
+            == 0
+        ):
+            clear_sa_sois_selected(
+                dashboard
+            )
         return
 
-    populate_sa_sois_selected(dashboard, soi_key, soi)
+    populate_sa_sois_selected(
+        dashboard,
+        soi_key,
+        soi,
+    )
 
 
 async def _sa_sois_wait_for_dialog(dialog):

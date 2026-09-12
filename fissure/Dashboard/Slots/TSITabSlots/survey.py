@@ -1377,6 +1377,7 @@ def _finish_sa_survey(dashboard: QtCore.QObject, status_text: str):
     dashboard.ui.textEdit_sa_survey_execution_result.setPlainText(result)
 
 
+@qasync.asyncSlot(QtCore.QObject)
 async def _slotSA_SurveyStartStopClicked(dashboard: QtCore.QObject):
     """Start the selected Survey action or stop its active operation."""
     if _sa_survey_active(dashboard):

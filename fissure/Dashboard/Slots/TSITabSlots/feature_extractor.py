@@ -1567,7 +1567,7 @@ def initialize_tsi_fe_run_controls(dashboard: QtCore.QObject):
     destination_combo.blockSignals(True)
     destination_combo.clear()
     destination_combo.addItems(["Local Results", "Artifact"])
-    destination_combo.setCurrentText("Local Results")
+    destination_combo.setCurrentText("Artifact")
     destination_combo.blockSignals(False)
 
     dashboard.ui.label2_tsi_fe_run_artifact_id.setText("—")

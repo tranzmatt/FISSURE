@@ -5276,3 +5276,288 @@ QPlainTextEdit#plainTextEdit_sa_inspection_result {
     padding: 6px;
     font: 9pt "Ubuntu";
 }
+
+
+/* ==========================================================
+   Signal Analysis - Classifier / Classify
+   ========================================================== */
+
+QFrame#frame_sa_classifier_classify_input,
+QFrame#frame_sa_classifier_classify_library,
+QFrame#frame_sa_classifier_classify_model,
+QFrame#frame_sa_classifier_classify_run,
+QFrame#frame_sa_classifier_classify_results {
+    background-color: @color2;
+    border: 1px solid @color3;
+    border-radius: 8px;
+}
+
+QLabel#label_sa_classifier_classify_input_badge,
+QLabel#label_sa_classifier_classify_library_badge,
+QLabel#label_sa_classifier_classify_model_badge,
+QLabel#label_sa_classifier_classify_run_badge,
+QLabel#label_sa_classifier_classify_results_badge {
+    qproperty-alignment: AlignCenter;
+    color: @color4;
+    background-color: @color3;
+    border: 1px solid @color3;
+    border-radius: 14px;
+    font: bold 10pt "Ubuntu";
+    min-width: 28px;
+    max-width: 28px;
+    min-height: 28px;
+    max-height: 28px;
+}
+
+QLabel#label_sa_classifier_classify_input_title,
+QLabel#label_sa_classifier_classify_library_title,
+QLabel#label_sa_classifier_classify_model_title,
+QLabel#label_sa_classifier_classify_run_title,
+QLabel#label_sa_classifier_classify_results_title {
+    color: @color4;
+    background-color: transparent;
+    border: none;
+    font: bold 11pt "Ubuntu";
+}
+
+QStackedWidget#stackedWidget_sa_classifier_classify_input,
+QStackedWidget#stackedWidget_sa_classifier_classify_model,
+QWidget#page_sa_classifier_classify_input_none,
+QWidget#page_sa_classifier_classify_input_file,
+QWidget#page_sa_classifier_classify_input_artifact,
+QWidget#page_sa_classifier_classify_model_controls,
+QWidget#page_sa_classifier_classify_model_no_node {
+    background-color: transparent;
+    border: none;
+}
+
+QLabel#label_sa_classifier_classify_input_evidence {
+    color: @color4;
+    background-color: rgba(47, 143, 232, 18);
+    border: 1px solid rgba(47, 143, 232, 80);
+    border-radius: 4px;
+    padding: 8px;
+    font: 9pt "Ubuntu";
+}
+
+QLabel#label_sa_classifier_classify_library_info,
+QLabel#label_sa_classifier_classify_model_info {
+    color: @color4;
+    background-color: rgba(47, 143, 232, 25);
+    border: 1px solid rgba(47, 143, 232, 110);
+    border-radius: 4px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    font: 9pt "Ubuntu";
+}
+
+QLabel#label_sa_classifier_classify_library_info:disabled,
+QLabel#label_sa_classifier_classify_model_info:disabled {
+    color: @color13;
+    background-color: @color9;
+    border: 1px solid @color13;
+}
+
+QLabel#label_sa_classifier_classify_results_overall_assessment {
+    color: @color4;
+    background-color: transparent;
+    border: none;
+    font: bold 10pt "Ubuntu";
+}
+
+QLabel#label_sa_classifier_classify_results_image {
+    qproperty-alignment: AlignCenter;
+    color: @color4;
+    background-color: @color3;
+    border: 1px solid @color3;
+    border-radius: 16px;
+    font: bold 14pt "Ubuntu";
+}
+
+QLabel#label_sa_classifier_classify_model_select_sensor_node_image {
+    background-color: transparent;
+    border: none;
+}
+
+QLabel#label_sa_classifier_classify_model_empty_icon {
+    background-color: @color3;
+    border-radius: 24px;
+    padding: 6px;
+}
+
+QTableWidget#tableWidget_sa_classifier_classify_results {
+    color: @color4;
+    background-color: @color5;
+    alternate-background-color: @color2;
+    border: 1px solid @color13;
+    border-radius: 0px;
+    gridline-color: @color13;
+    font: 9pt "Ubuntu";
+    selection-color: #FFFFFF;
+    selection-background-color: #308CC6;
+}
+
+QTableWidget#tableWidget_sa_classifier_classify_results QHeaderView::section {
+    color: @color4;
+    background-color: @color2;
+    border: none;
+    border-right: 1px solid @color13;
+    border-bottom: 1px solid @color13;
+    padding: 3px;
+    font: bold 9pt "Ubuntu";
+}
+
+QPushButton#pushButton_sa_classifier_classify_input_view_inputs,
+QPushButton#pushButton_sa_classifier_classify_model_query,
+QPushButton#pushButton_sa_classifier_classify_model_customize,
+QPushButton#pushButton_sa_classifier_classify_model_manage_models,
+QPushButton#pushButton_sa_classifier_classify_run_artifact,
+QPushButton#pushButton_sa_classifier_classify_results_details,
+QPushButton#pushButton_sa_classifier_classify_results_export_json,
+QPushButton#pushButton_sa_classifier_classify_results_save_soi {
+    color: #FFFFFF;
+    border: 1px solid #0B2D52;
+    border-radius: 4px;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #2F5F8F,
+        stop:0.45 #1D456D,
+        stop:1 #0B2D52
+    );
+    font: bold 10pt "Ubuntu";
+    padding-bottom: 1px;
+    min-height: 28px;
+}
+
+QPushButton#pushButton_sa_classifier_classify_input_view_inputs:hover,
+QPushButton#pushButton_sa_classifier_classify_model_query:hover,
+QPushButton#pushButton_sa_classifier_classify_model_customize:hover,
+QPushButton#pushButton_sa_classifier_classify_model_manage_models:hover,
+QPushButton#pushButton_sa_classifier_classify_run_artifact:hover,
+QPushButton#pushButton_sa_classifier_classify_results_details:hover,
+QPushButton#pushButton_sa_classifier_classify_results_export_json:hover,
+QPushButton#pushButton_sa_classifier_classify_results_save_soi:hover {
+    color: #FFFFFF;
+    border: 1px solid #0B2D52;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #3C76AD,
+        stop:0.45 #265A88,
+        stop:1 #123B63
+    );
+}
+
+QPushButton#pushButton_sa_classifier_classify_input_view_inputs:pressed,
+QPushButton#pushButton_sa_classifier_classify_model_query:pressed,
+QPushButton#pushButton_sa_classifier_classify_model_customize:pressed,
+QPushButton#pushButton_sa_classifier_classify_model_manage_models:pressed,
+QPushButton#pushButton_sa_classifier_classify_run_artifact:pressed,
+QPushButton#pushButton_sa_classifier_classify_results_details:pressed,
+QPushButton#pushButton_sa_classifier_classify_results_export_json:pressed,
+QPushButton#pushButton_sa_classifier_classify_results_save_soi:pressed {
+    color: #FFFFFF;
+    border: 1px solid #061F3A;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #061F3A,
+        stop:0.45 #0B2D52,
+        stop:1 #1D456D
+    );
+}
+
+QPushButton#pushButton_sa_classifier_classify_input_view_inputs:disabled,
+QPushButton#pushButton_sa_classifier_classify_model_query:disabled,
+QPushButton#pushButton_sa_classifier_classify_model_customize:disabled,
+QPushButton#pushButton_sa_classifier_classify_model_manage_models:disabled,
+QPushButton#pushButton_sa_classifier_classify_run_artifact:disabled,
+QPushButton#pushButton_sa_classifier_classify_results_details:disabled,
+QPushButton#pushButton_sa_classifier_classify_results_export_json:disabled,
+QPushButton#pushButton_sa_classifier_classify_results_save_soi:disabled {
+    color: @color13;
+    border: 1px solid @color9;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 @color8,
+        stop:1 @color9
+    );
+}
+
+QPushButton#pushButton_sa_classifier_classify_run_start_stop {
+    color: #FFFFFF;
+    border: 1px solid #006600;
+    border-radius: 4px;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #18B318,
+        stop:0.45 #078F07,
+        stop:1 #056D05
+    );
+    font: bold 10pt "Ubuntu";
+    padding-bottom: 1px;
+    min-height: 32px;
+}
+
+QPushButton#pushButton_sa_classifier_classify_run_start_stop:hover {
+    border: 1px solid #008000;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #25C525,
+        stop:0.45 #0CA00C,
+        stop:1 #077707
+    );
+}
+
+QPushButton#pushButton_sa_classifier_classify_run_start_stop:pressed {
+    border: 1px solid #005800;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #007000,
+        stop:1 #005800
+    );
+}
+
+QPushButton#pushButton_sa_classifier_classify_run_start_stop:disabled {
+    color: @color13;
+    border: 1px solid @color1;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 @color8,
+        stop:1 @color9
+    );
+}
+
+/* Classifier running / Stop state */
+QPushButton#pushButton_sa_classifier_classify_run_start_stop[running="true"] {
+    color: white;
+    border: 1px solid #8a0000;
+    border-radius: 4px;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #e64a4a,
+        stop:0.45 #c91f1f,
+        stop:1 #980000
+    );
+    font: bold 10pt "Ubuntu";
+    padding-bottom: 1px;
+}
+
+QPushButton#pushButton_sa_classifier_classify_run_start_stop[running="true"]:hover {
+    border: 1px solid #b00000;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #ff5a5a,
+        stop:0.45 #dd2b2b,
+        stop:1 #b00000
+    );
+}
+
+QPushButton#pushButton_sa_classifier_classify_run_start_stop[running="true"]:pressed {
+    border: 1px solid #650000;
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #8a0000,
+        stop:1 #650000
+    );
+}

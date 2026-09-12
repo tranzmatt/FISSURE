@@ -156,6 +156,13 @@ ACTION_TAGS = {
         "tsi.feature_extractor.source.folder",
         "tsi.feature_extractor.source.artifact",        
     ],
+    "classify_features_dt": [
+        "All",
+        "tsi.classifier",
+        "tsi.classifier.method.model",
+        "tsi.classifier.source.artifact",
+        "tsi.classifier.source.local_file",
+    ],    
     "sensor_node_time": [
         "All",
         "tsi.detector",
@@ -1814,6 +1821,125 @@ async def feature_extract_custom(
         component,
         PLUGIN_NAME,
         "feature_extraction.py",
+        op_params,
+        node_uid,
+        wait=True,
+    )
+
+classify_features_dt_schema = {
+    "params": [
+        {
+            "name": "model_example",
+            "label": "example",
+            "type": "bool",
+            "default": True,
+            "group": "Models",
+            "required_features": [
+                "Crest Factor",
+                "Kurtosis of Band Power",
+                "Margin",
+                "Relative Spectral Peak per Band",
+                "Skewness of Band Power",
+                "Sum of Total Band Power",
+                "Power",
+                "Pulse Indicator",
+                "Standard Deviation of Band Power",
+            ],
+        },
+        {
+            "name": "model_example_frequency",
+            "label": "example_frequency",
+            "type": "bool",
+            "default": True,
+            "group": "Models",
+            "required_features": [
+                "Kurtosis of Band Power",
+                "Relative Spectral Peak per Band",
+                "Skewness of Band Power",
+                "Sum of Total Band Power",
+                "Mean of Band Power Spectrum",
+                "Peak of Band Power",
+                "Variance of Band Power",
+            ],
+        },
+        {
+            "name": "model_example_time",
+            "label": "example_time",
+            "type": "bool",
+            "default": True,
+            "group": "Models",
+            "required_features": [
+                "Crest Factor",
+                "Margin",
+                "Kurtosis",
+                "RMS",
+                "Samples",
+                "Standard Deviation",
+                "Zero Crossings",
+            ],
+        },
+        {
+            "name": "description",
+            "label": "Description",
+            "type": "string",
+            "default": "Classification analysis results",
+        },
+    ]
+}
+async def classify_features_dt(
+    component: SensorNode,
+    parameters: Dict[str, Any],
+    node_uid: str = "",
+) -> None:
+    """Classify Feature Analysis results with packaged Decision Tree models."""
+    op_params = dict(parameters or {})
+
+    model_parameters = {
+        "model_example": "example",
+        "model_example_frequency": "example_frequency",
+        "model_example_time": "example_time",
+    }
+    explicit_model_selection = any(
+        name in op_params
+        for name in model_parameters
+    )
+
+    if explicit_model_selection:
+        selected_models = []
+
+        for parameter_name, model_name in model_parameters.items():
+            value = op_params.pop(parameter_name, True)
+
+            if isinstance(value, str):
+                enabled = value.strip().lower() in {
+                    "true",
+                    "1",
+                    "yes",
+                    "y",
+                    "on",
+                    "enabled",
+                }
+            else:
+                enabled = bool(value)
+
+            if enabled:
+                selected_models.append(model_name)
+
+        op_params["selected_models"] = selected_models
+
+    op_params.setdefault(
+        "source_id",
+        node_uid or getattr(component, "uuid", "") or "sensor_node",
+    )
+    op_params.setdefault("destination", "Artifact")
+    op_params.setdefault("features_file", "tsi_features.json")
+    op_params.setdefault("min_models", 1)
+    op_params.setdefault("use_batch_consensus", True)
+
+    await component.run_plugin_operation(
+        component,
+        PLUGIN_NAME,
+        "classify_features_dt.py",
         op_params,
         node_uid,
         wait=True,

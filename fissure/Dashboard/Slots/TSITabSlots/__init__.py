@@ -5,5 +5,5 @@ from .sois import *
 from .survey import *
 from .capture import *
 from .inspection import *
-# from .classifier import *
+from .classifier import *
 from .legacy import *

@@ -235,7 +235,51 @@ def getPacketTypesDirect(conn, protocol):
         if cur is not None:
             cur.close()
 
-    
+
+def getFrequencyLookupCandidates(frequency_mhz, max_results=10):
+    """Return ordered frequency_lookup candidates for one MHz value."""
+    try:
+        frequency_hz = float(frequency_mhz) * 1e6
+        limit = max(1, min(int(max_results or 10), 100))
+    except Exception as error:
+        return [], f"Invalid frequency: {error}"
+
+    conn = None
+    cur = None
+    try:
+        conn = openDatabaseConnection()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT freq_low, freq_high, protocol_name, region, priority, notes
+            FROM frequency_lookup
+            WHERE freq_low <= %s AND freq_high >= %s
+            ORDER BY priority DESC, protocol_name ASC
+            LIMIT %s;
+            """,
+            (frequency_hz, frequency_hz, limit),
+        )
+        rows = cur.fetchall()
+        return [
+            {
+                "freq_low": row[0],
+                "freq_high": row[1],
+                "protocol_name": row[2],
+                "region": row[3],
+                "priority": row[4],
+                "notes": row[5],
+            }
+            for row in rows
+        ], ""
+    except Exception as error:
+        return [], f"Frequency lookup failed: {error}"
+    finally:
+        if cur is not None:
+            cur.close()
+        if conn is not None:
+            conn.close()
+
+
 def classifyFrequencyFromTextDirect(text, protocol_only=False):
     """
     Extracts a frequency from the given text (supports HackRF sweep formats

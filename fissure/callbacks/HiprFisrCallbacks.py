@@ -636,6 +636,23 @@ async def findPreambles(component: object, window_min=0, window_max=0, ranking=0
     await component.backend_router.send_msg(fissure.comms.MessageTypes.COMMANDS, msg, target_ids=[component.pd_id])
 
 
+async def classifierLibraryMatch(component: object, request_id="", frequency_mhz=None, max_results=10):
+    """Run the Classifier library lookup on HIPRFISR and return ordered candidates."""
+    matches, error = fissure.utils.library.getFrequencyLookupCandidates(frequency_mhz, max_results)
+    msg = {
+        fissure.comms.MessageFields.IDENTIFIER: component.identifier,
+        fissure.comms.MessageFields.MESSAGE_NAME: "classifierLibraryMatchReturn",
+        fissure.comms.MessageFields.PARAMETERS: {
+            "request_id": str(request_id or ""),
+            "frequency_mhz": frequency_mhz,
+            "matches": matches,
+            "error": error,
+        },
+    }
+    if component.dashboard_connected:
+        await component.dashboard_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
 async def searchLibrary(component: object, soi_data="", field_data=""):
     """
     Sends message to PD to search library.yaml from SOI data and field values.
@@ -2934,7 +2951,7 @@ async def inspectionReturn(
         msg,
     )
 
-    
+
 async def detectionReturn(
     component,
     detection: dict,

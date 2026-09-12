@@ -1,6 +1,29 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2026-9-11
+
+Rebuild Classifier around plugin models and evidence workflows
+
+### Added
+
+- Added a new Classify workflow that combines HIPRFISR library matching with plugin-provided machine-learning classifiers and supports both combined evidence and per-input classification modes.
+- Added plugin-driven Decision Tree classification with compatible-model discovery, per-model voting, per-input consensus, batch consensus, and model selection through the existing Customize action workflow.
+- Added Classification Analysis Artifacts with operation metadata, model results, provenance, and automatic retrieval for Dashboard review and downstream SOI workflows.
+- Added SOI promotion from classification results, including Save to SOI / Create SOI for combined results and multi-row Create SOIs for per-input classifications while preserving linked Feature Analysis and Classification Analysis Artifacts.
+
+### Changed
+
+- Changed Classifier inputs to favor Feature Analysis Artifacts as the normal handoff from Features, while still supporting local feature files and optional SOI context.
+- Changed classification results to present library and model evidence together with explicit support/evidence fields, qualitative corroborated/conflicting/single-source assessments, and a selectable primary classification.
+- Changed model configuration so compatible models are exposed as normal plugin action parameters in Customize instead of separate strategy or model-management controls.
+- Changed Feature Extractor and Classifier defaults to use Artifact-first workflows, making managed Artifacts the normal path between feature extraction, classification, and SOI promotion.
+- Changed the Classifier interface to the numbered Signal Analysis workflow-card style and hid the legacy Training, Classification, and unfinished Model Lab tabs until they can be replaced after the conference.
+
+### Fixed
+
+- Fixed SOI Record details to render the current normalized SOI content correctly instead of relying on stale transport data.
+
 ## 2026-9-9
 
 Align Feature Extractor with artifact-first Signal Analysis workflows

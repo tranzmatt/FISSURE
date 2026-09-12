@@ -155,6 +155,9 @@ class Dashboard(QtWidgets.QMainWindow):
         # Hide works in progress
         #self.remove_tab_by_text(self.ui.<tab_widget>, <tab_text>)
         self.remove_tab_by_text(self.ui.tabWidget_library, "Search")
+        self.remove_tab_by_text(self.ui.tabWidget_tsi_classifier, "Model Lab")
+        self.remove_tab_by_text(self.ui.tabWidget_tsi_classifier, "Training")
+        self.remove_tab_by_text(self.ui.tabWidget_tsi_classifier, "Classification")
 
         # Load FISSURE Logo
         self.ui.label_diagram.setPixmap(QtGui.QPixmap(os.path.join(fissure.utils.UI_DIR, "Icons", "logo.png")))
@@ -552,6 +555,14 @@ class Dashboard(QtWidgets.QMainWindow):
             self.logger.debug(
                 "Could not initialize TSI Feature "
                 f"Extractor controls: {e}"
+            )
+
+        try:
+            TSITabSlots.initialize_sa_classifier_controls(self)
+        except Exception as e:
+            self.logger.debug(
+                "Could not initialize Signal Analysis Classifier "
+                f"controls: {e}"
             )
 
         # Legacy Classifier feature list.
@@ -1549,6 +1560,15 @@ class Dashboard(QtWidgets.QMainWindow):
         except Exception as e:
             self.logger.debug(
                 "Could not update TSI Feature Extractor "
+                f"selected-node state: {e}"
+            )
+
+        try:
+            TSITabSlots.update_sa_classifier_selected_node_gate(self)
+            TSITabSlots.refresh_sa_classifier_context(self)
+        except Exception as e:
+            self.logger.debug(
+                "Could not update Signal Analysis Classifier "
                 f"selected-node state: {e}"
             )
 
@@ -3220,6 +3240,80 @@ def connect_tsi_slots(dashboard: Dashboard):
     )
     dashboard.ui.tabWidget_signal_analysis.currentChanged.connect(
         lambda: TSITabSlots._slotSA_InspectionTabChanged(dashboard)
+    )
+    dashboard.ui.tabWidget_signal_analysis.currentChanged.connect(
+        lambda: TSITabSlots._slotSA_ClassifierTabChanged(dashboard)
+    )
+    dashboard.ui.tabWidget_tsi_classifier.currentChanged.connect(
+        lambda: TSITabSlots._slotSA_ClassifierTabChanged(dashboard)
+    )    
+
+        # Signal Analysis - Classifier
+    dashboard.ui.comboBox_sa_classifier_classify_input_source.currentIndexChanged.connect(
+        lambda: TSITabSlots._slotSA_ClassifierInputSourceChanged(dashboard)
+    )
+    dashboard.ui.comboBox_sa_classifier_classify_input_soi.currentIndexChanged.connect(
+        lambda: TSITabSlots._slotSA_ClassifierInputSoiChanged(dashboard)
+    )
+    dashboard.ui.comboBox_sa_classifier_classify_input_artifact.currentIndexChanged.connect(
+        lambda: TSITabSlots._slotSA_ClassifierInputArtifactChanged(dashboard)
+    )
+    dashboard.ui.textEdit_sa_classifier_classify_file.textChanged.connect(
+        lambda: TSITabSlots._slotSA_ClassifierInputFileChanged(dashboard)
+    )
+    dashboard.ui.checkBox_sa_classifier_classify_library_enable.clicked.connect(
+        lambda: TSITabSlots._slotSA_ClassifierLibraryChanged(dashboard)
+    )
+    dashboard.ui.checkBox_sa_classifier_classify_library_frequency.clicked.connect(
+        lambda: TSITabSlots._slotSA_ClassifierLibraryChanged(dashboard)
+    )
+    dashboard.ui.checkBox_sa_classifier_classify_library_multiple_candidates.clicked.connect(
+        lambda: TSITabSlots._slotSA_ClassifierLibraryChanged(dashboard)
+    )
+    dashboard.ui.spinBox_sa_classifier_classify_library_max_results.valueChanged.connect(
+        lambda: TSITabSlots._slotSA_ClassifierLibraryChanged(dashboard)
+    )
+    dashboard.ui.checkBox_sa_classifier_classify_model_enable.clicked.connect(
+        lambda: TSITabSlots._slotSA_ClassifierModelEnableChanged(dashboard)
+    )
+    dashboard.ui.comboBox_sa_classifier_classify_model_plugin.currentIndexChanged.connect(
+        lambda: TSITabSlots._slotSA_ClassifierModelPluginChanged(dashboard)
+    )
+    dashboard.ui.comboBox_sa_classifier_classify_model_action.currentIndexChanged.connect(
+        lambda: TSITabSlots._slotSA_ClassifierModelActionChanged(dashboard)
+    )
+    dashboard.ui.comboBox_sa_classifier_classify_results_primary.currentTextChanged.connect(
+        lambda: TSITabSlots._slotSA_ClassifierPrimaryChanged(dashboard)
+    )
+    dashboard.ui.pushButton_sa_classifier_classify_input_artifact_refresh.clicked.connect(
+        lambda: TSITabSlots._slotSA_ClassifierInputArtifactRefreshClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_classifier_classify_input_file.clicked.connect(
+        lambda: TSITabSlots._slotSA_ClassifierInputFileClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_classifier_classify_input_view_inputs.clicked.connect(
+        lambda: TSITabSlots._slotSA_ClassifierViewInputsClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_classifier_classify_model_query.clicked.connect(
+        lambda: TSITabSlots._slotSA_ClassifierModelQueryClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_classifier_classify_model_customize.clicked.connect(
+        lambda: TSITabSlots._slotSA_ClassifierModelCustomizeClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_classifier_classify_run_start_stop.clicked.connect(
+        lambda: TSITabSlots._slotSA_ClassifierRunStartStopClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_classifier_classify_run_artifact.clicked.connect(
+        lambda: TSITabSlots._slotSA_ClassifierRunArtifactClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_classifier_classify_results_details.clicked.connect(
+        lambda: TSITabSlots._slotSA_ClassifierResultsDetailsClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_classifier_classify_results_export_json.clicked.connect(
+        lambda: TSITabSlots._slotSA_ClassifierResultsExportJsonClicked(dashboard)
+    )
+    dashboard.ui.pushButton_sa_classifier_classify_results_save_soi.clicked.connect(
+        lambda: TSITabSlots._slotSA_ClassifierSaveSoiClicked(dashboard)
     )
 
     # Check Box

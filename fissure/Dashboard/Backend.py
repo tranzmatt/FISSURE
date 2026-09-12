@@ -1188,6 +1188,22 @@ class DashboardBackend:
             )
 
 
+    async def classifierLibraryMatch(self, request_id="", frequency_mhz=None, max_results=10):
+        """Request hub-side Classifier library matches for the supplied evidence."""
+        if self.hiprfisr_connected is not True:
+            return
+        msg = {
+            fissure.comms.MessageFields.IDENTIFIER: fissure.comms.Identifiers.DASHBOARD,
+            fissure.comms.MessageFields.MESSAGE_NAME: "classifierLibraryMatch",
+            fissure.comms.MessageFields.PARAMETERS: {
+                "request_id": str(request_id or ""),
+                "frequency_mhz": frequency_mhz,
+                "max_results": int(max_results or 10),
+            },
+        }
+        await self.hiprfisr_socket.send_msg(fissure.comms.MessageTypes.COMMANDS, msg)
+
+
     async def searchLibrary(self, soi_data="", field_data=""):
         """
         Sends message to search library.yaml for occurences of hex_str.
