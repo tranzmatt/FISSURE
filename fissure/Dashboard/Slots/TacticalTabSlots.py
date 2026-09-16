@@ -11,9 +11,45 @@ import asyncio
 import html
 
 
+def _replot_tactical_nodes_on_map(dashboard):
+    """Re-add current Tactical nodes after a map-pack reload."""
+    tactical_nodes = getattr(dashboard, "tactical_nodes", {})
+
+    if not isinstance(tactical_nodes, dict):
+        return
+
+    for uid, node_record in tactical_nodes.items():
+        if not isinstance(node_record, dict):
+            continue
+
+        lat = node_record.get("lat")
+        lon = node_record.get("lon")
+
+        if lat is None or lon is None:
+            continue
+
+        status = str(node_record.get("status") or "").strip()
+        active = status.lower() not in (
+            "",
+            "idle",
+            "stopped",
+            "unknown",
+            "disconnected",
+        )
+
+        dashboard.tactical_map.add_node(
+            node_id=uid,
+            lat=lat,
+            lon=lon,
+            label=node_record.get("callsign") or uid,
+            active=active,
+            status=status,
+        )
+
+
 @QtCore.pyqtSlot(QtCore.QObject)
 def _slotTacticalRefreshMapPacks(dashboard: QtCore.QObject):
-    """ 
+    """
     Refreshes the combobox of map pack names from the map data folder.
     """
     combo = dashboard.ui.comboBox_tactical_map_pack
@@ -37,9 +73,16 @@ def _slotTacticalRefreshMapPacks(dashboard: QtCore.QObject):
 
     if combo.currentText():
         try:
-            dashboard.tactical_map.load_map(str(combo.currentText()), preferred_zoom=None, fit=False)
+            dashboard.tactical_map.load_map(
+                str(combo.currentText()),
+                preferred_zoom=None,
+                fit=False,
+            )
+            _replot_tactical_nodes_on_map(dashboard)
         except Exception as e:
-            dashboard.logger.error(f"[Tactical] Failed to load map pack '{combo.currentText()}': {e}")
+            dashboard.logger.error(
+                f"[Tactical] Failed to load map pack '{combo.currentText()}': {e}"
+            )
 
 
 @QtCore.pyqtSlot(QtCore.QObject)
@@ -54,14 +97,25 @@ def _slotTacticalMapPackChanged(dashboard: QtCore.QObject):
     if not map_name:
         dashboard.tactical_map.scene.clear()
         dashboard.tactical_map.scene.setSceneRect(0, 0, 0, 0)
-        dashboard.logger.info("[Tactical] No map pack selected. Cleared tactical map.")
+        dashboard.logger.info(
+            "[Tactical] No map pack selected. Cleared tactical map."
+        )
         return
 
     try:
-        dashboard.tactical_map.load_map(map_name, preferred_zoom=None, fit=False)
-        dashboard.logger.info(f"[Tactical] Loaded map pack: {map_name}")
+        dashboard.tactical_map.load_map(
+            map_name,
+            preferred_zoom=None,
+            fit=False,
+        )
+        _replot_tactical_nodes_on_map(dashboard)
+        dashboard.logger.info(
+            f"[Tactical] Loaded map pack: {map_name}"
+        )
     except Exception as e:
-        dashboard.logger.error(f"[Tactical] Failed to load map pack '{map_name}': {e}")
+        dashboard.logger.error(
+            f"[Tactical] Failed to load map pack '{map_name}': {e}"
+        )
 
 
 @QtCore.pyqtSlot(QtCore.QObject)
@@ -1832,6 +1886,23 @@ def update_tactical_detection_row(dashboard: QtCore.QObject, detection_record):
         format_detection_time(detection_record.get("time", "")),
     ]
 
+    tooltip_lines = []
+    ssid = str(detection_record.get("ssid") or "").strip()
+    bssid = str(detection_record.get("bssid") or "").strip()
+    channel = str(detection_record.get("channel") or "").strip()
+    vendor = str(detection_record.get("vendor") or "").strip()
+
+    if ssid:
+        tooltip_lines.append(f"SSID: {ssid}")
+    if bssid:
+        tooltip_lines.append(f"BSSID: {bssid}")
+    if channel:
+        tooltip_lines.append(f"Channel: {channel}")
+    if vendor:
+        tooltip_lines.append(f"Vendor: {vendor}")
+
+    tooltip = "\n".join(tooltip_lines)
+
     existing_row = None
 
     for row in range(table.rowCount()):
@@ -1853,6 +1924,7 @@ def update_tactical_detection_row(dashboard: QtCore.QObject, detection_record):
 
         item.setText(str(value))
         item.setData(QtCore.Qt.UserRole, uid)
+        item.setToolTip(tooltip)
 
     table.resizeColumnsToContents()
     table.resizeRowsToContents()
@@ -5873,11 +5945,44 @@ async def _slotTacticalTargetsGeolocateClicked(dashboard: QtCore.QObject):
         await dashboard.backend.tacticalTargetsGeolocateStop(
             target_id=target_id,
         )
-    else:
-        await dashboard.backend.tacticalTargetsGeolocateStart(
-            target_id=target_id,
-            search_similar_targets=search_similar_targets,
-        )
+        return
+
+    similar_target_ids = []
+
+    if search_similar_targets:
+        # Use exactly the Targets currently visible to the operator in the
+        # Targets table. Do not silently pull hidden/stale hub Targets into a
+        # Search Similar session.
+        table = dashboard.ui.tableWidget1_ta_targets
+
+        for row in range(table.rowCount()):
+            item = table.item(row, 0)
+            if item is None:
+                continue
+
+            candidate_target_id = str(
+                item.data(QtCore.Qt.UserRole)
+                or ""
+            ).strip()
+
+            if (
+                candidate_target_id
+                and candidate_target_id
+                not in similar_target_ids
+            ):
+                similar_target_ids.append(
+                    candidate_target_id
+                )
+
+        if target_id not in similar_target_ids:
+            similar_target_ids.insert(0, target_id)
+
+    await dashboard.backend.tacticalTargetsGeolocateStart(
+        target_id=target_id,
+        search_similar_targets=search_similar_targets,
+        preferred_node_uid=getattr(dashboard, "selected_node_uid", ""),
+        similar_target_ids=similar_target_ids,
+    )
 
 
 @QtCore.pyqtSlot(QtCore.QObject)
@@ -8310,9 +8415,6 @@ def populate_tactical_targets_details(
 
     node_id = (
         target.get("node_uid")
-        or target.get(
-            "sensor_node_id"
-        )
         or target.get("node_id")
     )
 
@@ -8669,7 +8771,6 @@ def populate_tactical_targets_details(
             "hae",
             "hae_m",
             "node_uid",
-            "sensor_node_id",
             "node_id",
             "created_time",
             "last_update_time",
