@@ -1,6 +1,52 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2026-9-17
+
+Harden field operations and installer reliability
+
+### Added
+
+- Added a Tactical map zoom slider that follows the active map pack's available zoom levels, preserves map center, and stays synchronized with wheel and touchpad zoom.
+- Added bounded Light Discovery output controls, including a configurable maximum detection rate and small burst allowance, so dense Wi-Fi environments cannot overwhelm the Sensor Node, HIPRFISR, and Dashboard message path.
+
+### Changed
+
+- Changed Wi-Fi Light Discovery to ignore unchanged cumulative airodump rows, prefer newly observed BSSIDs and stronger signals, throttle status updates, and yield between detection deliveries so control traffic remains responsive under load.
+- Changed Dense Wi-Fi Wardrive Logger batching to treat airodump source sightings as run-wide ingestion state, disable unique-BSSID batch flushing by default, preserve observation timing across artifact boundaries, and reduce status update frequency.
+- Changed GPS handling to run blocking gpsd probes outside the asyncio loop, tolerate a single missed periodic probe before marking cached position stale, and require fresh GPS data before Wi-Fi geolocation observations are emitted.
+- Changed TAK auto-connect behavior to wait quietly for server reachability, retry indefinitely without repetitive warning spam while offline, and automatically reconnect when the TAK server becomes available again.
+- Changed HamClock installation across supported OS installers to use the maintained Open HamClock source and a bounded Git download instead of the retired Clear Sky Institute server.
+
+### Fixed
+
+- Fixed a Tactical map download progress-dialog race that could dereference a cleared progress dialog and crash the Dashboard near download completion.
+- Fixed Dense Wi-Fi Wardrive Logger repeatedly re-ingesting the cumulative airodump AP list after each artifact flush, which could generate near-identical artifact batches continuously once the unique-device threshold was exceeded.
+- Fixed Dense Logger source-sighting bookkeeping so observations suppressed by the normal per-BSSID interval cannot later be associated with a newer receiver GPS position.
+- Fixed Wi-Fi geolocation operations continuing to use an old cached GPS position after the live gpsd stream stopped updating.
+
+## 2026-9-16
+
+Refine replay safety and Tactical map controls
+
+### Added
+
+- Added Dashboard-aware CoT replay handling so recorded Targets, detections, and geolocation observations can be restored for demonstration without replaying historical action menus, live node status, or control state.
+- Added TAK menu actions for replaying CoT logs to TAK alone or to TAK plus the Dashboard using the existing FISSURE terminal launcher pattern.
+- Added a Plot All action to the Tactical detections context menu so every detection currently shown for the selected Sensor Node can be plotted using the existing detection map path.
+- Added Tactical Detection Labels and Target Labels display toggles so dense map views can hide text while keeping the underlying markers and interactions available.
+
+### Changed
+
+- Changed replayed Dashboard Targets to remain presentation-only until replaced by live Target updates, keeping replayed geolocation observations separated from active Target state and preventing replay data from interfering with live geolocation controls.
+- Changed Tactical detection map labels to prefer SSID when available and fall back to frequency for non-Wi-Fi or unnamed detections.
+- Changed Tactical label visibility handling so detection and Target text can be toggled independently while Sensor Node labels, Target CE rings, and marker click behavior remain unaffected.
+
+### Fixed
+
+- Fixed generic plugin operation status transitions being suppressed by the Sensor Node status cache, restoring immediate Running and Idle updates for short and long-running plugin actions such as `dummy_detection`.
+- Fixed Dashboard replay behavior that could visually overwrite current Sensor Node status and action-control state with historical recorded values even though replayed actions were not actually executing.
+
 ## 2026-9-16
 
 Stabilize Wi-Fi geolocation workflows and artifact logging
