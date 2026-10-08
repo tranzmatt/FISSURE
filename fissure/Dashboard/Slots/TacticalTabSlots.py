@@ -1016,21 +1016,26 @@ def update_tactical_node_action_parameters(
     parameters,
 ):
     scroll_area = dashboard.ui.scrollArea_tactical_node_action_parameters
+    scroll_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+    scroll_area.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+    scroll_area.setWidgetResizable(True)
 
     content_widget = scroll_area.widget()
 
     if content_widget is None:
         content_widget = QtWidgets.QWidget()
         scroll_area.setWidget(content_widget)
-        scroll_area.setWidgetResizable(True)
+
+    # Reset any minimum width left by the previously selected Action.
+    content_widget.setMinimumWidth(0)
 
     layout = content_widget.layout()
 
     if layout is None:
         layout = QtWidgets.QVBoxLayout(content_widget)
 
-    layout.setContentsMargins(4, 2, 4, 2)
-    layout.setSpacing(2)
+    layout.setContentsMargins(4, 2, 2, 2)
+    layout.setSpacing(4)
 
     while layout.count():
         item = layout.takeAt(0)
@@ -1042,6 +1047,7 @@ def update_tactical_node_action_parameters(
     dashboard.tactical_action_parameter_widgets = {}
 
     description_text = ""
+    parameter_label_texts = []
 
     for param in parameters:
         param_name = param.get("name", "")
@@ -1049,6 +1055,43 @@ def update_tactical_node_action_parameters(
         if param_name == "description":
             description_text = str(param.get("default", ""))
             continue
+
+        if param_name:
+            parameter_label_texts.append(
+                str(param.get("label") or param_name)
+            )
+
+    label_probe = QtWidgets.QLabel()
+    parameter_label_font = label_probe.font()
+    parameter_label_font.setPointSize(
+        max(parameter_label_font.pointSize() - 1, 8)
+    )
+    label_probe.setFont(parameter_label_font)
+    label_metrics = label_probe.fontMetrics()
+
+    parameter_label_width = 125
+
+    if parameter_label_texts:
+        parameter_label_width = max(
+            125,
+            max(
+                label_metrics.horizontalAdvance(label_text)
+                for label_text in parameter_label_texts
+            ),
+        )
+
+    # Keep the generated editor usable instead of allowing Qt to collapse it
+    # just to avoid a horizontal scrollbar.
+    parameter_widget_minimum_width = 105
+
+    # QHBoxLayout contents:
+    #   label + spacing + parameter widget + right margin
+    parameter_row_minimum_width = (
+        parameter_label_width
+        + 3
+        + parameter_widget_minimum_width
+        + 2
+    )
 
     if description_text:
         description_label = QtWidgets.QLabel(description_text)
@@ -1077,6 +1120,7 @@ def update_tactical_node_action_parameters(
             continue
 
         row_widget = QtWidgets.QWidget()
+        row_widget.setMinimumWidth(parameter_row_minimum_width)
         row_widget.setMinimumHeight(20)
         row_widget.setMaximumHeight(26)
 
@@ -1091,15 +1135,12 @@ def update_tactical_node_action_parameters(
             "uiRole",
             "parameterLabel",
         )
-        label.setFixedWidth(125)
+        label.setFixedWidth(parameter_label_width)
         label.setMinimumHeight(20)
         label.setMaximumHeight(24)
         label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         label.setToolTip(label_text)
-
-        label_font = label.font()
-        label_font.setPointSize(max(label_font.pointSize() - 1, 8))
-        label.setFont(label_font)
+        label.setFont(parameter_label_font)
 
         row_layout.addWidget(label)
         row_layout.setStretch(0, 0)
@@ -1156,6 +1197,7 @@ def update_tactical_node_action_parameters(
         widget.setToolTip(param.get("description", ""))
 
         make_tactical_parameter_widget_compact(widget)
+        widget.setMinimumWidth(parameter_widget_minimum_width)
 
         row_layout.addWidget(widget, 1)
 
@@ -1167,7 +1209,17 @@ def update_tactical_node_action_parameters(
 
     apply_pending_tactical_customize_defaults(dashboard)
 
+    # Give the content widget a real minimum width so QScrollArea can determine
+    # when horizontal scrolling is actually required for long labels.
+    # This uses the same compact spacing as Inspection.
+    # horizontal scrollbar is actually required for long labels.
+    content_widget.setMinimumWidth(parameter_row_minimum_width + 8)
     content_widget.adjustSize()
+
+    # Start each newly selected Action at the left side of its parameter panel.
+    scroll_area.horizontalScrollBar().setValue(0)
+    scroll_area.verticalScrollBar().setValue(0)
+
     scroll_area.update()
 
 
