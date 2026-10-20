@@ -1,6 +1,52 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2026-10-19
+
+Add evidence-based packet analysis and protocol validation
+
+### Added
+
+- Added a Packet Analysis workspace for importing extracted messages or local packet data, analyzing selected packets, comparing protocol candidates, and inspecting evidence and decoded fields.
+- Added reusable packet analysis and database-driven format validation with bit-accurate field extraction, structural and integrity checks, and evidence-based Strong, Possible, and Rejected results.
+- Added packet format definitions for TPMS sensor status, Z-Wave Color Switch Set (MAC-only and sync + MAC), and X10 RF command frames, with independent checks rather than length-only identification.
+- Added generic pulse-distance OOK framing to recover interval-encoded packets such as X10 from demodulated symbols.
+- Added a packet-format JSON validation and import tool and Protocol Discovery AI development guidance.
+
+### Changed
+
+- Extended Bitstream & Framing handoff to transfer selected or all extracted messages into Packet Analysis while preserving individual observations and framing context.
+- Updated Library caching to load enabled packet-format definitions for analysis without querying PostgreSQL for each packet.
+- Refined Protocol Discovery layouts and Light, Dark, and Custom styles to present candidate evidence, decoded fields, and validation explanations more clearly.
+- Replaced the distributed PostgreSQL dump with an updated custom-format `.backup` archive and updated operating-system installers to restore it.
+
+### Fixed
+
+- Fixed automatic demodulation misclassifying short, cropped 2-FSK recordings as OOK by using frequency-state timing evidence during modulation selection.
+
+## 2026-10-16
+
+Add automatic bitstream framing and refine signal recovery
+
+### Added
+
+- Added a functional Bitstream & Framing workspace with Demodulation handoff, local bitstream loading, overview and detail plots, Raw/Decoded views, and configurable decoding and framing controls.
+- Added reusable bitstream decoding and framing utilities for polarity handling, Manchester and differential decoding, candidate boundary discovery, OOK burst separation, and repeated-message detection.
+- Added automatic framing evidence from sync patterns, CRC-16 matches, and mixed uncoded-prefix/Manchester-to-differential payloads with CRC-8 and redundant-field checks.
+- Added an extracted-message table with occurrence counts, boundary evidence, raw-chip provenance, and selected-message inspection in Hex, Binary, and ASCII.
+- Added an unframed RF-segment fallback for FSK recordings without identifiable packet boundaries, keeping the recovered data available for inspection without claiming a verified frame.
+
+### Changed
+
+- Improved OOK demodulation with burst-aware symbol timing that independently aligns transmissions while retaining idle gaps for framing.
+- Refined 2-FSK clock estimation and fractional symbol timing for more accurate recovery across longer transmissions.
+- Improved Bitstream & Framing visualization and navigation with selectable message regions, synchronized plots, and preserved viewing context.
+- Refined Protocol Discovery styling across Light, Dark, and Custom themes with button hover states and readable advanced-setting labels.
+
+### Fixed
+
+- Fixed the Demodulation Detected plot being limited to the first 8,000 samples by enabling full-recording navigation with adaptive detail when zooming.
+
 ## 2026-10-12
 
 Add Protocol Discovery demodulation and retire legacy attack caching
