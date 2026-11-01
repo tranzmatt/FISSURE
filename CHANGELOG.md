@@ -1,6 +1,44 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2026-10-31
+
+Retire legacy Protocol Discovery backend and streamline Dashboard
+
+### Added
+
+- Added an optional Whisper.cpp installer item for CPU-based transcription with the multilingual small model and installation verification.
+- Added follow-up TODOs for statistical framing analysis, per-bit entropy and field inference, live bitstream ingestion, and future dissector generation in the modern Protocol Discovery workspaces.
+
+### Changed
+
+- Retired the standalone Protocol Discovery process and removed its HIPRFISR startup, connection, heartbeat, messaging, and shutdown integration.
+- Removed the five hidden legacy Protocol Discovery pages and their obsolete initialization, slot handlers, callbacks, Sensor Node bitstream listener, and component status reporting while preserving the modern analysis workspaces.
+- Cleaned up obsolete PD configuration ports, logging settings, Options controls, and Log tab filters.
+- Left the legacy Library Search workflow hidden and disabled pending reimplementation without the PD backend.
+- Disabled the status bar hover popup while retaining the status bar and its normal updates.
+- Moved legacy Lua dissectors into Tools and disabled their automatic Wireshark installation across operating systems, including the redundant DragonOS Wireshark installer item.
+
+## 2026-10-31
+
+Add audio transcription and improve Action artifact access
+
+### Added
+
+- Added an Audio Transcription plugin with a single Action for local, multilingual speech recognition using Whisper, automatic language detection, and timestamped transcript Artifacts.
+- Added automated plugin tests covering transcription, audio conversion, cancellation, error handling, and Artifact generation.
+- Added Artifact ID tracking and Download/Open Artifact functionality to Single Action, using the existing Artifact management and transfer system.
+
+### Changed
+
+- Improved Audio Transcription with noise and silence detection to reduce false transcriptions, more readable transcript formatting, timestamped segments, and enhanced Artifact metadata.
+- Updated Single Action to retain completed Operation IDs, associate Artifacts with their originating operations, and provide selectable IDs with full-value tooltips.
+- Relocated Customize buttons alongside Query Actions in Single Action, Survey, Detector, and Capture to improve workflow consistency and prevent accidental parameter resets.
+- Renamed Conditioner's Query Parameters button to Customize for consistency with other tabs.
+- Refined Single Action execution layouts, status indicators, button styling, and Light, Dark, and Custom stylesheet support for the new Artifact controls.
+- Refined AI plugin development guidance for external dependencies, runtime validation, and testing probabilistic analysis against negative inputs such as silence and noise.
+- Removed the legacy Attack Recordings directory as recording outputs transition to plugin-managed Artifacts.
+
 ## 2026-10-26
 
 Add CRC analysis and retire legacy calculator
