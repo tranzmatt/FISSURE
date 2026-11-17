@@ -220,7 +220,7 @@ class OperationMain(Operation):
 
 The Sensor Node runner imports the file, creates `OperationMain`, injects supported framework callbacks/context based on the constructor signature, runs setup, registers the Operation, starts it, handles Stop requests, performs teardown, and removes it from the active-operation registry.
 
-Do not duplicate that lifecycle inside plugin code.
+Do not duplicate that lifecycle inside plugin code. For IP/local Sensor Nodes, the runner reports operation-specific lifecycle edges (`Starting`, `Running`, `Stopping`, `Completed`, `Stopped`, `Failed`) through HIPRFISR to the Dashboard. The node-wide `Running`/`Idle` status is an aggregate indicator, not a reliable completion signal for an individual Operation. Manual panels should track the unique Operation ID they launched and must not reset from another Operation's status changes.
 
 ### Operation Constructors
 
@@ -288,6 +288,10 @@ For structured detections, inspect current detector Operations. Common fields in
 Use the fields expected by the current core path rather than inventing plugin-only equivalents.
 
 For callbacks used in loops or high-rate processing, avoid allowing a stalled callback to block the Operation indefinitely. Follow current Operations that use bounded waits where appropriate, and preserve `asyncio.CancelledError`.
+
+Validate callback results through the complete FISSURE processing and presentation path, not just successful callback invocation. Confirm that Detections contain the metadata required by downstream consumers, including RF frequency when known. Account for channel offsets from the receiver center frequency, and do not invent frequency values when the source does not provide reliable RF context.
+
+Apply Detection throttling by observation type when different message categories have different operational significance. A static or informational message should not unintentionally suppress a subsequent position or measurement report. When investigating missing results, distinguish generated observations, throttled observations, successful callback delivery, and actual Dashboard visibility.
 
 ## Location and Position
 
@@ -382,6 +386,12 @@ Keep the `.grc` source and its generated `.py` file together in the appropriate 
 
 Before adding a new flow-graph category directory, inspect the installer/compilation logic and existing plugin categories. If the installer recognizes specific folder names, either use the appropriate recognized category or make an intentional framework/installer change rather than creating a directory that installation will silently ignore.
 
+### Receiver Migration and Signal Processing
+
+When adapting an existing receiver to another GNU Radio version, compare the working and replacement signal chains before reconstructing or substituting blocks. Verify sample rates, resampling, channel offsets, filter placement and bandwidth, carrier synchronization, timing recovery, demodulation, and framing. Inspect the actual installed block implementations and configuration rather than assuming that reference flow graphs behave identically across versions.
+
+For acquisition problems, distinguish RF tuning errors from signal-processing failures. Use representative recorded IQ and known-good transmitters to test initial acquisition, frequency-offset tolerance, short bursts, and reacquisition. Prefer correcting an identified signal-processing issue over introducing frequency sweeps, parallel decoders, or additional operator-facing parameters.
+
 ### Runtime Resolution
 
 Resolve the active GNU Radio maintenance version with the normal FISSURE library-version mechanism instead of hardcoding one version globally.
@@ -431,15 +441,19 @@ Loops should periodically yield to the event loop.
 
 Clean up subprocesses, GNU Radio top blocks, temporary handles, monitor modes, or similar resources in reliable cleanup paths, normally `finally` and/or the Operation teardown mechanism.
 
+When an Operation launches wrappers or child processes, ensure Stop cleans up the entire process hierarchy owned by that Operation, not only the immediate subprocess. Use scoped process groups or equivalent mechanisms where appropriate, without terminating unrelated processes.
+
+Cancellation must remain responsive while callbacks or message-processing tasks are busy. Test repeated start/stop cycles during active processing and verify that external processes exit, hardware resources are released, and subsequent Operations can reacquire the device.
+
 A Stop request targets the specific active Operation ID. Do not implement plugin Stop behavior by stopping every Operation on the Sensor Node or every Operation in the plugin.
 
 The Sensor Node runner owns Operation registration, finalization, teardown sequencing, and removal from the active-operation registry.
 
-Use `status_callback` for useful Operation progress, but do not create a parallel started/stopped lifecycle protocol. Be careful about forcing a global-looking `Idle` status from one Operation when other Operations may still be active; the Sensor Node runner owns the overall idle transition after the last active Operation completes.
+Use `status_callback` for useful Operation progress, but do not create a parallel started/stopped lifecycle protocol inside a plugin. The Sensor Node runner publishes lifecycle events; each UI workflow is responsible for correlating the unique Operation ID. Be careful about forcing a global-looking `Idle` status from one Operation when other Operations may still be active; the Sensor Node runner owns the overall idle transition after the last active Operation completes.
 
 ### Completion, Failure, and Artifact Outcomes
 
-Distinguish completed, interrupted, and failed runs in operator-visible status where the existing framework supports it and in result metadata. Avoid requiring the operator to open a diagnostic JSON file just to learn the reason an Action failed: include a concise actionable error in the available status path, while preserving the original tool output and context in logs or a diagnostic Artifact. Inspect current status callback semantics and the Sensor Node Operation wrapper; raising an exception may be caught and logged without automatically surfacing an operator-visible failure.
+Distinguish completed, interrupted, and failed runs in operator-visible status where the existing framework supports it and in result metadata. Avoid requiring the operator to open a diagnostic JSON file just to learn the reason an Action failed: include a concise actionable error in the available status path, while preserving the original tool output and context in logs or a diagnostic Artifact. Inspect current status callback semantics and the Sensor Node Operation wrapper; propagate unexpected run exceptions so the Sensor Node finalizer can report a `Failed` lifecycle state instead of incorrectly reporting `Completed`.
 
 Check required result operations for success. For example, `Operation.create_artifact(...)` can return an empty identifier instead of raising an exception. If an Artifact is an expected deliverable, verify registration and report its failure using existing mechanisms. A partial or failed run must not be presented as fully successful. Keep cancellation distinct from failure and always clean up subprocesses and hardware resources.
 
